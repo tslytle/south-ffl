@@ -401,31 +401,6 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
    scrolling under reduced-motion too (hovering still pauses it). */
 @media print{.ticker{display:none}}
 
-/* ── Moment from the archive ──────────────────────────────────────────
-   One Record Book card, surfaced on the masthead before a reader has
-   scrolled anywhere. Picked by the day (so everyone sees the same one
-   on a given date, and it changes daily on its own), with a manual
-   reshuffle for anyone who wants to keep browsing. Reuses .rec-card's
-   look-and-feel one level up in scale, so it reads as "the best of
-   what's below" rather than a new, unrelated component. */
-.archive-pick{margin-top:26px}
-.archive-pick .eyebrow{text-align:center}
-.archive-card{display:block;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
-  padding:22px 26px;box-shadow:inset 3px 0 0 var(--gold),var(--sh);text-decoration:none;
-  transition:box-shadow .2s ease,transform .2s ease}
-.archive-card:hover{box-shadow:inset 3px 0 0 var(--gold),var(--sh-lg);transform:translateY(-1px)}
-/* A kicker, not a heading — an h3 here sat between the h1 and the first
-   h2 and broke the document outline for screen-reader navigation. */
-.archive-card .archive-kicker{font-size:var(--t-tiny);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
-.archive-card .archive-big{font-family:var(--serif);font-size:var(--t-h3);font-weight:600;line-height:1.15;margin:0 0 3px;color:var(--ink);letter-spacing:-.015em}
-.archive-card .archive-sub{font-size:var(--t-fine);color:var(--faint);margin:0 0 10px;line-height:1.4}
-.archive-card .archive-p{margin:0;font-size:var(--t-body);color:var(--body);line-height:1.55;max-width:60ch}
-.archive-card .archive-p .stat{font-weight:700;color:var(--ink)}
-.archive-card .picklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:3px 14px;margin-top:2px}
-.archive-more{display:block;margin:12px auto 0;font-size:var(--t-fine);font-weight:600;color:var(--muted);
-  background:none;border:0;cursor:pointer;padding:4px 8px;transition:color .15s}
-.archive-more:hover{color:var(--accent)}
-@media print{.archive-pick{display:none}}
 
 /* sections */
 /* Top-level sections need to out-space the nested boards inside them
@@ -2416,7 +2391,6 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   <div class="figures" id="figures"></div>
 </header>
 <div class="ticker" id="ticker" role="marquee" aria-label="Team names through league history"></div>
-<div class="archive-pick" id="archivePick"></div>
 
 <div class="allctl"><button data-all="1">Expand all</button><button data-all="0">Collapse all</button><button id="printBtn" type="button">Download as PDF</button></div>
 <section id="ahead"><details class="sect" open><summary class="sechead"><div><p class="eyebrow">Next up</p><h2 class="sec">The 2026 Season</h2>
@@ -8042,64 +8016,6 @@ let HINDSIGHT = null;      /* handed to the record book further down */
   }
 
   paintBook();
-})();
-
-/* ── Moment from the archive ──────────────────────────────────────────
-   cards is fully built by now — every push() above this point,
-   including the trade/wire/hindsight records parsed just above, has
-   already run. Picking by the day of the epoch rather than Math.random()
-   means the pick is the same for everyone who visits on a given date
-   and changes tomorrow on its own; the button beneath it hands control
-   to anyone who wants to skip ahead. */
-(function(){
-  const el = document.getElementById("archivePick");
-  if(!el || !cards.length) return;
-  const day = Math.floor(Date.now() / 86400000);
-  let idx = ((day % cards.length) + cards.length) % cards.length;
-  function render(){
-    const [h, big, sub, para] = cards[idx];
-    el.innerHTML = `<p class="eyebrow">Moment from the archive</p>
-      <a class="archive-card" href="#records">
-        <p class="archive-kicker">${h}</p>
-        <div class="archive-big">${esc(big)}</div>
-        <div class="archive-sub">${sub}</div>
-        <p class="archive-p">${para}</p>
-      </a>
-      <button type="button" class="archive-more" id="archiveMore">Another one &rarr;</button>`;
-    const more = document.getElementById("archiveMore");
-    if(more) more.addEventListener("click", () => {
-      let next = idx;
-      while(next === idx && cards.length > 1) next = Math.floor(Math.random() * cards.length);
-      idx = next;
-      swap();
-    });
-  }
-  /* A soft swap: the old card eases out, the new one rises in, and the
-     container's height glides between the two sizes so nothing jumps. */
-  el.style.transition = "opacity .3s ease, transform .3s ease, height .4s ease";
-  const swap = () => {
-    const h0 = el.offsetHeight;
-    el.style.opacity = 0; el.style.transform = "translateY(4px)";
-    setTimeout(() => {
-      render();
-      el.style.overflow = "hidden"; el.style.height = h0 + "px";
-      const h1 = el.scrollHeight;
-      requestAnimationFrame(() => {
-        el.style.height = h1 + "px";
-        el.style.opacity = 1; el.style.transform = "translateY(0)";
-        setTimeout(() => { el.style.height = ""; el.style.overflow = ""; }, 420);
-      });
-    }, 200);
-  };
-  render();
-  /* Turns itself every five seconds; hovering or focusing holds the card. */
-  setInterval(() => {
-    if(el.matches(":hover") || el.contains(document.activeElement)) return;
-    let next = idx;
-    while(next === idx && cards.length > 1) next = Math.floor(Math.random() * cards.length);
-    idx = next;
-    swap();
-  }, 5000);
 })();
 
 
