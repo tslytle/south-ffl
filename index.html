@@ -633,7 +633,7 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .drlegend i.lg-tier{background:var(--accent2, var(--accent-dk))}
 .drlegend i.lg-cliff{background:var(--gold)}
 .drlegend i.lg-value{background:var(--pos)}
-.drlegend i.lg-reach{background:#B23A3A}
+.drlegend i.lg-reach{background:var(--neg)}
 .drdivsel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 .drdivsel button{padding:5px 12px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--surface);
   color:var(--muted);font-size:var(--t-tiny);font-weight:700;cursor:pointer}
@@ -657,12 +657,12 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .drrow .drname:hover{text-decoration:underline}
 .drrow .drname.empty{color:var(--faint);pointer-events:none}
 .drrow .drteamabbr{color:var(--faint);font-size:10px}
-.drrow .drrank{color:var(--gold, #AD7A16);font-weight:700;font-size:10px;width:28px;text-align:right}
+.drrow .drrank{color:var(--muted);font-weight:700;font-size:var(--t-tiny);width:28px;text-align:right}
 .drrow .dradp{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
   color:var(--muted);font-variant-numeric:tabular-nums}
 .drrow .dradelta{padding:1px 5px;border-radius:var(--r-sm);font-size:var(--t-micro);letter-spacing:.02em}
 .drrow .dradelta-value{color:var(--pos);background:var(--accent-soft)}
-.drrow .dradelta-reach{color:#B23A3A;background:rgba(178,58,58,.12)}
+.drrow .dradelta-reach{color:var(--neg);background:var(--rust-soft)}
 .drsecs{columns:3 260px;column-gap:18px}
 .drsec{break-inside:avoid;margin-bottom:18px}
 .drsec-hd{background:var(--raise);color:var(--accent);font-size:var(--t-tiny);font-weight:700;
@@ -1089,6 +1089,9 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .sshow b{color:var(--ink)}
 .sshow .egg{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700;color:var(--pos);
   background:var(--accent-soft);border-radius:var(--r-pill);padding:1px 6px}
+/* A chip's right padding leaves a following comma or period floating away
+   from it; pull the punctuation back so it reads as one phrase. */
+.sshow .egg + .punct{margin-left:-4px}
 /* A worked example does more than another sentence of definition. */
 .ssex{margin:12px 0 4px;padding:13px 15px;background:var(--raise);border-radius:var(--r-sm);
   border:1px solid var(--soft);font-size:var(--t-fine);line-height:1.7}
@@ -1858,12 +1861,14 @@ table.h2 td.ev{color:var(--faint)}
    downward, which keeps the "this went that way" reading intact. */
 .trsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));
   gap:10px;margin:0 2px 20px}
-.trsum div{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
-  padding:14px 16px;box-shadow:var(--sh)}
-.trsum span{display:block;font-size:var(--t-micro);font-weight:700;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--accent)}
+/* Same tile recipe as the hero figures, Rules glance and Start & Sit:
+   accent rule on top, the number first, its label beneath. */
+.trsum div{background:var(--surface);border:1px solid var(--line);border-top:2px solid var(--accent);
+  border-radius:var(--r-md);padding:14px 16px;text-align:center;box-shadow:var(--sh)}
 .trsum b{display:block;font-family:var(--serif);font-size:var(--t-h3);font-weight:700;
-  color:var(--ink);line-height:1.05;letter-spacing:-.015em;margin-top:7px}
+  color:var(--ink);line-height:1.05;letter-spacing:-.015em}
+.trsum span{display:block;font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);margin-top:5px}
 .trsum em{display:block;font-style:normal;font-size:var(--t-fine);color:var(--muted);margin-top:4px}
 
 #tryears{padding-bottom:8px}
@@ -1978,7 +1983,7 @@ table.h2 td.ev{color:var(--faint)}
   .wkbar button{min-width:34px;padding:8px 5px}
 }
 
-footer{margin-top:44px;padding:22px 2px 64px;border-top:2px solid var(--accent);position:relative;color:var(--muted);font-size:var(--t-small)}
+footer{margin-top:52px;padding:26px 2px 64px;border-top:1px solid var(--line);position:relative;color:var(--muted);font-size:var(--t-small)}
 footer::before{content:none}
 footer p{margin:0;max-width:none}
 footer .footeyebrow{font-family:var(--sans);font-size:var(--t-tiny);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 16px}
@@ -2100,7 +2105,11 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
   /* the grade cell is right-aligned on desktop; on a card it must not be */
   .ledger tbody td .gradepick,.ledger tbody td .gradepick b,.ledger tbody td .gradepick i{text-align:left}
   .ledger tbody td .podcell,.ledger tbody td .pod{text-align:left}
-  .stand td[data-l]::before,.ledger tbody td[data-l]::before{content:attr(data-l);display:block;font-size:var(--t-micro);
+  /* Two lines' worth of room whether the label needs it or not, so a
+     wrapping label ("Reg season") doesn't push its value below the ones
+     beside it — every figure in the row sits on the same line. */
+  .stand td[data-l]::before,.ledger tbody td[data-l]::before{content:attr(data-l);display:flex;align-items:flex-start;
+    min-height:2.4em;font-size:var(--t-micro);
     font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:1px}
   .stand td[data-l=""]::before,.ledger td[data-l=""]::before{content:none}
   /* identity block: logo left, name/team/tag/buttons stacked beside it */
@@ -2543,7 +2552,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
         <div><span>You trade for a backup QB who never starts. With him <b>121.0</b>, without him <b>121.0</b>.</span><b class="meh">+0.0</b></div>
       </div></li>
     <li><b>The haul is judged as a whole,</b> not man by man. Two running backs fighting over the same FLEX spot are worth one upgrade, not two.</li>
-    <li><b>A verdict needs a real gap.</b> <span class="twon">Won</span> and <span class="twon tlost">Lost</span> only appear when one side clearly got more: at least <span class="egg">8 extra points</span>, <em>and</em> a gap that&rsquo;s big next to the size of the deal &mdash; <span class="egg">12%</span> of the larger side. Ten points decides a twenty-point trade; on a three-hundred-point one it&rsquo;s noise. Anything closer is a coin toss and gets no tag.</li>
+    <li><b>A verdict needs a real gap.</b> <span class="twon">Won</span> and <span class="twon tlost">Lost</span> only appear when one side clearly got more: at least <span class="egg">8 extra points</span><span class="punct">,</span> <em>and</em> a gap that&rsquo;s big next to the size of the deal &mdash; <span class="egg">12%</span> of the larger side. Ten points decides a twenty-point trade; on a three-hundred-point one it&rsquo;s noise. Anything closer is a coin toss and gets no tag.</li>
     <li><b>Injury cover gets no verdict.</b> Where either manager was patching a hole he didn&rsquo;t choose, the numbers stand but the deal is tagged <span class="twon tpatch">Damage control</span> instead &mdash; nobody is credited with beating a man who had no choice.</li>
     <li><b>A traded pick is judged by the man taken with it.</b> Pick swaps are read straight off the draft board and reach back to 2014.</li>
     <li><b>Coverage:</b> player trades need week-by-week rosters, so they run from 2018. 2017&rsquo;s deals are rebuilt from starting lineups &mdash; they name the players but can&rsquo;t price them.</li>
@@ -2580,7 +2589,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
         <div><span>Your QB scores <b>20.4</b>. Best free QB scored <b>18.6</b>.</span><b class="meh">+1.8 extra</b></div>
       </div>
       Same twenty points on the scoreboard, wildly different weeks. Add up a season and that&rsquo;s the number on the card.</li>
-    <li><b>Which free agent?</b> In a normal week the twelve teams start about <span class="egg">12 QBs, 29 RBs, 31 WRs and 12 TEs</span>. So line the running backs up by what they scored that week: the top 29 were in somebody&rsquo;s lineup, and <b>number 30 was not</b>. He&rsquo;s the one anybody could have had.</li>
+    <li><b>Which free agent?</b> In a normal week the twelve teams start about <span class="egg">12 QBs, 29 RBs, 31 WRs and 12 TEs</span><span class="punct">.</span> So line the running backs up by what they scored that week: the top 29 were in somebody&rsquo;s lineup, and <b>number 30 was not</b>. He&rsquo;s the one anybody could have had.</li>
     <li><b>Left out:</b> kickers, defenses and trades &mdash; trades are judged in their own section above, against a different yardstick. And a draft pick only counts as a steal if the manager kept the player &mdash; Adam drafted Justin Jefferson in 2020, cut him, then claimed him back in week 4, so that&rsquo;s one of the best <em>pickups</em> on record rather than one of the best picks.</li>
   </ul>
   </div></details>
@@ -3124,7 +3133,7 @@ owners.sort((a,b) => b.p[0]-a.p[0] || b.p[1]-a.p[1] || b.p[2]-a.p[2] || b.w-a.w 
 /* ---- masthead figures ---- */
 const champSet = new Set(SEASONS.map(s => OWNER_OF[s.t[0][0]]));
 document.getElementById("figures").innerHTML = [
-  [SEASONS.length,"Seasons played"],[champSet.size,"Different champions"],[owners.length,"Owners all-time"]
+  [SEASONS.length,"Seasons played"],[champSet.size,"Different champions"],[owners.length,"Owners all‑time"]
 ].map(([b,t]) => `<div class="fig"><b class="num">${b}</b><span>${t}</span></div>`).join("");
 
 /* ---- masthead avatar row ────────────────────────────────────────────
@@ -7557,12 +7566,12 @@ let TRADE_DEALS = [];      /* handed to the record book further down */
   const years = Object.keys(perYear).map(Number).sort((a, b) => b - a);
   const box = document.getElementById("trsum");
   if(box) box.innerHTML =
-    `<div><span>Deals</span><b>${all.length}</b><em>${years[years.length-1]}&ndash;${years[0]}</em></div>` +
-    `<div><span>Players moved</span><b>${players}</b><em>across ${inSeason.length} in-season deals</em></div>` +
-    (rebuilt.length ? `<div><span>Rebuilt from lineups</span><b>${rebuilt.length}</b><em>2017, starters only</em></div>` : "") +
-    `<div><span>Picks traded</span><b>${picksMoved}</b><em>across ${preDraft.length} draft-day deals</em></div>` +
-    `<div><span>Busiest season</span><b>${busyYear[0]}</b><em>${busyYear[1]} deals</em></div>` +
-    `<div><span>Most active</span><b>${esc(busyMgr[0].split(" ")[0])}</b><em>${busyMgr[1]} deals</em></div>`;
+    `<div><b>${all.length}</b><span>Deals</span><em>${years[years.length-1]}&ndash;${years[0]}</em></div>` +
+    `<div><b>${players}</b><span>Players moved</span><em>across ${inSeason.length} in-season deals</em></div>` +
+    (rebuilt.length ? `<div><b>${rebuilt.length}</b><span>Rebuilt from lineups</span><em>2017, starters only</em></div>` : "") +
+    `<div><b>${picksMoved}</b><span>Picks traded</span><em>across ${preDraft.length} draft-day deals</em></div>` +
+    `<div><b>${busyYear[0]}</b><span>Busiest season</span><em>${busyYear[1]} deals</em></div>` +
+    `<div><b>${esc(busyMgr[0].split(" ")[0])}</b><span>Most active</span><em>${busyMgr[1]} deals</em></div>`;
 
   /* ---- filters ---- */
   let fy = "all", fm = "all";
