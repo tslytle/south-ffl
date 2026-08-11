@@ -390,17 +390,15 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
 .ticker::before,.ticker::after{content:"";position:absolute;top:0;bottom:0;width:36px;z-index:2;pointer-events:none}
 .ticker::before{left:0;background:linear-gradient(90deg,var(--surface),transparent)}
 .ticker::after{right:0;background:linear-gradient(-90deg,var(--surface),transparent)}
-.ticker-track{display:flex;width:max-content;align-items:center;animation:tickerscroll 46s linear infinite}
+.ticker-track{display:flex;width:max-content;align-items:center;animation:tickerscroll 160s linear infinite}
 .ticker:hover .ticker-track,.ticker:focus-within .ticker-track{animation-play-state:paused}
 .ticker-item{display:inline-flex;align-items:baseline;gap:8px;padding:10px 22px;white-space:nowrap;
   font-family:var(--mono);font-size:var(--t-small);color:var(--body);letter-spacing:.01em}
 .ticker-item b{font-family:var(--mono);color:var(--accent);font-weight:700}
 .ticker-dot{color:var(--accent);font-size:8px;opacity:.7}
 @keyframes tickerscroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media (prefers-reduced-motion:reduce){
-  .ticker-track{animation:none;overflow-x:auto;scrollbar-width:thin}
-  .ticker::before,.ticker::after{display:none}
-}
+/* The ticker is the one deliberate motion on the page — it keeps
+   scrolling under reduced-motion too (hovering still pauses it). */
 @media print{.ticker{display:none}}
 
 /* ── Moment from the archive ──────────────────────────────────────────
@@ -423,6 +421,7 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
 .archive-card .archive-sub{font-size:var(--t-fine);color:var(--faint);margin:0 0 10px;line-height:1.4}
 .archive-card .archive-p{margin:0;font-size:var(--t-body);color:var(--body);line-height:1.55;max-width:60ch}
 .archive-card .archive-p .stat{font-weight:700;color:var(--ink)}
+.archive-card .picklist{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:3px 14px;margin-top:2px}
 .archive-more{display:block;margin:12px auto 0;font-size:var(--t-fine);font-weight:600;color:var(--muted);
   background:none;border:0;cursor:pointer;padding:4px 8px;transition:color .15s}
 .archive-more:hover{color:var(--accent)}
@@ -8072,10 +8071,35 @@ let HINDSIGHT = null;      /* handed to the record book further down */
       let next = idx;
       while(next === idx && cards.length > 1) next = Math.floor(Math.random() * cards.length);
       idx = next;
-      render();
+      swap();
     });
   }
+  /* A soft swap: the old card eases out, the new one rises in, and the
+     container's height glides between the two sizes so nothing jumps. */
+  el.style.transition = "opacity .3s ease, transform .3s ease, height .4s ease";
+  const swap = () => {
+    const h0 = el.offsetHeight;
+    el.style.opacity = 0; el.style.transform = "translateY(4px)";
+    setTimeout(() => {
+      render();
+      el.style.overflow = "hidden"; el.style.height = h0 + "px";
+      const h1 = el.scrollHeight;
+      requestAnimationFrame(() => {
+        el.style.height = h1 + "px";
+        el.style.opacity = 1; el.style.transform = "translateY(0)";
+        setTimeout(() => { el.style.height = ""; el.style.overflow = ""; }, 420);
+      });
+    }, 200);
+  };
   render();
+  /* Turns itself every five seconds; hovering or focusing holds the card. */
+  setInterval(() => {
+    if(el.matches(":hover") || el.contains(document.activeElement)) return;
+    let next = idx;
+    while(next === idx && cards.length > 1) next = Math.floor(Math.random() * cards.length);
+    idx = next;
+    swap();
+  }, 5000);
 })();
 
 
