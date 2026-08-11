@@ -472,7 +472,7 @@ details.sub > summary::-webkit-details-marker{display:none}
 details.sub > summary:hover .ssh{color:var(--accent)}
 details.sub > summary > div{min-width:0}
 details.sub .ssh{margin:0}
-details.sub .subnote{font-size:var(--t-small);color:var(--muted);margin:3px 0 0;line-height:1.55;max-width:76ch}
+details.sub .subnote{font-size:var(--t-base);color:var(--muted);margin:3px 0 0;line-height:1.55;max-width:76ch}
 .chev-s{flex:none;box-sizing:border-box;width:20px;height:20px;border:1px solid var(--line);
   border-radius:50%;position:relative;background:var(--surface);align-self:center;
   transition:transform .18s ease,border-color .15s}
@@ -1098,7 +1098,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .ssfig b{display:block;font-family:var(--serif);font-size:var(--t-h3);font-weight:700;color:var(--ink);line-height:1.05}
 .ssfig span{display:block;font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:5px}
 .ssh{font-family:var(--serif);font-size:var(--t-h4);font-weight:600;color:var(--ink);margin:0 0 6px;letter-spacing:-.01em}
-.ssnote{font-size:var(--t-small);color:var(--muted);margin:0 0 22px;line-height:1.6;max-width:76ch}
+.ssnote{font-size:var(--t-base);color:var(--muted);margin:0 0 22px;line-height:1.6;max-width:76ch}
 /* The section's method used to live in three dense paragraphs nobody read.
    It's four short rules now, boxed off so it reads as a key rather than prose.
    Each rule gets real air between it and the next — nine px read as one
@@ -1106,7 +1106,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
    marker in place of a plain disc gives the box a little personality
    without turning it into decoration. */
 .sshow{margin:0 0 26px;padding:22px 24px 22px 22px;background:var(--surface);
-  border:1px solid var(--line);border-radius:var(--r-md);font-size:var(--t-small);
+  border:1px solid var(--line);border-radius:var(--r-md);font-size:var(--t-base);
   color:var(--body);line-height:1.65;max-width:76ch;list-style:none}
 .sshow li{margin:0 0 18px;padding-left:20px;position:relative}
 .sshow li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;
@@ -1826,7 +1826,7 @@ table.h2 td.self{background:var(--soft)}
 table.h2 td.up{background:var(--accent-soft);color:var(--ink);font-weight:700}
 table.h2 td.dn{background:var(--rust-soft);color:var(--neg)}
 table.h2 td.ev{color:var(--faint)}
-.h2note{font-size:var(--t-small);color:var(--muted);margin:0 2px 12px}
+.h2note{font-size:var(--t-base);color:var(--muted);margin:0 2px 12px}
 .h2legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 2px 10px;font-size:var(--t-tiny);color:var(--muted)}
 .h2legend span{display:inline-flex;align-items:center;gap:6px}
 .h2legend i{display:inline-block;width:10px;height:10px;border-radius:3px;flex:0 0 auto}
@@ -2450,7 +2450,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   </a>
 
   <h4 class="ssh dnh">Cheat sheets</h4>
-  <p class="ssnote dnnote">ESPN&rsquo;s 2026 draft kit &mdash; depth charts, positional rankings with rough tiers and ADP value calls, and every team&rsquo;s bye week, built right into the page so they open with or without a connection. Every player name links to their page on ESPN. Rankings and ADP were captured <b>August 10</b> &mdash; camp battles and preseason injuries will move the later rounds between now and draft night.</p>
+  <p class="ssnote dnnote">ESPN&rsquo;s 2026 draft kit &mdash; depth charts, rankings by position, and every team&rsquo;s bye week, built right into the page so they open with or without a connection. ADP is a player&rsquo;s <b>average draft position</b>: the pick he usually goes at across thousands of real drafts. Every player name links to their page on ESPN. Rankings and ADP were captured <b>August 10</b> &mdash; camp battles and preseason injuries will move the later rounds between now and draft night.</p>
   <div class="drtabs" id="drtabs">
     <button class="on" data-dr="depth">Depth Charts</button>
     <button data-dr="league">By Position</button>
@@ -2490,7 +2490,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   <div class="awardswall" id="awardswall"></div>
 </div></details></section>
 <section id="owners"><details class="sub"><summary class="subhead"><div><p class="eyebrow">All-time</p><h3 class="sec2">The Ledger</h3>
-  <p class="subnote">Regular season and playoff records are kept separate. In the Post column, a first-round bye counts as a win, so a manager&rsquo;s playoff record here can differ from their head-to-head playoff record, which only counts games actually played. Select a name to follow that manager through every season below.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Regular season and playoff records are kept separate. The Post column counts only playoff games actually played &mdash; a first-round bye is a reward for the seed, not a win in the record. Select a name to follow that manager through every season below.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div class="spotbar" id="spotbar"></div>
   <div class="card"><p class="swipe">Swipe the table sideways for more columns &rarr;</p><div class="tw"><table class="ledger" id="ownertable"></table></div></div>
   <div id="ledgerera"></div>
@@ -2505,7 +2505,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   <div id="seasonlist" style="padding:14px 16px 16px"></div></div>
 </div></details></section>
 <section id="matchups"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every game</p><h3 class="sec2">Matchups</h3>
-  <p class="subnote">Every game ever played. Pick a season, then tap any matchup to open the head-to-head boxscore &mdash; both lineups with each player&rsquo;s points. From 2018 that means starters, bench and a full stat line for every man. For 2014&ndash;2017 ESPN keeps only the starters, and only where they still add up to the score it recorded &mdash; all of 2017, about two thirds of the three seasons before it.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every game ever played. Pick a season, then tap any matchup to open the head-to-head boxscore &mdash; both lineups with each player&rsquo;s points. From 2018 that means starters, bench and a full stat line for every man. For 2014&ndash;2017 ESPN keeps only the starters, and only where they still add up to the score it recorded &mdash; every 2017 game passes that check, and about two of every three from 2014&ndash;2016.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div class="msticky">
     <div class="rpick" id="myears"></div>
     <div class="wkbar mwkbar" id="mweeks"></div>
@@ -2564,17 +2564,17 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   <details class="sub" open><summary><div><h4 class="ssh">How trades are judged</h4>
     <p class="subnote">One idea, one example. Thirty seconds.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <ul class="sshow">
-    <li><b>Every side is scored in extra lineup points.</b> For each week a manager held his haul: the best lineup his roster could field, minus the best it could field without the players he received. Add the weeks up and that&rsquo;s his number.
+    <li><b>Every side is scored in extra lineup points.</b> Each week he held the players, take the best lineup his roster could field &mdash; then take it again without them. The gap is what the trade earned him that week. Add the weeks up and that&rsquo;s his number.
       <div class="ssex">
         <div><span>You trade for a WR2 you needed. Best lineup with him <b>128.4</b>, without him <b>117.9</b>.</span><b class="win">+10.5 that week</b></div>
         <div><span>You trade for a backup QB who never starts. With him <b>121.0</b>, without him <b>121.0</b>.</span><b class="meh">+0.0</b></div>
       </div></li>
     <li><b>The haul is judged as a whole,</b> not man by man. Two running backs fighting over the same FLEX spot are worth one upgrade, not two.</li>
-    <li><b>A verdict needs a real gap.</b> <span class="twon">Won</span> and <span class="twon tlost">Lost</span> only appear when the gap between the two sides clears <span class="egg">8 extra points</span> <em>and</em> <span class="egg">12%</span> of the bigger haul &mdash; ten points apart on a twenty-point deal is decisive, on a three-hundred-point deal it&rsquo;s noise. Anything closer is a coin toss and gets no tag.</li>
+    <li><b>A verdict needs a real gap.</b> <span class="twon">Won</span> and <span class="twon tlost">Lost</span> only appear when one side clearly got more: at least <span class="egg">8 extra points</span>, <em>and</em> a gap that&rsquo;s big next to the size of the deal &mdash; <span class="egg">12%</span> of the larger side. Ten points decides a twenty-point trade; on a three-hundred-point one it&rsquo;s noise. Anything closer is a coin toss and gets no tag.</li>
     <li><b>Injury cover gets no verdict.</b> Where either manager was patching a hole he didn&rsquo;t choose, the numbers stand but the deal is tagged <span class="twon tpatch">Damage control</span> instead &mdash; nobody is credited with beating a man who had no choice.</li>
     <li><b>A traded pick is judged by the man taken with it.</b> Pick swaps are read straight off the draft board and reach back to 2014.</li>
     <li><b>Coverage:</b> player trades need week-by-week rosters, so they run from 2018. 2017&rsquo;s deals are rebuilt from starting lineups &mdash; they name the players but can&rsquo;t price them.</li>
-    <li><b>Mind the yardstick.</b> This is a <em>different</em> measure than Steals &amp; Busts below: there a player is scored against the best free agent at his position; here a haul is scored against your own roster. That&rsquo;s deliberate &mdash; a trade is only worth what it changed for <em>you</em>.</li>
+    <li><b>Mind the yardstick.</b> This is a <em>different</em> measure than Steals &amp; Busts below: Steals &amp; Busts asks how a player compared with the best free agent at his position. A trade asks something different &mdash; how much better <em>your own lineup</em> actually got. That&rsquo;s deliberate: a trade is only worth what it changed for you.</li>
   </ul>
   </div></details>
 
@@ -2613,12 +2613,12 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   </div></details>
 
   <details class="sub" open><summary><div><h4 class="ssh">From the draft</h4>
-    <p class="subnote">Where a player was taken at his position against where he finished. Three names per position, so the board isn&rsquo;t all quarterbacks.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+    <p class="subnote">Counted within his position &mdash; a back taken as the twelfth RB off the board who finishes the year as the RB3 climbed nine spots. Three names per position, so the board isn&rsquo;t all quarterbacks.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div id="dvlist"></div>
   </div></details>
 
   <details class="sub" open><summary><div><h4 class="ssh">From the waiver wire</h4>
-    <p class="subnote">A pickup gets credit for what he did on your roster. A drop gets charged with everything he did afterwards, for anybody.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+    <p class="subnote">A pickup gets credit for what he scored while you kept him. A drop gets charged with everything he scored for other teams after you let him go &mdash; and claiming him back stops the bleeding, because from then on he&rsquo;s scoring for you again.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div id="wvlist"></div>
   </div></details>
 
@@ -2652,7 +2652,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   <div class="footnote"><span class="fn">Source</span><p>The league's final standings, season stats and playoff pages, 2014&ndash;2025. Rank is final placement after the playoffs.</p></div>
   <div class="footnote"><span class="fn">The Alma &amp; The Emily</span><p>The championship game is the Alma Bowl, and its winner takes The Alma. The Emily Bowl settles last place, and its Emily Bowl Champion takes The Emily.</p></div>
   <div class="footnote"><span class="fn">Format</span><p>Ten teams over 13 games in 2014&ndash;2015, twelve teams from 2016, and 14 games from 2021. Teams are grouped by the manager behind them, so a rebrand does not start a new franchise.</p></div>
-  <div class="footnote"><span class="fn">Records</span><p>Only Winner&rsquo;s bracket games count toward playoff records and the record book; the consolation ladders settle placement only. A first-round bye counts as a win. Regular-season win&ndash;loss, points, differential, moves and splits cover all twelve seasons; the 2014 and 2015 figures are rebuilt from the league&rsquo;s own weekly scores and season records. Playoff win&ndash;loss covers the seasons with a bracket on file.</p></div>
+  <div class="footnote"><span class="fn">Records</span><p>Only Winner&rsquo;s bracket games count toward playoff records and the record book; the consolation ladders settle placement only. A first-round bye is not counted as a playoff game. Regular-season win&ndash;loss, points, differential, moves and splits cover all twelve seasons; the 2014 and 2015 figures are rebuilt from the league&rsquo;s own weekly scores and season records. Playoff win&ndash;loss covers the seasons with a bracket on file.</p></div>
   <div class="footnote"><span class="fn">Seasons before 2018</span><p>ESPN keeps no bench for 2014&ndash;2017, but still holds the starting lineup and each starter&rsquo;s points for every matchup period. A team-week is only shown where those starters reconcile to the score on the scoreboard &mdash; <b>524 of 696 do</b>, and all but one of those to the point. The rest come back truncated and are left out. Because there is no bench, those seasons cannot feed Start &amp; Sit or the waiver wire.</p></div>
   <div class="footnote"><span class="fn">Opponents</span><p>Each line shows the club a player was on that week and who they faced, taken from <a href="https://github.com/nflverse/nfldata" target="_blank" rel="noopener noreferrer">nflverse</a>&rsquo;s schedule and weekly rosters. The league export stores only one club per player &mdash; the one he finished at &mdash; which was wrong for <b>1,732 of 20,996 player-weeks</b>, so the club shown here is the one he actually played for. Where that can&rsquo;t be established the row falls back to the export&rsquo;s own code and no fixture is printed.</p></div>
   <div class="footnote"><span class="fn">Player links</span><p>Every player name opens his game log for that season on Pro-Football-Reference, and a team defense opens that club&rsquo;s schedule for the year. One line at the top of the script (<code>LINK_TO</code>) switches the whole page to ESPN instead. The league export carries no external id, so the ids were matched in from <a href="https://github.com/nflverse/nflverse-data" target="_blank" rel="noopener noreferrer">nflverse</a>&rsquo;s public player table and pinned down by position and by the seasons each man was actually rostered here &mdash; which is what separates one Steve Smith from another. All 1,361 names in the archive resolve, on both sites.</p></div>
@@ -3113,17 +3113,30 @@ const prec = (y,team) => (PREC[y] || {})[team] || null;
 /* ---- aggregate by owner ---- */
 const O = {};
 const chrono = [...SEASONS].sort((a,b) => a.y - b.y);
+/* League-average points per game, per season — the yardstick that makes
+   scoring comparable across eras. 2014-2020 standard scoring ran far
+   below 2021+ half-PPR, so a career PF/G blends two currencies; each
+   season measured against its own league average does not. */
+const LG_PPG = {};
+chrono.forEach(s => {
+  let pf = 0, g = 0;
+  s.t.forEach(row => { if(row.length > 3){ pf += row[3]; g += row[0] + row[1]; } });
+  if(g) LG_PPG[s.y] = pf / g;
+});
 chrono.forEach(s => s.t.forEach(([n,w,l],i) => {
   const o = OWNER_OF[n];
   const f = O[o] || (O[o] = {n:o,seasons:0,w:0,l:0,pw:0,pl:0,papp:0,p:[0,0,0],best:99,bestYr:null,
-                             names:[],titleYears:[],g:0,pf:0,pa:0,mv:0,mvSeasons:0,mvGames:0});
+                             names:[],titleYears:[],g:0,pf:0,pa:0,mv:0,mvSeasons:0,mvGames:0,relPf:0,relG:0});
   f.seasons++; f.w += w; f.l += l;
   const src = s.t[i];
   /* Points and roster moves both reach back to 2014. The two are still
      tracked separately below because a season row can carry one field
      without the other (src[3]/[4] for points, src[5] for moves), not
      because their coverage differs. */
-  if(src.length > 3){ f.g += w + l; f.pf += src[3]; f.pa += src[4]; }
+  if(src.length > 3){ f.g += w + l; f.pf += src[3]; f.pa += src[4];
+    /* era-relative: this season's points expressed in games-worth of that
+       season's league-average scoring (1.00/game = exactly average) */
+    if(LG_PPG[s.y]){ f.relPf += src[3] / LG_PPG[s.y]; f.relG += w + l; } }
   if(src.length > 5 && src[5] != null){ f.mv += src[5]; f.mvSeasons++; f.mvGames += w + l; }
   const pr = prec(s.y, n);
   if(pr){ f.pw += pr[0]; f.pl += pr[1]; f.papp++; }
@@ -5182,6 +5195,12 @@ function pfMetrics(){
   const K_GAME = 26, K_POST = 4, K_SEA = 3;
   const shrink = (made, n, mean, K) => (made + K * mean) / (n + K);
   const SSR = (typeof ssRates === "function") ? ssRates() : null;
+  /* league-average bench points left per week — the prior a thin
+     lineup sample is pulled toward, weighted by weeks on file */
+  let mLine = 0;
+  if(SSR){ let L = 0, W = 0;
+    Object.values(SSR).forEach(r => { L += r.per * r.weeks; W += r.weeks; });
+    mLine = W ? L / W : 0; }
 
   const rows = owners.map(o => {
     const gp = o.w + o.l;
@@ -5194,14 +5213,22 @@ function pfMetrics(){
       postPct: shrink(0.5 * o.papp + o.pw, o.seasons, mPostVal, K_POST),
       appRate: shrink(o.papp,  o.seasons, mApp, K_SEA),
       hardware:shrink(hwRaw,   o.seasons, mHw,  K_SEA),
-      ppg:     o.g ? o.pf / o.g : 0,
+      /* era-relative and regressed like the other rates: each season's
+         scoring measured against that season's league average (1.00 =
+         exactly average), then shrunk toward average over a 26-game
+         prior. Raw career PF/G still shows in the ledger — but ranking
+         half-PPR seasons against standard-scoring seasons at face value
+         handed every recent career a head start. */
+      ppg:     o.relG ? (o.relPf + K_GAME * 1) / (o.relG + K_GAME) : 0,
       /* moves are only on file from 2016, so the rate is per 14 games of
          those seasons — dividing by every game since 2014 would dilute it */
       moves:   o.mvGames ? o.mv / (o.mvGames / 14) : 0,
       diff:    o.g ? (o.pf - o.pa) / o.g : 0,
-      // lineup efficiency: fewer points left on the bench is better, so negate it
-      lineup:  (SSR && SSR[o.n] !== undefined) ? -SSR[o.n] : null,
-      hasLineup: !!(SSR && SSR[o.n] !== undefined),
+      /* lineup efficiency: fewer points left on the bench is better, so
+         negate it — and regress a thin sample toward the league rate,
+         same 26-week prior the sstable's own "short sample" flag implies */
+      lineup:  (SSR && SSR[o.n]) ? -((SSR[o.n].per * SSR[o.n].weeks + K_GAME * mLine) / (SSR[o.n].weeks + K_GAME)) : null,
+      hasLineup: !!(SSR && SSR[o.n]),
       // raw values, for display rather than ranking
       rawWin:  gp ? o.w / gp : 0,
       rawPost: pg ? o.pw / pg : 0,
@@ -5440,7 +5467,7 @@ function pfBuild(o){
   const barDefs = [
     ["Points / game"+ERA_MARK, "ppg", me.ppg, me.hasPts, ppg ? ppg + " per game" : ""],
     ["Win rate", "winPct", me.winPct, true, winPct + " percent"],
-    ["Playoff win rate", "postPct", me.postPct, pg > 0, postPct ? postPct + " percent" : "no winner's-bracket games"],
+    ["Playoff value", "postPct", me.postPct, pg > 0, postPct ? postPct + " percent won" : "no winner's-bracket games"],
     ["Roster moves", "moves", me.moves, me.hasPts, me.moves ? me.moves.toFixed(1) + " per season" : ""]
   ];
   const bars = barDefs.map(([lab, key, val, ok, sub]) => {
@@ -5556,7 +5583,7 @@ function pfBuild(o){
     bits.push(`They own <b>${esc(bestRiv.o)}</b> at ${bestRiv.w}&ndash;${bestRiv.l}, while <b>${esc(worstRiv.o)}</b> has had their number at ${worstRiv.l}&ndash;${worstRiv.w}.`);
   }
   if(!me.hasPts) bits.push(`Scoring, roster moves and draft records only begin in 2016, so parts of this profile are blank for these seasons.`);
-  if(o.seasons <= 2) bits.push(`With only ${o.seasons === 1 ? "one season" : o.seasons + " seasons"} on file, the rate stats behind the grade are pulled toward the league average &mdash; a short sample is not treated as proof.`);
+  if(o.seasons <= 2) bits.push(`With only ${o.seasons === 1 ? "one season" : o.seasons + " seasons"} on file, the grade leans toward the middle of the league &mdash; a hot start isn&rsquo;t yet treated as proof of a great manager.`);
   if(topPos) bits.push(`At the draft table they lean <b>${topPos[0]}</b> (${topPos[1]} career picks)${
     faveName ? `, and keep coming back to <b>${esc(faveName)}</b> &mdash; drafted ${faveCount} separate times` : ""}.`);
   const breakdown = bits.map(b => `<p>${b}</p>`).join("");
@@ -5582,7 +5609,7 @@ function pfBuild(o){
         ${pfIsGraded(o.n)
           ? `<div class="pfgrade"><b>${gradeOut}</b><span>Manager grade</span>
               <em class="pfgraderank">${ord(pfGradeRanks().rankOf[o.n])} of ${pfGradeRanks().count}</em>
-              <em class="pfgradewhy" title="Each axis is a percentile against the league, then weighted.">${
+              <em class="pfgradewhy" title="Each axis shows where this manager stands among the graded managers, and the grade blends them - the percentages are how much each part counts. Scoring is judged within each season, so the old and new scoring eras compare fairly, and short careers lean toward the middle rather than being judged on one hot year.">${
                 /* one span per axis instead of a middot-joined string: the
                    separators used to strand at the end of a wrapped line */
                 axes.slice().sort((a,b) => b.w - a.w)
@@ -5719,8 +5746,11 @@ function ssBuild(){
     const tag = (arr, slot) => arr.map(x => ({ ...x, slot }));
     let best = null;
     for(const flex of ["RB","WR","TE"]){
-      const nRB = 2 + (flex==="RB"), nWR = 2 + (flex==="WR"), nTE = 1 + (flex==="TE");
-      if(rb.length < nRB || wr.length < nWR || te.length < nTE) continue;
+      /* No feasibility guard: a roster short at a position simply fields
+         fewer players (slice takes what exists), which IS the best legal
+         lineup that roster could produce. The old top-9-by-points
+         fallback could assemble an illegal lineup — three QBs, two Ks —
+         and fabricate bench points no legal lineup could reach. */
       // the extra man at the flex position fills the FLEX slot
       const picked = [
         ...tag(qb.slice(0,1), "QB"),
@@ -5731,11 +5761,7 @@ function ssBuild(){
       const total = sum(picked);
       if(!best || total > best.total) best = { total, picked };
     }
-    if(!best){
-      const all = [...pool].sort((a,b) => b.pts - a.pts).slice(0, 9).map(x => ({ ...x, slot:x.pos }));
-      best = { total: sum(all), picked: all };
-    }
-    return best;
+    return best || { total: 0, picked: [] };
   }
 
   /* Pair what was started against what should have been started, matched by the
@@ -5833,7 +5859,9 @@ function ssRates(){
   catch(e) { return null; }               // ARCH not initialised yet
   if(!S || !S.managers.length) return null;
   const out = {};
-  S.managers.forEach(m => { out[m.n] = m.per; });
+  /* per + weeks, so the grade can regress a thin bench sample the same
+     way it regresses a thin win-rate sample */
+  S.managers.forEach(m => { out[m.n] = { per: m.per, weeks: m.weeks }; });
   return out;
 }
 function ssPlayer(id, pts, pos){
@@ -5904,7 +5932,10 @@ function drawStartSit(){
   // every winner's-bracket game a better lineup would have won, shown in full
   const post = S.rows.filter(r => r.stake >= 2).sort((a,b) => b.stake - a.stake || b.left - a.left);
   // then the heaviest benchings that didn't cost a playoff game
-  const rest = S.rows.filter(r => r.stake < 2).sort((a,b) => b.left - a.left).slice(0, 8);
+  /* A benching that actually cost a game outranks a bigger one that
+     cost nothing — stake first, size second, so a 12-point winnable
+     loss isn't buried under a 40-point pile that didn't matter. */
+  const rest = S.rows.filter(r => r.stake < 2).sort((a,b) => b.stake - a.stake || b.left - a.left).slice(0, 8);
   const ssGroup = (title, count, cards, open) =>
     `<details class="ssgroup"${open ? " open" : ""}><summary>
        <span class="sssub">${title}<span>${count}</span></span>
@@ -6096,13 +6127,16 @@ function allPlayFor(y){
     if(n < 2) return;
     rows.forEach(([id, pts]) => {
       const me = seed(id);
-      let beat = 0, lost = 0;
+      let beat = 0, lost = 0, tied = 0;
       rows.forEach(([oid, opts]) => {
         if(oid === id) return;
-        if(pts > opts) beat++; else if(pts < opts) lost++;
+        if(pts > opts) beat++; else if(pts < opts) lost++; else tied++;
       });
       me.aw += beat; me.al += lost;
-      me.exp += beat / (n - 1);          // share of the field beaten = expected wins
+      /* A level score is half an expected win, not zero — an opponent you
+         tied was a coin-flip, and 2014's whole-number scoring produced
+         real ties. Counting them as losses made tying teams look lucky. */
+      me.exp += (beat + tied / 2) / (n - 1);
     });
   });
   /* PF and PA come from the league's recorded season totals rather than the
@@ -6160,7 +6194,7 @@ function drawAllPlay(){
   const worst = rows.reduce((a,b) => b.luck < a.luck ? b : a);
   document.getElementById("apnote").innerHTML =
     `In ${apY}, <b>${esc(best.owner)}</b> won ${G2(best.luck)} more games than the scoring alone called for, and ` +
-    `<b>${esc(worst.owner)}</b> ${G2(Math.abs(worst.luck))} fewer. A positive number means the schedule was kind.`;
+    `<b>${esc(worst.owner)}</b> ${G2(Math.abs(worst.luck))} fewer. A positive number means the schedule was kind. <b>Expected wins</b> is the record the points deserved &mdash; beat nine of the other eleven in a week and you&rsquo;ve earned nine-elevenths of a win, whoever the schedule gave you. Luck is simply the gap between that and the real record.`;
 }
 document.getElementById("apyears").innerHTML =
   `<span class="rlab">Season</span>` + A_YEARS.map(y => `<button data-ap="${y}">${y}</button>`).join("");
@@ -6703,7 +6737,11 @@ const NFL_LOGO = {"ARI":"data:image/webp;base64,UklGRjQOAABXRUJQVlA4TCgOAAAvR8AR
      means the room is drafting him later than his rank here — he should
      still be on the board when you circle back (a value). A big
      negative gap means the market is taking him earlier — waiting on
-     him risks losing him (a reach). Small gaps aren't worth flagging. */
+     him risks losing him (a reach). Small gaps aren't worth flagging —
+     and "small" scales with where you are in the draft: three picks is a
+     real gap in round one and pure noise in round eleven, so the flag
+     threshold is 10% of the player's rank with a floor of three picks,
+     not a flat number. */
   /* ADP only ever appears where a reader is already looking at rank
      numbers to compare them (By Position, Top 300) — never on Depth
      Charts, where the row's one number is a roster slot, not a rank,
@@ -6718,8 +6756,9 @@ const NFL_LOGO = {"ARI":"data:image/webp;base64,UklGRjQOAABXRUJQVlA4TCgOAAAvR8AR
       let tag = "";
       if(orank != null){
         const delta = Math.round(adp - orank);
-        if(delta >= 8) tag = `<span class="dradelta dradelta-value">+${delta}</span>`;
-        else if(delta <= -8) tag = `<span class="dradelta dradelta-reach">${delta}</span>`;
+        const thr = Math.max(3, Math.round(orank * 0.10));
+        if(delta >= thr) tag = `<span class="dradelta dradelta-value">+${delta}</span>`;
+        else if(delta <= -thr) tag = `<span class="dradelta dradelta-reach">${delta}</span>`;
       }
       adpHtml = `<span class="dradp" title="Consensus ADP (PFF, half-PPR, captured Aug 10)">${adp.toFixed(1)}</span>${tag}`;
     }
@@ -6857,12 +6896,12 @@ const NFL_LOGO = {"ARI":"data:image/webp;base64,UklGRjQOAABXRUJQVlA4TCgOAAAvR8AR
      cliff. Depth Charts and Bye Weeks use neither, so it stays hidden. */
   const legend = document.getElementById("drlegend");
   const LEGEND = {
-    league: `<span><i class="lg-tier"></i>Rough tier (rank-gap based)</span>
+    league: `<span><i class="lg-tier"></i>Rough tier &mdash; a clear gap in the rankings</span>
       <span><i class="lg-cliff"></i>12-team starter cutoff</span>
-      <span><i class="lg-value"></i>ADP value &mdash; falls past his rank</span>
-      <span><i class="lg-reach"></i>ADP reach &mdash; goes before his rank</span>`,
-    top: `<span><i class="lg-value"></i>ADP value &mdash; falls past his rank</span>
-      <span><i class="lg-reach"></i>ADP reach &mdash; goes before his rank</span>`
+      <span><i class="lg-value"></i>Value &mdash; usually drafted later than his rank; he may fall to you</span>
+      <span><i class="lg-reach"></i>Reach &mdash; usually drafted earlier than his rank</span>`,
+    top: `<span><i class="lg-value"></i>Value &mdash; usually drafted later than his rank; he may fall to you</span>
+      <span><i class="lg-reach"></i>Reach &mdash; usually drafted earlier than his rank</span>`
   };
   function syncLegend(key){
     if(LEGEND[key]){ legend.innerHTML = LEGEND[key]; legend.classList.add("on"); }
@@ -7120,10 +7159,14 @@ function rankPicks(picks, tot, posOf, teams, basis, bar, held){
      leaves you a player nobody could start — and it has to have been
      cashed: held from week one and for most of the weeks he was worth
      holding. A bust only has to have been taken as a starter at his
-     spot; cutting him afterwards doesn't unmake the pick. */
+     spot; cutting him afterwards doesn't unmake the pick. Both filters
+     use the same startable bar — the flex-inclusive count of who
+     actually starts (about RB29, WR31), not a flexless slot count. A
+     WR taken 26th is drafted to start in this league; if he flops, he
+     busted. */
   const steals = skill.filter(p => p.posFin <= bar[p.pos] && p.cashed)
                       .sort((a, b) => b.gain - a.gain);
-  const busts  = skill.filter(p => p.posSlot <= LINEUP[p.pos] * teams)
+  const busts  = skill.filter(p => p.posSlot <= bar[p.pos])
                       .sort((a, b) => a.gain - b.gain);
   return { steals, busts };
 }
@@ -7210,13 +7253,15 @@ let TRADE_DEALS = [];      /* handed to the record book further down */
    trade week on. That's the fair reading — points he put up somewhere
    else after being dropped later aren't part of the deal.
 
-   And it's counted in extra points, the same currency as Steals & Busts:
-   his score each week minus what a freely available player at his own
-   position scored that week. Raw points flattered whichever side got the
-   quarterback, and disagreed with this reading on 14 of the 34 deals —
-   the 2025 Amon-Ra trade being the clearest, where Bucky Irving's raw
-   total looked healthy but sat below what any spare back was managing.
-   The raw figure is still on the card, just no longer the verdict. */
+   And it's counted in extra LINEUP points against the receiving roster:
+   each week a side held its haul, the best lineup that roster could
+   field minus the best it could field without the players received.
+   (An earlier version used the Steals & Busts replacement-bar currency;
+   this one asks the sharper question — what did the deal change for
+   YOUR lineup — and the "Mind the yardstick" note in the prose owns
+   the difference.) Raw points flattered whichever side got the
+   quarterback; the raw figure is still on the card, just not the
+   verdict. */
 (function(){
   const list = document.getElementById("trlist");
   if(!list || !TRADE_MOVES.size) return;
@@ -7596,7 +7641,7 @@ let TRADE_DEALS = [];      /* handed to the record book further down */
       <span class="tteam">${esc(team)}</span>
       ${rows}
       ${valued.length ? `<div class="ttot"><b${ex < 0 ? ` class="neg"` : ""}>${sgn(ex)}</b>
-        <span>Extra points <em>&middot; ${num(raw)} raw</em></span></div>` : ""}
+        <span>Extra points <em>&middot; ${num(raw)} scored in all</em></span></div>` : ""}
     </div>`;
   };
 
@@ -7660,7 +7705,9 @@ let TRADE_DEALS = [];      /* handed to the record book further down */
    not by what he scored afterwards in general — otherwise a player who
    was dropped again a week later would look like a masterstroke. A drop
    is judged the other way round: everything he went on to score for
-   anybody, which is what makes it sting. Trades are stripped out first
+   anybody ELSE, which is what makes it sting — the one team that never
+   gets charged is the dropper himself after re-claiming his own mistake,
+   since that value shows up as his pickup, not his loss. Trades are stripped out first
    (see TRADE_MOVES) so this is only the free-agent wire: players picked
    up out of the pool, and players let go back into it. Needs weekly
    add/drop records, so it runs from 2018.
@@ -7705,17 +7752,28 @@ function waiverMoves(){
     const over = (id, pos, w) => ((pts[id] || {})[w] === undefined) ? 0
       : (pts[id][w] - (((repl[w] || {})[pos]) || 0));
 
+    /* One claim = one contiguous stint. The scan stops the first week the
+       claiming team no longer holds him, so a drop-and-reclaim produces
+       two add rows that each count their own weeks — not two rows that
+       both count the second stint. */
     const forTeam = (id, pos, tn, from) => {
       let v = 0, raw = 0, wk = 0;
-      for(let w = from; w <= 17; w++) if((owner[id] || {})[w] === tn){
+      for(let w = from; w <= 17; w++){
+        if((owner[id] || {})[w] !== tn) break;
         v += over(id, pos, w); raw += pts[id][w]; wk++;
       }
       return { val: v, raw, weeks: wk };
     };
-    const anyAfter = (id, pos, from) => {
+    /* A drop is charged with what the player did afterwards for everyone
+       ELSE — not with what the dropper got back by re-claiming him. Adam
+       cutting Jefferson and claiming him back in week 4 is one of the
+       best pickups on record; it shouldn't simultaneously be one of the
+       worst drops. */
+    const anyAfter = (id, pos, from, notTeam) => {
       let v = 0, raw = 0;
-      for(let w = from; w <= 17; w++) if((owner[id] || {})[w]){
-        v += over(id, pos, w); raw += pts[id][w];
+      for(let w = from; w <= 17; w++){
+        const o = (owner[id] || {})[w];
+        if(o && o !== notTeam){ v += over(id, pos, w); raw += pts[id][w]; }
       }
       return { val: v, raw };
     };
@@ -7736,7 +7794,7 @@ function waiverMoves(){
           const p = ARCH.P[id]; if(!p) return;
           if(!SKILL({ pos: p[1] })) return;        /* kickers and defences don't count */
           if(isTrade(y, w, tn, id, "d")) return;   /* traded away, not dropped to waivers */
-          const v = anyAfter(id, p[1], w);
+          const v = anyAfter(id, p[1], w, tn);
           drops.push({ y, w, team: tn, name: p[0], pos: p[1], pid: id,
                        val: v.val, pts: v.raw, bar: bar[p[1]] + 1 });
         });
@@ -7846,9 +7904,14 @@ let HINDSIGHT = null;      /* handed to the record book further down */
     panel.innerHTML =
       `<p class="wvh">Draft</p>
        <div class="dvgrid">${
-        col("Best picks", mine(won, (a, b) => b.gain - a.gain),
+        /* Ranked by extra points over replacement, not spots climbed —
+           spots aren't comparable across positions (a WR can climb fifty,
+           a QB can't climb fifteen), so a raw-spots sort handed this
+           panel to RB/WR every time. The sign test above still uses
+           spots, which is what makes a pick a steal or a bust at all. */
+        col("Best picks", mine(won, (a, b) => b.vor - a.vor),
             p => draftCard(p, true), "Nothing he drafted beat where he took it.") +
-        col("Worst picks", mine(lost, (a, b) => a.gain - b.gain),
+        col("Worst picks", mine(lost, (a, b) => a.vor - b.vor),
             p => draftCard(p, true), "No starter he drafted flopped.")}</div>
        <p class="wvh">Waiver wire</p>
        <div class="dvgrid">${
