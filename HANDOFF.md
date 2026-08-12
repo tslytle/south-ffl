@@ -956,6 +956,58 @@ is needed — the router, print and Expand all triggers are generic. The four la
 ones that must NOT be converted without moving to reveal-time, or they measure a hidden view and
 get zero.
 
+### The rest of the IIFE boards, and where the time actually is (2026-08-12)
+Seven more converted: `matchups` (the stat key), `awards`, `rules` (rule changes **and** the scoring
+rulebook — two registrations under one key), `records` (the base board, which registers *before* the
+cards pushed into it), `nflsched`, `draftranks`. Ten registrations across eight sections now.
+
+**Three of them changed the mechanism or were deliberately left alone:**
+- `lazyBoard` now holds a **list per section**, not one function. `#rules` has two boards and
+  `#records` has two, and the second `set()` was silently discarding the first. The list runs in
+  registration order, which is load-bearing exactly once: the record book's `paintBook` is assigned
+  by the first block registered under `records` and *called* by the second.
+- **The mechanism had to move to the top of the script.** It was defined at ~8253, below boards that
+  now register at ~5030. `lazyBoard` is a hoisted function declaration so the call resolves, but
+  `LAZY_BOARDS` is a `const` — a registration above its definition hits the temporal dead zone and
+  throws. It now sits immediately after the `ROSTERS` alias, above every registration.
+- **The draft cheat sheet (`drpanel`/`drtabs`, in `#draft2026`) stays eager, deliberately.** It is
+  the one surface used under time pressure on Sept 7 and never rehearsed; its span is ~17ms. Wrong
+  trade. The hub hero (`herocount`, which sits outside every section) and the swipe hints and
+  scroll-spy (the layout readers) stay eager for the reasons above.
+
+**Verified byte-identical** — 14 containers by length and hash, plus `TRADE_DEALS` and the
+`HINDSIGHT` counts, against the fully-drawn live build, down three paths: force-draw-everything,
+a cold deep link straight to `#records` (which pulls its base board, its pushed-in cards and two
+boards from another view), and revealing all six views in order. Identical every time, and the
+pending list drains exactly as each view opens.
+
+**The saving, and the honest disappointment:** median `domInteractive − responseEnd` over two loads
+each — **fully eager 488/499ms, all ten deferred 396/406ms**, so **~93ms** total. But the first
+three boards were already worth ~90ms of that: **these seven added only ~11ms.** They are simply
+cheap. Worth keeping — they no longer run on the hub, and the architecture is what makes the next
+part possible — but nobody should expect a second 90ms from converting IIFEs.
+
+**Where the remaining ~340ms actually is.** Re-instrumented the converted build, anchors every third
+top-level statement:
+
+| span | ms | what lives there |
+|---|---|---|
+| A4803→A5013 | **69.4** | rosters + matchups setup |
+| A3833→A3963 | **55.1** | the ledger / owners tables |
+| A4174→A4429 | **53.8** | id maps, then the ledger draw |
+| A6805→A6836 | **44.5** | start & sit + grade cells |
+
+None of it is an IIFE. It is the **bare top-level calls** — `drawOwnerLedger()`, `drawMatchups()`,
+`drawRoster()`, `drawStartSit()`, `fillGradeCells()`, `drawAllPlay()`, `drawH2Detail()`, the
+`#seasonlist` innerHTML assignment — plus the shared structures they build.
+
+**That batch is a different risk class and should not be done the same way.** Those functions are
+also called from event handlers (year pickers, sort headers), so only the *initial* call can be
+deferred, not the function. And at least one is reachable without a view reveal at all:
+`fillGradeCells()` feeds the profile overlay, which opens from the Awards Wall **and from search**,
+so deferring it to `#people` would leave a profile opened from a search result with empty grade
+cells. Any conversion there needs `pfOpen` as a trigger alongside the router.
+
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
   `python -m http.server 8765` in the repo root, then open `http://127.0.0.1:8765/index.html` in
