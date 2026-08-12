@@ -468,7 +468,9 @@ move machines; the rest are from the PC session (2026-08-11/12):
   move 0.8 picks) and `refresh-tiers.py` (FantasyPros updated 8/12, 125/125 in-scope matched, one
   tier change: De'Von Achane 2→3). Nothing worth writing yet — re-run both within a few days of
   **Sept 7** when the market and expert consensus have actually moved.
-- **Standings scroll sideways on a tablet, and nothing is pinned when they do.** Found 2026-08-12
+- ~~**Standings scroll sideways on a tablet, and nothing is pinned when they do.**~~ **Fixed
+  2026-08-12 — RK and OWNER are pinned.** See the section below; the write-up here is kept because
+  the measurements behind the decision are worth having. Found 2026-08-12
   while verifying the two-column header; present on the live site, so it predates that change.
   Sessions 2 and 3 measured standings at 1887px and 375px and got 0 both times — the band between
   the phone card layout (≤760px) and a comfortable desktop was never checked. What is actually
@@ -660,6 +662,49 @@ label width at every size, no page or card overflow, phone layout unchanged.
 the whole modal is about — sits under the radar at small size; and `Roster moves` still shows as a
 ranked bar although ADR 0009 dropped ACTIVITY from the grade, which is defensible under the
 "demote to a plain fact" rule but is worth a deliberate look rather than an assumption.
+
+### Standings: rank and owner stay put (2026-08-12)
+The tablet defect above, closed by **pinning rather than moving the breakpoint**. Raising the card
+breakpoint to ~914px would have swept the five nine-column seasons (2014-2018) — which fit that band
+perfectly well as tables — into the phone card layout along with the seven that don't. Pinning fixes
+the actual complaint (a row goes anonymous when you scroll to its Strk), helps at every width where
+a table scrolls rather than only in one band, and uses two patterns the file already has: `.ledger`
+pins its name column, `.board` pins its round gutter at a fixed 38px.
+
+**The trap, and it is worth knowing before pinning any two adjacent columns:** OWNER needs an offset
+to stick at, and `width` alone does not give a stable one. Under `table-layout:auto` a squeezed table
+ignores the declared width and falls back to the column's min-content — which is *precisely* the case
+that scrolls. Measured with `width:44px`, the seven thirteen-column tables rendered RK at **40px** and
+left a **4px transparent sliver** between the two pinned columns for the numbers to scroll through.
+The fix is `--rankw` for both the width and the offset, plus `min-width` — which a table cell *does*
+honour — to raise min-content to match. 40px is deliberately the value a squeezed table already lands
+on, so no thirteen-column season is a pixel wider; the roomier nine-column ones hand 4-19px of gutter
+slack back to the columns carrying numbers.
+
+**Two pre-existing defects surfaced on the way and are fixed in the same commit:**
+- **The OWNER header had no `.l` class.** `th("who","Owner",false)` fell down the non-sortable branch
+  and emitted `<th class="">`, while every cell beneath it is `td.l`. So the header sat right-aligned
+  over a column of left-aligned names, took the 7px numeric padding instead of its column's 9px, and
+  could not be pinned with its own column. The `.replace()` chained onto that call was dead — it
+  rewrote a `data-key` the non-sortable branch never emits.
+- **The seed band scrolled away.** "Winner's bracket · seeds 1-6" is a transparent cell spanning the
+  whole table, so pinning the *cell* would drag an unpainted box across the columns. The **label**
+  inside it is pinned instead — safe, because nothing scrolls underneath a divider row — and it needs
+  `width:max-content` or a block filling the cell has no room to slide.
+
+Verified across all twelve seasons at 375 / 768 / 1265px: rank gutter a uniform 40px, seam 0 both
+pinned and unpinned, header cells landing on exactly the same offsets as the body cells, page overflow
+0 in all six views, and **every table still exactly its scroller's width at 1265** — the session-2
+invariant holds. The phone is untouched: every cell computes `static`, no shadow, card layout intact.
+
+**One thing found and deliberately not fixed:** `.stand tr.top1{background:var(--gold-soft)}` and its
+`:hover` pair are **dead on desktop**. `tbody td` paints `--surface` (or `--raise`, or `--accent-soft`
+on hover) per cell, and a cell background covers a row background, so the champion row has never shown
+gold on desktop — only in the phone card layout, where the cells go transparent. It is a two-line fix
+(`.stand tr.top1 td{background:var(--gold-soft)}` plus the hover), but it introduces a background pair
+ADR 0005's sweep has never measured, and the row is already marked twice over — gold rank chip, ALMA
+BOWL CHAMPION badge — so it is a deliberate design call with a contrast obligation attached, not a
+tidy-up. Left for a decision.
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**

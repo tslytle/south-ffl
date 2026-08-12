@@ -1052,6 +1052,60 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .stand tbody td{vertical-align:top;padding-top:14px}
 .stand tbody td.l{padding-top:12px}
 .stand tbody td.rdc{padding-top:14px}
+/* ── Rank and owner stay put when the table scrolls sideways ────────────────
+   The division-era seasons (2019-2025) carry thirteen columns — Div, Home,
+   Away and Strk on top of the nine every season has — and at their min-content
+   widths that table is 825px and cannot shrink further. It fits from about
+   914px of viewport up; below that it scrolls inside .tw, by 14px at 900 and
+   by 146px at 768, which is nine of the twelve seasons on an iPad held
+   upright. Scrolling is the right answer to a table too wide for the screen —
+   .tw exists for exactly that — but nothing was pinned, so reading a team's
+   Strk or Moves scrolled their name off the left edge, and every row became
+   an anonymous set of numbers.
+
+   The archive already does this twice: .ledger pins its name column, and the
+   draft board pins its round gutter at a fixed 38px. This is those two
+   together, and pinning two columns means OWNER needs a stable offset to stick
+   at — one that RK's used width can never disagree with. `width` alone does not
+   give that: under table-layout:auto a squeezed table ignores it and falls back
+   to the column's min-content, which is exactly the case that scrolls. Measured
+   with width:44px, the seven thirteen-column tables rendered RK at 40px and
+   left a 4px transparent sliver between the two pinned columns for the numbers
+   to scroll through. So the width and the offset both come from --rankw, and
+   min-width — which a table cell does honour — raises the column's min-content
+   to match, closing the gap by construction rather than by luck.
+
+   40px is deliberately the value a squeezed table already lands on, so the
+   thirteen-column seasons are not one pixel wider than before; the roomier
+   nine-column ones give 4-19px of gutter slack back to the columns carrying
+   numbers.
+
+   No background rules needed: `tbody td` already paints --surface per cell,
+   with --raise on even rows and --accent-soft on hover, so a pinned cell
+   carries its own row's state with it. The exception is a .halfrow — the
+   "Winner's bracket · seeds 1-6" divider — whose cells are deliberately
+   transparent and span the whole table, so they are excluded rather than
+   dragged across the rows below.
+
+   Below 761px the phone card layout takes over and resets all of this; the
+   media query keeps that boundary explicit rather than resting on which rule
+   the cascade happens to see last. */
+@media (min-width:761px){
+  .stand{--rankw:40px}
+  .stand thead th.rdc,.stand tbody td.rdc{width:var(--rankw);min-width:var(--rankw);
+    position:sticky;left:0;z-index:2}
+  .stand thead th.l,.stand tbody td.l{position:sticky;left:var(--rankw);z-index:2;
+    box-shadow:1px 0 0 var(--line)}
+  /* the two corner cells stick in both axes and must stay over the body */
+  .stand thead th.rdc,.stand thead th.l{z-index:4}
+  .stand tr.halfrow td{position:static;box-shadow:none}
+  /* The seed band — "Winner's bracket · seeds 1-6" — is a transparent cell
+     spanning the whole table, so pinning the cell would drag an unpainted box
+     across the columns. Pinning the label inside it does the same job safely:
+     nothing scrolls underneath a divider row, and it needs max-content width
+     or a block filling the cell has no room to slide. */
+  .stand tr.halfrow td span{position:sticky;left:0;width:max-content}
+}
 .stand .nm{font-family:var(--serif);font-size:var(--t-lead);font-weight:600;color:var(--ink);line-height:1.25;letter-spacing:-.01em}
 .stand .team{font-family:var(--sans);font-size:var(--t-fine);font-weight:500;color:var(--muted);margin-top:1px;letter-spacing:0}
 .tag{display:inline-block;font-size:var(--t-micro);font-weight:700;letter-spacing:.07em;text-transform:uppercase;
@@ -4079,7 +4133,14 @@ document.getElementById("seasonlist").innerHTML = SEASONS.map(s => {
   const th = (key,label,grp) => SORTABLE.has(key)
     ? `<th class="${grp?"grp ":""}sortable" data-key="${key}">${label}</th>` : `<th class="${grp?"grp ":""}">${label}</th>`;
   const head = th("rank","RK",false).replace('class="sortable"','class="rdc sortable"').replace('class="grp sortable"','class="rdc sortable"')
-    + th("who","Owner",false).replace('sortable" data-key="who"','')
+    /* "who" is not in SORTABLE, so th() would emit <th class="">, and the
+       whole table's left-hand column styling keys off .l — the header alone
+       was missing it, which is why OWNER sat right-aligned over a column of
+       left-aligned names, took the 7px numeric padding instead of its
+       column's 9px, and could not be pinned with the cells beneath it. (The
+       .replace() this had chained on it was dead: it rewrote a data-key the
+       non-sortable branch never emits.) */
+    + `<th class="l">Owner</th>`
     + th("reg","Reg",true)
     + (meta.hasPost ? th("post","Post",true) : "")
     + (meta.hasPts ? th("pf","PF",true) + th("ppg","PPG"+ERA_MARK,false) + th("pa","PA",false) + th("diff","Diff",false) : "")
