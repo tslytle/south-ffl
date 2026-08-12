@@ -2637,6 +2637,23 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summ
   border-color:var(--accent)}
 body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary:focus-visible{
   outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── Uniform shell, step 4: the board index is chips, not a panel ───────────
+   .subnav — each view's index of the boards inside it — was designed against
+   the old hairline system, and uses --raise at --r-md. That is now precisely a
+   board panel's treatment from step 2, so two different kinds of thing read at
+   the same weight: one is content, the other is navigation to it.
+
+   The container goes and the chips carry it. That also settles the weight
+   ordering for good — panel (--raise, 12px), nested panel (--soft, 8px),
+   navigation (no fill) — rather than adding a fourth fill that would have to
+   compete with the two above it.
+
+   Dropping a background and 11px of padding cannot take width from content; it
+   returns some. Same rule as steps 2 and 3. */
+body[data-route]:not([data-route="hub"]) .uactive .subnav{
+  background:none;border:0;border-radius:0;
+  padding:0 2px var(--sp-3);margin:0 0 var(--sp-4)}
 /* back to the hub, shown only when you are inside a view */
 /* min-height is the touch target, not decoration: this is the only way out of
    a view on a phone, and it measured 75x16px before — a third of the 44px
