@@ -3312,7 +3312,7 @@ const OWN_SORTABLE = {
   ppg:      o => o.g ? o.pf / o.g : -1,
   moves:    o => o.mvSeasons ? o.mv : -1,
   grade:    o => { try { const M = pfMetrics(); const me = M.by[o.n];
-                         if(!me || !me.hasPts || !me.hasLineup || me.seasons < GRADE_MIN_SEASONS) return null;
+                         if(!me || !me.hasPts || me.seasons < GRADE_MIN_SEASONS) return null;
                          return pfGradeForAxes(pfAxesForRow(me)); }
                    catch(e) { return null; } }
 };
@@ -3424,7 +3424,7 @@ const MGR_SORTS = {
 let mgrSort = "grade";
 function mgrGrade(o){
   try { const M = pfMetrics(), me = M.by[o.n];
-        if(!me || !me.hasPts || !me.hasLineup || me.seasons < GRADE_MIN_SEASONS) return -1;
+        if(!me || !me.hasPts || me.seasons < GRADE_MIN_SEASONS) return -1;
         return pfGradeForAxes(pfAxesForRow(me)); }
   catch(e){ return -1; }
 }
@@ -5348,6 +5348,10 @@ function pfMetrics(){
          negate it — and regress a thin sample toward the league rate,
          same 26-week prior the sstable's own "short sample" flag implies */
       lineup:  (SSR && SSR[o.n]) ? -((SSR[o.n].per * SSR[o.n].weeks + K_GAME * mLine) / (SSR[o.n].weeks + K_GAME)) : null,
+      /* lineup/hasLineup and moves are still computed — the profile stat boxes
+         and Start & Sit read them — but no longer feed the grade: the LINEUPS
+         and ACTIVITY axes were dropped in ADR 0009. Nothing calls pct("lineup")
+         any more, so that branch of `pool` below is inert. */
       hasLineup: !!(SSR && SSR[o.n]),
       // raw values, for display rather than ranking
       rawWin:  gp ? o.w / gp : 0,
@@ -5381,7 +5385,9 @@ function pfMetrics(){
   return PFM;
 }
 
-/* ---- radar chart (6 axes, values 0-100) ---- */
+/* ---- radar chart (one spoke per grade axis, values 0-100) ----
+   Four axes since ADR 0009, so this draws a diamond rather than a hexagon.
+   Everything here is written off axes.length, so it follows pfWeights. */
 function pfRadar(axes){
   const cx = 162, cy = 106, R = 72, N = axes.length;
   const pt = (i, r) => {
@@ -5423,27 +5429,38 @@ function pfRadar(axes){
    title runs through a three-week single-elimination bracket, so it is also the
    noisiest thing on the record. Hardware and Postseason both measure that same
    January window, so their combined share is capped rather than stacked.
-   Scoring and Lineups are the least luck-dependent signals of how a franchise
-   was actually run, and Winning is the largest sample on the sheet, so those
-   three carry the balance. Activity is context, not quality — a manager should
-   not climb for churning the wire — so it is kept deliberately small.
+   Winning is the largest sample on the sheet and Scoring is the same strength
+   read without schedule luck, so those two carry the balance.
 
-   LONGEVITY was dropped per ADR 0006. It took four distinct values across the
-   twelve graded managers, six of them tied, and correlated 0.07 with win rate:
-   it measured when someone joined, not how they managed, which is the same
-   thing this comment already argued against. ACTIVITY was measured alongside it
-   at 0.39 and kept.
+   Every axis here is an *achievement*. That is deliberate, and it is why three
+   earlier axes are gone:
 
-   These numbers deliberately sum to 94, not 100. pfGradeForAxes divides by the
+   - LONGEVITY (was 6), dropped per ADR 0006. Four distinct values across the
+     twelve graded managers, six of them tied, 0.07 correlation with win rate.
+     It measured when someone joined, not what they won.
+   - LINEUPS (was 16), dropped per ADR 0009. Points left on the bench looked
+     like the least luck-dependent signal here and is the opposite. Across 1,374
+     graded manager-weeks the between-manager variance is *lower* than the
+     within-manager variance: intraclass correlation -0.002, and a permutation
+     test puts the observed spread below the median of what dealing the same
+     weeks out at random produces (p = 0.61). Hindsight-optimal lineups are
+     decided by which bench player happened to explode. Zero information, and it
+     carried a fifth of the grade.
+   - ACTIVITY (was 4), dropped per ADR 0009 for a different reason. It measures
+     a real, stable trait — split-half reliability 0.90 across odd/even seasons
+     — but a move rate is process, not achievement, and its 0.39 link to winning
+     is a noisy second copy of what WINNING already measures directly. When the
+     target is directly observable, a correlate can only add error.
+
+   These numbers deliberately sum to 74, not 100. pfGradeForAxes divides by the
    sum of whatever weights it is handed, so leaving the survivors untouched IS
-   the proportional renormalisation — HARDWARE 21.3%, SCORING 20.2%, POSTSEASON
-   19.1%, WINNING 18.1%, LINEUPS 17.0%, ACTIVITY 4.3%. Do not "fix" them to add
-   up to 100: that would silently reweight the grade. The UI derives the
-   displayed percentages the same way, per manager, so an axis dropped for
-   missing data renormalises there too. */
+   the proportional renormalisation — HARDWARE 27.0%, SCORING 25.7%, POSTSEASON
+   24.3%, WINNING 23.0%. Do not "fix" them to add up to 100: that would silently
+   reweight the grade. The UI derives its displayed percentages the same way,
+   per manager, so an axis dropped for missing data renormalises there too. */
 function pfWeights(){
-  /* bracket outcomes 40.4 · team quality 38.3 · lineup skill 17.0 · context 4.3 */
-  return { HARDWARE:20, POSTSEASON:18, SCORING:19, WINNING:17, LINEUPS:16, ACTIVITY:4 };
+  /* bracket outcomes 51.4 · regular-season strength 48.6 */
+  return { HARDWARE:20, POSTSEASON:18, SCORING:19, WINNING:17 };
 }
 
 /* The percentiles behind the grade come from pfRankScope, not from the full
@@ -5463,16 +5480,10 @@ function pfAxesForRow(me){
     { k:"WINNING",     v: P.pct("winPct",   me.winPct)   },
     { k:"SCORING",     v: P.pct("ppg",      me.ppg)      },
     { k:"POSTSEASON",  v: P.pct("postPct",  me.postPct)  },
-    { k:"HARDWARE",    v: P.pct("hardware", me.hardware) },
-    { k:"LINEUPS",     v: me.hasLineup ? P.pct("lineup", me.lineup) : 0, need:"lineup" },
-    { k:"ACTIVITY",    v: P.pct("moves",    me.moves)    }
+    { k:"HARDWARE",    v: P.pct("hardware", me.hardware) }
   ];
-  // scoring/moves start in 2016, lineup detail in 2018; drop what a manager predates
-  const use = all.filter(a => {
-    if(!me.hasPts && (a.k === "SCORING" || a.k === "ACTIVITY")) return false;
-    if(a.need === "lineup" && !me.hasLineup) return false;
-    return true;
-  });
+  // scoring runs from 2016; drop it for a manager whose seasons predate it
+  const use = all.filter(a => !(!me.hasPts && a.k === "SCORING"));
   return use.map(a => ({...a, w: PF_WEIGHT[a.k]}));
 }
 function pfGradeForAxes(axes){
@@ -5495,14 +5506,14 @@ var GRADE_MIN_SEASONS = 3;
 var GRADE_SMALL_SAMPLE = 5;
 function pfIsGraded(n){
   try { const me = pfMetrics().by[n];
-        return !!(me && me.hasPts && me.hasLineup && me.seasons >= GRADE_MIN_SEASONS); }
+        return !!(me && me.hasPts && me.seasons >= GRADE_MIN_SEASONS); }
   catch(e) { return false; }
 }
 function pfGradeRanks(){
   if(PFGRADE) return PFGRADE;
   const M = pfMetrics();
   const list = owners.filter(o => { const me = M.by[o.n];
-      return me && me.hasPts && me.hasLineup && me.seasons >= GRADE_MIN_SEASONS; })
+      return me && me.hasPts && me.seasons >= GRADE_MIN_SEASONS; })
     .map(o => ({ n: o.n, grade: pfGradeForAxes(pfAxesForRow(M.by[o.n])) }))
     .sort((a,b) => b.grade - a.grade);
   const rankOf = {};
@@ -5574,15 +5585,11 @@ function pfBuild(o){
   const lo = [...axes].sort((a,b) => a.v - b.v)[0];
   const DESC = {
     WINNING:"a relentless regular-season winner", SCORING:"a points machine",
-    POSTSEASON:"a manager who shows up in January", HARDWARE:"a trophy collector",
-    LINEUPS:"a sharp lineup setter",
-    ACTIVITY:"a restless roster tinkerer"
+    POSTSEASON:"a manager who shows up in January", HARDWARE:"a trophy collector"
   };
   const FLAW = {
     WINNING:"but the weekly wins have been hard to come by", SCORING:"though the scoring has lagged the field",
-    POSTSEASON:"but the bracket has been unkind", HARDWARE:"though the trophy case is still waiting",
-    LINEUPS:"though too many points have been left on the bench",
-    ACTIVITY:"and largely lets the roster ride"
+    POSTSEASON:"but the bracket has been unkind", HARDWARE:"though the trophy case is still waiting"
   };
   const hiTxt = DESC[hi.k] || "a steady hand";
   const loTxt = FLAW[lo.k] || "with room to grow";
@@ -6138,11 +6145,11 @@ function fillGradeCells(){
     const n = btn.dataset.grade, me = M.by[n];
     if(!me) return;
     const isCard = btn.classList.contains("mgrgrade");
-    if(!(me.hasPts && me.hasLineup && me.seasons >= GRADE_MIN_SEASONS)){
+    if(!(me.hasPts && me.seasons >= GRADE_MIN_SEASONS)){
       btn.classList.add("nograde");
-      btn.title = me.hasPts && me.hasLineup
+      btn.title = me.hasPts
         ? "Not graded — fewer than " + GRADE_MIN_SEASONS + " seasons on file"
-        : "Not graded — seasons predate the scoring and lineup records";
+        : "Not graded — seasons predate the scoring record";
       btn.querySelector("b").innerHTML = isCard ? "n/a" : "&mdash;";
       btn.querySelector("i").textContent = isCard ? "" : "not graded";
       return;
