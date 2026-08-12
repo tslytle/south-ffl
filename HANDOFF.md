@@ -812,7 +812,7 @@ tested. The four traps that each produced a wrong answer while building this —
 the two-pass population, Chrome's `color(srgb …)` syntax parsing as near-black, and gradient-painted
 elements being uncompositable — are all documented in the file's header.
 
-### Dark is the default now (2026-08-12) — the last overhaul item
+### Dark is the default now (2026-08-12) — the last overhaul item, ADR 0011
 Q18's decision, shipped. The dark palette used to live inside
 `@media (prefers-color-scheme:dark)`, so the archive was a light document that went dark for readers
 whose OS asked. It is now `:root:not([data-theme="light"])` with no media query: **at every OS
