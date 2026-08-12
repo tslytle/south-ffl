@@ -135,6 +135,39 @@ def extract_const(html, name):
         fail(f"const {name} in index.html did not parse as JSON ({e})")
 
 
+def strip_preceding_comments(html, decl_start, max_blocks=5):
+    """Return the start index after stripping /* ... */ blocks that sit
+    *immediately* (only whitespace between them) before html[decl_start:].
+
+    Deliberately NOT a single regex over the whole document (that's what
+    this replaced -- see refresh-tiers.py's version of this function for
+    the full story: a `(?:/\\*[\\s\\S]*?\\*/\\s*\\n)*const X = ` regex over a
+    2.5MB file backtracked across the entire <style>/<script> preamble on
+    one run and deleted ~2MB of real content, treating unrelated code as
+    if it were "one big comment"). This walks backward with plain string
+    ops instead: bounded, cheap, and it can only ever remove exactly the
+    comment blocks directly touching decl_start.
+    """
+    pos = decl_start
+    blocks_stripped = 0
+    while blocks_stripped < max_blocks:
+        end = pos
+        while end > 0 and html[end - 1] in " \t\r\n":
+            end -= 1
+        if end < 2 or html[end - 2:end] != "*/":
+            break
+        close = end
+        open_idx = html.rfind("/*", 0, close)
+        if open_idx == -1:
+            break
+        inner = html[open_idx + 2:close - 2]
+        if "*/" in inner:
+            break  # malformed/nested-looking -- don't guess, stop here
+        pos = open_idx
+        blocks_stripped += 1
+    return pos
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dry-run", action="store_true", help="fetch and report the diff, don't write index.html")
@@ -184,9 +217,11 @@ def main():
     captured_full = now_local.strftime("%Y-%m-%d")
 
     # Source comment above ADP_2026: swap PFF framing for ESPN half-PPR.
-    comment_re = re.compile(
-        r"/\* Consensus ADP for the 2026 draft class[\s\S]*?\*/\s*\nconst ADP_2026 = "
-    )
+    # Strip whatever comment block(s) sit directly above `const ADP_2026 =`
+    # via a bounded backward scan, not a whole-document regex.
+    decl = "const ADP_2026 = "
+    decl_start = new_html.index(decl)
+    comment_start = strip_preceding_comments(new_html, decl_start)
     new_comment = (
         f"/* Consensus ADP for the 2026 draft class, half-PPR, pulled from ESPN's\n"
         f"   live draft-room defaults (leaguedefaults/{LEAGUEDEFAULTS_ID}, verified half-PPR via\n"
@@ -195,21 +230,27 @@ def main():
         f"   is just ADP_2026[name]. Not every CHEAT entry has a market price yet --\n"
         f"   names ESPN's draft room hasn't ranked simply aren't keys here, and callers\n"
         f"   should treat a miss as \"no consensus ADP\" rather than an error. Captured\n"
-        f"   {captured_full}. */\nconst ADP_2026 = "
+        f"   {captured_full}. */\n{decl}"
     )
-    if not comment_re.search(new_html):
-        fail("could not find the ADP_2026 source comment to update -- aborting before "
-             "writing a data-only change with a stale/wrong comment above it")
-    new_html = comment_re.sub(new_comment, new_html, count=1)
+    new_html = new_html[:comment_start] + new_comment + new_html[decl_start + len(decl):]
 
-    # Inline comment a few lines above drRow(): "the market (PFF's consensus half-PPR ADP)"
-    new_html = new_html.replace(
-        "the market (PFF's consensus half-PPR ADP)",
+    # Inline comment a few lines above drRow(): "the market (<source>'s consensus half-PPR ADP)"
+    # Matches either PFF (the original, one-time label fix) or ESPN (every
+    # re-run after that) -- a source-specific-only match would silently
+    # no-op forever after the first successful run, same class of bug as
+    # the tooltip regex below originally had.
+    new_html, n_inline = re.subn(
+        r"the market \([A-Za-z]+'s consensus half-PPR ADP\)",
         "the market (ESPN's consensus half-PPR ADP)",
+        new_html,
     )
-    # Tooltip shown on every ADP number in the UI.
+    if n_inline == 0:
+        fail("could not find the inline 'the market (...)' comment to update -- aborting "
+             "before writing a data-only change with a stale/wrong comment")
+    # Tooltip shown on every ADP number in the UI. Same reasoning: match any
+    # source name and any previously-captured date, not just "PFF".
     new_html, n_tooltip = re.subn(
-        r'title="Consensus ADP \(PFF, half-PPR, captured [^"]*\)"',
+        r'title="Consensus ADP \([A-Za-z]+, half-PPR, captured [^"]*\)"',
         f'title="Consensus ADP (ESPN, half-PPR, captured {captured})"',
         new_html,
     )

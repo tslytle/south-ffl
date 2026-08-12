@@ -135,6 +135,46 @@ def extract_const(html, name):
         fail(f"const {name} in index.html did not parse as JSON ({e})")
 
 
+def strip_preceding_comments(html, decl_start, max_blocks=5):
+    """Return (new_start, prefix_without_trailing_comments) after stripping
+    /* ... */ blocks that sit *immediately* (only whitespace between them)
+    before html[decl_start:].
+
+    Deliberately NOT a single regex over the whole document. An earlier
+    version used `(?:/\\*[\\s\\S]*?\\*/\\s*\\n)*const NAME = ` with re.sub
+    over the full 2.5MB file -- the lazy `[\\s\\S]*?` inside a repeated
+    group can backtrack across huge unrelated spans (real code, other
+    comments, anything) as long as *some* position downstream lines up with
+    another "/*"..."*/" pair immediately before the target, and re.sub takes
+    whatever match .search() finds. In practice that deleted ~2MB of the
+    file (the entire <style>/<script> preamble got treated as "one comment
+    block" and replaced with a two-line comment). This walks backward with
+    plain string ops instead: bounded, cheap, and it can only ever remove
+    exactly the comment blocks directly touching decl_start.
+    """
+    pos = decl_start
+    blocks_stripped = 0
+    while blocks_stripped < max_blocks:
+        # skip whitespace immediately before pos
+        end = pos
+        while end > 0 and html[end - 1] in " \t\r\n":
+            end -= 1
+        if end < 2 or html[end - 2:end] != "*/":
+            break
+        close = end
+        open_idx = html.rfind("/*", 0, close)
+        if open_idx == -1:
+            break
+        # sanity: make sure there isn't an unrelated "*/" between open_idx
+        # and close that would mean this isn't a simple, single comment
+        inner = html[open_idx + 2:close - 2]
+        if "*/" in inner:
+            break  # malformed/nested-looking -- don't guess, stop here
+        pos = open_idx
+        blocks_stripped += 1
+    return pos
+
+
 def build_fp_lookup(players):
     exact, normalized = {}, {}
     for p in players:
@@ -247,11 +287,17 @@ def main():
     start, end = tier_span
     new_html = html[:start] + new_json + html[end:]
 
-    captured = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # Local date, not UTC -- this is a user-facing label read by a US league,
+    # and UTC rolls over hours before the local evening does.
+    captured = datetime.now().strftime("%Y-%m-%d")
     total_experts = {pos: fp_by_pos[pos].get("total_experts") for pos in fp_by_pos}
-    comment_re = re.compile(
-        r"(/\* Consensus half-PPR tiers[\s\S]*?\*/\s*\n)?const TIER_2026 = "
-    )
+    # Strip whatever comment block(s) sit directly above `const TIER_2026 =`
+    # -- regardless of what they say, not just ones this script previously
+    # wrote -- via a bounded backward scan (see strip_preceding_comments),
+    # not a whole-document regex.
+    decl = "const TIER_2026 = "
+    decl_start = new_html.index(decl)
+    comment_start = strip_preceding_comments(new_html, decl_start)
     new_comment = (
         f"/* Per-position draft tiers for the 2026 class, pulled from FantasyPros'\n"
         f"   position-specific draft cheatsheets (fantasypros.com/nfl/rankings/\n"
@@ -264,9 +310,9 @@ def main():
         f"   {json.dumps(total_experts)}. Captured {captured}. Good for a rough\n"
         f"   gut-check but not a substitute for judgment on draft night. Deep bench\n"
         f"   beyond each position's cutoff is left untiered on purpose -- there's no\n"
-        f"   real signal to group by there. */\nconst TIER_2026 = "
+        f"   real signal to group by there. */\n{decl}"
     )
-    new_html = comment_re.sub(new_comment, new_html, count=1)
+    new_html = new_html[:comment_start] + new_comment + new_html[decl_start + len(decl):]
 
     INDEX_HTML.write_text(new_html, encoding="utf-8")
     print(f"\nWrote {INDEX_HTML}. Review with `git diff` before committing.")
