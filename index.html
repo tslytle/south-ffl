@@ -2688,7 +2688,15 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summ
    marks only things you can act on; the eyebrows and the board-index label are
    text, so they read as text. The masthead is untouched — its eyebrow sits
    inside a link, where accent is correct. */
-body[data-route]:not([data-route="hub"]) .uactive :is(.eyebrow,.subnav .rlab){color:var(--muted)}
+body[data-route]:not([data-route="hub"]) .uactive .subnav .rlab{color:var(--muted)}
+/* Eyebrows go gold, not grey. Taking them off accent was right — accent has to
+   mean "you can act on this" — but landing everything on --muted left the views
+   monochrome, and this is a league trophy case, not a dashboard. Gold is already
+   the masthead's second colour (the italic FFL), so this ties the views to the
+   front door and gives the page three colours with three jobs: mint for
+   interaction, gold for editorial voice, neutral for structure.
+   --gold-text is the text-grade gold ADR 0005 tuned for exactly this. */
+body[data-route]:not([data-route="hub"]) .uactive .eyebrow{color:var(--gold-text)}
 body[data-route]:not([data-route="hub"]) .uactive .subnav{
   background:none;border:0;border-radius:0;
   padding:0 2px var(--sp-3);margin:0 0 var(--sp-4)}
