@@ -2495,8 +2495,13 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
 /* a.uhubdoor, not .uhubdoor: a.ucard above sets display:block and at 0-1-1
    outranks a bare class, so the flex column silently never applied and every
    door rendered its title and sub-line inline — "Draft NightMonday, September
-   7". Structural checks all passed; only looking at it caught this. */
-a.uhubdoor{display:flex;flex-direction:column;gap:2px}
+   7". Structural checks all passed; only looking at it caught this.
+
+   It needs BOTH classes. a.uhubdoor and a.ucard are both 0-1-1, so source order
+   decides, and these hub rules sit above .ucard in this block — the first
+   attempt at this fix changed nothing for that reason. a.ucard.uhubdoor is
+   0-2-1 and wins outright regardless of where it sits. */
+a.ucard.uhubdoor{display:flex;flex-direction:column;gap:2px}
 /* Inter, not Oswald. Oswald is condensed display type — it carries the
    masthead at 90px and reads cramped at card size, which is what made these
    doors look wrong. Inter at --t-body with a tight tracking is legible at a
