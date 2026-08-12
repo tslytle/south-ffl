@@ -1008,6 +1008,48 @@ deferred, not the function. And at least one is reachable without a view reveal 
 so deferring it to `#people` would leave a profile opened from a search result with empty grade
 cells. Any conversion there needs `pfOpen` as a trigger alongside the router.
 
+### The last batch — the bare draw calls (2026-08-12)
+Done. Ten more registrations, **20 board functions across 15 sections**. Only the *initial* call
+moved; every function stays where it was, because the year pickers and sort headers call them again.
+
+**Three hazards, all real, all found before shipping:**
+- **`fillGradeCells()` is not a drawing function.** Its first line is `PFM = null; PFGRADE = null;`
+  — it clears the memoised metrics so they recompute *now that lineup data has been parsed*. Defer
+  it to `#managers` and never reveal that view, and every profile renders from the pre-lineup pass.
+  Profiles open from **search**, so `pfOpen()` now calls `drawBoard("managers")` first. Verified
+  cold from the hub with 15 sections pending: `pfMetrics()` returns Tate 0.95 / Ryan 1.05 / Colin
+  1.00 / Michael 1.02, matching the live build exactly, and the grade renders 73.4, 7th of 12.
+- **A hash can point INSIDE a board.** `#y2019` is a season card, and those only exist once the
+  standings have drawn — `viewFor()` would have returned null and stranded a pasted deep link on
+  the hub. It now draws everything and asks once more on a miss. Insurance rather than a hot path
+  today, since the `innerHTML` assignments (standings, `myears`, `h2table`) were left eager, but it
+  is what makes deferring those safe later.
+- **The temporal dead zone, again, from the other side.** Deferring calls at ~3961 put registrations
+  *above* the mechanism at ~4252 and the page died on load: `lazyBoard` is a hoisted function
+  declaration so the call resolves, but `LAZY_BOARDS` is a `const`. It now sits at the very top of
+  the script block, above everything. **Any future registration must stay below it.**
+
+The `goto*` helpers needed nothing: `gotoMatchups()` sets `mY` and calls `drawMatchups()` directly
+rather than relying on the initial draw, so a deep-linked filtered view self-heals.
+
+**Verified byte-identical across all 21 board sections** — length and hash of each `<section>`'s
+innerHTML, local against the fully-drawn live build. Twenty-one of twenty-one match. `#ahead` looked
+like a mismatch at identical length; it is the draft countdown ticking inside it, proven by removing
+`#dncount`/`#dnorder`/`#dnfacts` from a clone, after which both sides hash to `217974:1562397888`.
+Print drains all fifteen and restores the disclosure state; no console errors anywhere.
+
+**The saving:** `domInteractive − responseEnd`, paired loads — **fully eager 558/600ms, final
+376/312ms**, about **235ms**, ~40% of script time. Against the 6x-CPU ratio Justin measured (~9x),
+that is roughly **2.1 seconds** off the window where a phone is painted but frozen.
+
+**What is still eager, and why:** the draft cheat sheet (used under time pressure on Sept 7, never
+rehearsed, ~17ms — wrong trade), the hub hero and figures strip (outside every section), the swipe
+hints and scroll-spy (they read layout and would measure a hidden view as zero), and the multi-line
+`innerHTML` assignments — standings, `myears`, `h2table`, `h2pick`, `apyears`, `champboard`, the
+record book's first pass. Those last ones are the remaining ~50ms and are wrappable the same way;
+they were left because each needs its statement span wrapped by hand rather than a one-line swap,
+and the `viewFor` guard above is the piece that makes them safe.
+
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
   `python -m http.server 8765` in the repo root, then open `http://127.0.0.1:8765/index.html` in
