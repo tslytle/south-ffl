@@ -592,10 +592,20 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    two or more, the descriptor went back to the plural it was drafted with: **`Bridesmaid · Alma
    Bowls, no rings`**.
 
-   **The cost, taken knowingly:** Colin Moore — eleven seasons, one final and two thirds — returns
-   to `Journeyman · Still writing the story`, which is the copy this badge existed to fix.
-   `o.p[1] + o.p[2] >= 2` would take him without taking Alen, if that trade ever looks better; it
-   is noted at the rule. The fallback now sits on Colin plus the five one- and two-season careers.
+   **Colin Moore then got his own branch rather than a widened one.** Narrowing Bridesmaid dropped
+   him back to `Journeyman`, and the tempting fix — `o.p[1] + o.p[2] >= 2` on the Bridesmaid branch
+   — was declined: a bridesmaid is the *runner-up*, and Colin has been to one Alma Bowl and finished
+   third twice, so both the name and the plural descriptor would have been false for him, and both
+   would have had to be softened for everyone to accommodate him. His is a different fact, so it is
+   a **fourth branch**: `else if(o.p[1] + o.p[2] >= 2)` → **`Contender · Podiums, never a ring`**
+   (Justin's copy). Two podiums is the floor, so the plural is always true of whoever wears it, and
+   silver and bronze count alike on purpose — the badge is about being repeatedly in the reckoning.
+
+   **The hardware chain is now four branches and strictly exclusive**, verified: Dynasty → Champion
+   → Bridesmaid → Contender, nobody holding two, everyone holding at least one badge overall. Tate
+   and Ermin never reach the fourth branch because the third claims them. `Journeyman · Still
+   writing the story` now sits **only on the five one- and two-season careers**, which is precisely
+   the reading it was written for.
 
 **Open design questions, not yet put to the user:** whether landing deep inside a long routed view
 is acceptable (`#h2h` lands ~16,000px down the History view — correct, but a long scroll), and
