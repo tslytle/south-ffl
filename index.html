@@ -2587,6 +2587,31 @@ body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect >
 body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect > summary.sechead:hover h2.sec{color:var(--ink)}
 body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect > summary.sechead .chev{display:none}
 body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect[open] > summary.sechead{margin-bottom:var(--sp-5)}
+
+/* ── Uniform shell, step 2: each board reads as a titled panel ──────────────
+   Inside a view the eighteen boards are the content, and in the app language a
+   board should read as its own panel rather than as text under a hairline.
+
+   The panel treatment goes on the SUMMARY ONLY, never the body. That is not a
+   style preference: session 2 fixed standings overflow by returning ~48px to the
+   OWNER column, and the tables are measured to fit their scrollers exactly.
+   Wrapping a board body in 16px of side padding would spend that 48px again and
+   reintroduce the overflow. So headers get a panel, content keeps full width.
+
+   Colours are existing tokens only — --raise is one of the backgrounds ADR 0005
+   measured --muted and --faint against, so contrast is inherited, not guessed. */
+body[data-route]:not([data-route="hub"]) .uactive details.sub{border-top:0;margin-top:var(--sp-5)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub:first-of-type{margin-top:0}
+body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead{
+  background:var(--raise);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:var(--sp-3) var(--sp-4)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:hover{
+  border-color:var(--accent)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px}
+/* a shade tighter than the standalone-page rhythm, since the panel head now
+   does the separating that the hairline and its 34px of air used to do */
+body[data-route]:not([data-route="hub"]) .uactive details.sub > .subbody{padding-top:var(--sp-4)}
 /* back to the hub, shown only when you are inside a view */
 /* min-height is the touch target, not decoration: this is the only way out of
    a view on a phone, and it measured 75x16px before — a third of the 44px
