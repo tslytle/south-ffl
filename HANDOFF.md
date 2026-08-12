@@ -574,10 +574,21 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    CDP-driven Chrome tab), so First Contentful Paint could not be measured. What is measured is
    ~320ms of main-thread work before the parser reaches the end of the document. Get an FCP number
    from a real visible browser before spending the refactor.
-6. **Copy gap, low stakes:** four owners now fall back to `Journeyman · Still writing the story`
-   alone, which reads wrong for Tate Grainger at ten seasons. There is no badge for a long-serving
-   manager with no title and no top-3 finish. Flagged in ADR 0010 as a copy decision, not a
-   correctness one.
+6. ~~**Copy gap:** owners falling back to `Journeyman · Still writing the story` alone.~~
+   **Closed 2026-08-12 — `Bridesmaid · Lost the Alma Bowl`.** The handoff said four owners; it was
+   **eight**, and they split cleanly: five are one- or two-season careers, for whom "still writing
+   the story" is exactly right, and three were long careers with real near-misses — Tate Grainger
+   (10 seasons, 0-3-0), Ermin Cerimovic (11, 0-2-0), Colin Moore (11, 0-1-2), between them six
+   trips to the Alma Bowl and six losses. `Ringless` never reached them: it wants a .550 record and
+   all three are sub-.500. Nothing in the set had any concept of a runner-up.
+
+   Added as the **third branch of the hardware chain** (`else if(o.p[1] >= 1)`), so a man with a
+   ring can never be a bridesmaid by construction. Justin's call from four options; the descriptor
+   is singular ("Lost the Alma Bowl", not "Alma Bowls") because Colin has one final and Tate has
+   three. **It also lands on a fourth man who was never in the fallback list:** Alen Huseinbegovic
+   (12 seasons, 0-1-0) already wore `Wire Hawk + Original` and now wears `Bridesmaid` too — true,
+   and the rule is the one chosen, but worth knowing it reached past the eight. Tightening to
+   `o.p[1] >= 2` would drop Alen and Colin both.
 
 **Open design questions, not yet put to the user:** whether landing deep inside a long routed view
 is acceptable (`#h2h` lands ~16,000px down the History view — correct, but a long scroll), and
