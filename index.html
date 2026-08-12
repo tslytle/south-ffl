@@ -5549,19 +5549,40 @@ function pfRankScope(name){
    so the two can never disagree about what a manager has earned — one
    set of thresholds, read in two places rather than kept in sync by
    hand. Everything here is career numbers against the league, not a
-   vote: same inputs always produce the same badges. */
+   vote: same inputs always produce the same badges.
+
+   A badge states a fact about the record, so it tests the RAW record —
+   never pfMetrics' shrunk rates, which are built for ranking careers of
+   different lengths against each other and are pulled toward the league
+   mean. Getting that wrong put "January Man · Wins in the bracket" on
+   eleven of seventeen owners including one who has never won a playoff
+   game, because `postPct` is not a percentage at all: it holds 0.5 per
+   playoff appearance plus 1 per win, per season, regressed — so merely
+   reaching the bracket cleared a 0.6 "rate" test, and for a short career
+   the league prior cleared it unaided. The POSTSEASON grade axis reads
+   the same field correctly, as a value to percentile-rank; only the
+   badge misread it. See ADR 0010.
+
+   A fact also needs enough record to be a fact, so every rate badge
+   requires GRADE_MIN_SEASONS. Absolute facts — titles, tenure — need no
+   floor. And the two rank badges read M.rank, the whole field, not
+   pfRankScope: "Top-3 scoring" has to mean one thing whether or not the
+   owner happens to be graded. Adam Boggess was 3rd of the graded twelve
+   and 4th of seventeen, and wore the badge on the strength of the
+   narrower field. */
 function computeTraits(o){
   const M = pfMetrics(), me = M.by[o.n];
-  const RB = pfRankScope(o.n);
-  const pg = o.pw + o.pl;
+  const gp = o.w + o.l, pg = o.pw + o.pl;
+  const enough = o.seasons >= GRADE_MIN_SEASONS;
   const traits = [];
   if(o.p[0] >= 2) traits.push(["Dynasty", "Multiple titles"]);
   else if(o.p[0] === 1) traits.push(["Champion", "Has a ring"]);
-  if(me.hasPts && RB.rank("ppg", me.ppg) <= 3) traits.push(["Big Bat", "Top-3 scoring"]);
-  if(me.hasPts && RB.rank("moves", me.moves) <= 3 && me.moves > 0) traits.push(["Wire Hawk", "Top-3 in moves"]);
-  if(me.winPct >= 0.55 && !o.p[0]) traits.push(["Ringless", "Wins without hardware"]);
-  if(pg && me.postPct >= 0.6) traits.push(["January Man", "Wins in the bracket"]);
-  if(me.appRate >= 0.6 && o.seasons >= 4) traits.push(["Regular", "Usually in the field"]);
+  if(enough && me.hasPts && M.rank("ppg", me.ppg) <= 3) traits.push(["Big Bat", "Top-3 scoring"]);
+  if(enough && me.hasPts && M.rank("moves", me.moves) <= 3 && me.moves > 0) traits.push(["Wire Hawk", "Top-3 in moves"]);
+  if(enough && gp && o.w / gp >= 0.55 && !o.p[0]) traits.push(["Ringless", "Wins without hardware"]);
+  /* at least four playoff games, so a 1-1 record can't claim it */
+  if(pg >= 4 && o.pw / pg >= 0.6) traits.push(["January Man", "Wins in the bracket"]);
+  if(o.seasons >= 4 && o.papp / o.seasons >= 0.6) traits.push(["Regular", "Usually in the field"]);
   if(o.seasons === Math.max(...owners.map(x => x.seasons))) traits.push(["Original", "Never missed a year"]);
   if(!traits.length) traits.push(["Journeyman", "Still writing the story"]);
   return traits;
