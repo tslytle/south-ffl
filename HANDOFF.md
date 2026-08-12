@@ -510,7 +510,10 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    cheat sheet (restyle only).
 3. **Dark-default theme polarity** (Q18: dark is the design's home, light stays supported). Not
    started. This is the change most likely to break ADR 0005's zero-AA-failures bar, so it needs
-   the contrast sweep re-run against composited backgrounds in *both* themes before it merges.
+   the contrast sweep re-run against composited backgrounds in *both* themes before it merges —
+   and the sweep now exists rather than needing rebuilding: **`contrast-sweep.js`** in the repo
+   root, with its four traps and the current zero-failure baseline in its header. Run it at both
+   widths and twice per width; see the section below for why one desktop pass is not enough.
 4. ~~**Deferred `PSTAT`/`ARCH` parse.**~~ **Don't. Measured 2026-08-12 and it is the wrong target.**
    ADR 0007's premise — 1.33MB parsed before first paint, the hub needs none of it — is true about
    bytes and wrong about cost. Instrumented copy of the real file (`performance.mark()` around each
@@ -774,6 +777,43 @@ makes the whole question moot. And `span.rk`, the medal chip, reads 1.09-1.96 in
 is the compositor in the harness, not a real failure: the chip is painted with a gradient, and
 `backgroundColor` reports transparent for those, so the walk lands on the wrong ancestor. ADR 0005
 tuned that chip deliberately with `--on-metal`.)
+
+### The contrast bar, re-measured — and the phone was failing (2026-08-12)
+ADR 0005's floor ("both themes measure zero AA failures — treat that as the standing bar") had never
+been re-run since it was set, and the sweep that set it wasn't kept. Rebuilt it as
+**`contrast-sweep.js`**, checked into the repo root, and ran it across all seven routes at
+{375, 1265}px x {dark, light}. It found a real regression-class defect on the first honest run:
+
+**396 failing elements at 375px in dark, all in champion rows, all pre-existing.** `.divsub` (the
+division label) and the two draft-pick badges `.dm`/`.do` measured **3.93 against a 4.5
+requirement**. Cause: `.stand tr.top1`'s gold is a 14% tint that — unlike on desktop, where the cell
+backgrounds paint over it — actually *renders* on a phone, lifting the card's ground from `#121828`
+to about `rgb(49,46,45)`. `--faint` was tuned against the darker one. Confirmed on the **live** build
+before touching anything, so it predates this session. Fixed by lifting exactly those three to
+`--muted` inside a champion row, in the phone media query only: 4.7 on the tinted ground, the same
+figure the team name beside them already passes at. Desktop is untouched, pixel for pixel.
+
+**This is the same tint that was rejected for desktop earlier the same day** — there it would have
+sunk 467 elements. Worth stating plainly: the gold row fill is a contrast liability wherever it
+renders, and it is only tolerable on the phone because three selectors were lifted to clear it.
+
+**Baseline now, and the number to hold:**
+
+| | checked | failures |
+|---|---|---|
+| 1265px dark | 59,753 | **0** |
+| 1265px light | 59,753 | **0** |
+| 375px dark | 59,501 | **0** (was 396) |
+| 375px light | 59,501 | **0** |
+
+**Why the original pass missed it, and what that means for the dark-default flip:** ADR 0005 counted
+21,341 elements — almost exactly what this harness counts at *desktop width on a single pass*
+(21,545). The phone layout is a different population, not a narrower one, and a second pass measures
+~59k because each pass expands the disclosures inside the view it sweeps. So the flip's contrast
+sweep must be run at **both widths** and **twice per width**, or it will certify a bar it never
+tested. The four traps that each produced a wrong answer while building this — viewport assertion,
+the two-pass population, Chrome's `color(srgb …)` syntax parsing as near-black, and gradient-painted
+elements being uncompositable — are all documented in the file's header.
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**

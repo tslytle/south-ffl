@@ -2310,6 +2310,18 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
   .stand td.l .nm.haslogo{align-items:flex-start}
   .grp{border-left:0}
   .stand tr.top1{background:var(--gold-soft);border-color:color-mix(in srgb, var(--gold) 40%, transparent)}
+  /* The gold is a 14% tint, and here — unlike on desktop, where the cells paint
+     over it — it actually renders, which lifts the card's ground from #121828
+     to about rgb(49,46,45). --faint was tuned against the darker one: measured
+     on the live build at 375px in dark, the division label and both draft-pick
+     badges sit at 3.93 against a 4.5 requirement, ~396 elements across the
+     twelve champion rows. They are the only AA failures anywhere on the phone,
+     and they are invisible to a desktop-width sweep, which is why ADR 0005's
+     pass never saw them. --muted on the same tinted ground measures 4.7, the
+     same figure the team name beside them already passes at. */
+  .stand tr.top1 .divsub,
+  .stand tr.top1 .dpicks .dm,
+  .stand tr.top1 .dpicks .do{color:var(--muted)}
   .stand tr.halfrow{display:block;border:0;background:none;padding:0 0 0 0!important;margin:16px 0 6px}
   .stand tr.halfrow td{display:block}
   .stand tr.halfrow td span{padding:0 0 5px}
