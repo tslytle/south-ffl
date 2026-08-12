@@ -156,33 +156,63 @@ structures and code paths most directly tied to pre-draft correctness.
 
 ## New feature this session: Draft Rankings
 Every team's draft, every year, ranked best-to-worst by total fantasy points scored **while on
-the drafting team's own roster** (not a player's whole season regardless of who held him — that
-distinction mattered enough to redo once, see below). Lives under Draft, Rosters & Trades →
-Draft Rankings. Best 10 / Worst 10 shown by default, full list (138 of the original 140 team-
-drafts — two excluded, see below) behind a collapsed "all 138" disclosure. Each row links
-through to that year's actual draft board.
+the drafting team's own roster** — a player taken, dropped, and later a star elsewhere earns the
+drafting team nothing (that's Steals & Busts' job, above). Lives under Draft, Rosters & Trades →
+Draft Rankings. Best 10 / Worst 10 shown by default, full list (138 of 140 team-drafts — two
+excluded, see below) behind a collapsed "all 138" disclosure. Each row links through to that
+year's actual draft board.
 
-**Methodology, briefly:** 2018-2025 scans each team's own week-by-week roster (`rosterAt`) and
-only counts a drafted player's points for weeks that specific team actually held him. 2014-2017
-have no week-by-week roster data in this file at all (season-end snapshots only, `static: true`
-in `ROSTERS.S`) — those years instead check whether a pick was still on the drafting team's
-**end-of-season** snapshot; if so his full season (from the new `SEASON_PTS_2014..2017`, sourced
-from ESPN's own API — see the "Started this session" section above) counts, if not he counts for
-nothing. Coarser than 2018+ (whole-season in/out vs. per-week) but same spirit, and disclosed as
-such directly in the page.
+**Methodology went through two real revisions before landing where it is now — worth knowing the
+history if this gets touched again:**
+1. First version summed a player's *entire season* regardless of who held him — wrong, since it
+   credited the drafting team for points scored elsewhere after being dropped.
+2. Fixed for 2018-2025 (scans each team's own week-by-week roster via `rosterAt`, only counts
+   weeks that team actually held him). 2014-2017 initially got a coarser stand-in (whole-season
+   in/out based on the end-of-season snapshot) since this file has no week-by-week roster history
+   that far back.
+3. **User asked for the 2014-2017 gap closed properly rather than left coarse — done.** Pulled
+   real per-game box scores directly from ESPN's core stats API (`site.web.api.espn.com/.../
+   athletes/{id}/gamelog?season=Y`), independent of the fantasy platform's shorter data
+   retention, and applied this league's own scoring rules by hand per game. Combined with
+   week-by-week roster membership (`mRoster`, which *does* go back to 2014 even though this
+   file's own `ROSTERS.S` doesn't) to attribute each player's weeks to whichever team actually
+   held him. All of this ran through the user's authenticated ESPN session via the Claude in
+   Chrome browser tool — SWID/espn_s2 cookies were never seen or persisted, only used live,
+   read-only, in-browser.
 
-**Two real pre-existing data bugs found and worked around, not fixed at the source (would need
-the same ESPN weekly-roster backfill the "still open" item below describes):**
-- **2014 Beasts of the Middle East has an empty end-of-season snapshot** (`ROSTERS.S[2014]
-  .teams["Beasts of the Middle East"].snap = []`) — every other 2014 team has 15-16 entries.
-  Excluded from the ranking rather than shown as a misleading 0.
-- **2015 Beasts of the Middle East's snapshot doesn't match any of their 16 real draft picks** —
-  turned out to contain players who'd retired years before 2015 (LaDainian Tomlinson, Randy Moss,
-  Donovan McNabb) — corrupted source data, not a genuinely wiped-out roster. Caught via a
-  sanity check (0-of-16 overlap is implausible; every other one of the 138 team-years keeps at
-  least one pick) and excluded the same way as the empty-snapshot case.
-- Both are specifically about **this one team's** 2014/2015 snapshots — checked all 44
-  2014-2017 team-years for the same 0-overlap pattern, nothing else came back suspicious.
+**2014's scoring formula had to be reverse-engineered, not guessed — and was confirmed exactly.**
+The site's `SCORING_CHANGES` comment already noted 2014 used "whole points per block of yards"
+before 2015's fractional rates, but not the exact block sizes. Solved by algebra against known
+season totals: `trunc(passYds/25) + trunc(rushYds/10) + trunc(recYds/10)`, truncated toward zero
+**per game** (not floored, and not summed-then-truncated at the season level — per-game trunc
+was the only formulation that reproduced known totals exactly). Validated against multiple
+players with zero error (Julio Jones, Marshawn Lynch exact; one WR off by exactly 2, consistent
+with an untracked 2-point conversion, not a formula error).
+
+**Known, disclosed limits remaining (all called out directly in the page's "How this works"):**
+- 2-point conversions aren't in the gamelog stats source and go uncounted for 2014-2017 — a
+  handful of isolated 2-point misses, not a systemic gap.
+- Kickers and D/ST for 2014-2017 still use the older, coarser whole-season method (full season
+  if on the roster when it ended, nothing if not) — real per-week K/D-ST stats (field-goal
+  distance buckets from `gamelog`'s `fieldgoals` category; points+yards allowed would need a
+  team-boxscore-per-game pull, `site.web.api.espn.com/.../summary?event={id}`, `totalYards`)
+  were scoped out as a materially bigger lift for a smaller share of total points. Picked up
+  precisely for QB/RB/WR/TE only, which is ~87.5% of roster composition (11 of 16 spots).
+- Some ESPN athlete IDs return no gamelog data for **any** season, not just 2014-2017-specific
+  gaps (confirmed via direct testing, e.g. Rob Gronkowski's id 13229 fails at every season
+  queried) — a real per-player ESPN data hole, not a bug here. Those specific picks fall back to
+  the same season-total-if-on-final-roster method as K/D-ST.
+- Two team-years are excluded entirely, not shown as a misleading number: 2014 and 2015 "Beasts
+  of the Middle East" both have corrupted roster records at the source — 2014's snapshot is
+  empty, 2015's is full of players retired years before that season (LaDainian Tomlinson, Randy
+  Moss, Donovan McNabb) — confirmed via two independent ESPN data paths (the old snapshot check
+  and the new week-by-week `mRoster` pull agree it's broken), not a computation bug. Checked all
+  44 2014-2017 team-years for the same pattern; nothing else came back suspicious.
+
+Final per-team-year totals for 2014-2017 are baked into `DRAFT_TOTALS_2014_2017` (replaced the
+old raw per-player `SEASON_PTS_2014..2017` tables entirely — nothing else in the file referenced
+them, confirmed by grep before removing). `draftRankings()`'s static-year branch is now a direct
+lookup into that table instead of a runtime snapshot-based calculation.
 
 ## Still open (next round of the grilling session)
 These were queued but not yet asked/answered when the session paused to move machines:
@@ -191,14 +221,12 @@ These were queued but not yet asked/answered when the session paused to move mac
   turns up a memory or record of who was actually drafted there.
 - Draft-prep tools audit (see section above) is at a good stopping point, not exhaustively
   finished — everything checked so far is clean or fixed; revisit if something new surfaces.
-- Draft Rankings' 2014-2017 methodology is coarser than 2018-2025 by necessity (whole-season
-  in/out vs. per-week roster attribution) — closing that gap would mean pulling week-by-week
-  roster data for those years from ESPN's league API (same mechanism used for `SEASON_PTS_2014
-  ..2017`, needs fresh SWID/espn_s2 cookies again) and re-deriving points the same way `rosterAt`
-  does for 2018+. Not started; flagged as coarser in the UI in the meantime, not silently blended.
-- The two corrupted/missing end-of-season snapshots for 2014/2015 Beasts of the Middle East
-  (see above) are worked around in Draft Rankings but not fixed in `ROSTERS.S` itself — if
-  anything else ever reads those snapshots, the same bad data is still there.
+- Draft Rankings' remaining precision gaps (2-pt conversions, K/D-ST still coarse for 2014-2017,
+  a handful of ESPN-side missing athlete IDs) are all disclosed in the UI, not hidden — see above
+  for exactly what's left if someone wants to push this further.
+- The two corrupted end-of-season snapshots for 2014/2015 Beasts of the Middle East are worked
+  around in `DRAFT_TOTALS_2014_2017` but not fixed in `ROSTERS.S` itself — if anything else ever
+  reads those snapshots directly, the same bad data is still there.
 
 ## Environment notes for a fresh Claude Code session
 - This repo has no `.claude/settings.local.json` yet — none of the Mac session's local
