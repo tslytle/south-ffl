@@ -2546,6 +2546,39 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .udisc > summary::-webkit-details-marker{display:none}
 .udisc > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+/* ── Routed views (ADR 0007, Q43/Q44) ──────────────────────────────────────
+   One screen at a time. The six top-level sections become the six views; the
+   hub is its own route and the masthead is hub-route decoration.
+
+   Everything is gated behind body[data-route], which only the router sets. If
+   the script never runs — old browser, an error above it, JS off entirely —
+   not one of these rules applies and the document stays the single scrolling
+   page it has always been. Routing is an enhancement here, never a
+   prerequisite for reading the archive.
+
+   Nothing is moved in the DOM, only hidden, which is why every existing anchor
+   still resolves: a leaf like #h2h is found where it always was, and the router
+   reveals whichever view contains it. */
+body[data-route] section.uroute{display:none}
+body[data-route] section.uroute.uactive{display:block}
+body[data-route="hub"] :is(.uhub){display:block}
+body[data-route]:not([data-route="hub"]) :is(.uhub){display:none}
+/* the masthead, ticker and expand-all bar belong to the front door only */
+body[data-route]:not([data-route="hub"]) :is(header.gameBorder,.ticker,.allctl){display:none}
+/* back to the hub, shown only when you are inside a view */
+.uback{display:none;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-4);
+  font-size:var(--t-small);font-weight:700;color:var(--accent);
+  background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
+.uback:hover{text-decoration:underline}
+.uback:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Printing has to ignore routing entirely, or the PDF is one screen of doors. */
+@media print{
+  body[data-route] section.uroute,
+  body[data-route] :is(.uhub,header.gameBorder,.allctl){display:block !important}
+  .uback{display:none !important}
+}
+
 /* Functional motion only, and never against an explicit preference. */
 @media (prefers-reduced-motion:no-preference){
   a.ucard{transition:border-color .15s ease,box-shadow .15s ease}
@@ -2660,6 +2693,8 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
   </div>
 </section>
+
+<button class="uback" type="button" id="uback">&larr; All boards</button>
 
 <div class="allctl"><button data-all="1">Expand all</button><button data-all="0">Collapse all</button><button id="printBtn" type="button">Download as PDF</button></div>
 <section id="ahead"><details class="sect" open><summary class="sechead"><div><p class="eyebrow">Next up</p><h2 class="sec">The 2026 Season</h2>
@@ -9422,6 +9457,75 @@ drawDraft(DRAFT_YEARS[0]);
   if(!team) return;
   const champ = (typeof OWNER_OF !== "undefined" && OWNER_OF[team]) || team;
   el.textContent = (when.getFullYear()) + " under way · " + champ + " defends";
+})();
+</script>
+
+<script>
+/* ── Router (ADR 0007, Q43/Q44) ───────────────────────────────────────────
+   The six top-level sections are the six views; the hub is its own route.
+
+   Two commitments this honours.
+
+   Every existing URL keeps working. Nothing moves in the DOM — a leaf id like
+   #h2h is exactly where it always was — and the router simply reveals whichever
+   view contains the element the hash names. Links pasted into the group chat
+   years ago still land on the right board, and the ten-odd internal jump helpers
+   (gotoRosters, gotoMatchupGame, jumpToDraft, ...) need no rewiring because they
+   all move through the hash.
+
+   Routing is an enhancement, not a prerequisite. body[data-route] is the only
+   thing the CSS keys off and only this script sets it, so if the script never
+   runs the document stays one scrolling page and every board is still readable.
+
+   Order matters and is deliberate: this runs last, after every draw function has
+   already rendered and measured its tables while they were still visible.
+   Hiding a section that has not been laid out yet is how you get a table that
+   measures zero and collapses on reveal. */
+(function(){
+  const VIEWS = ["ahead", "people", "history", "building", "records", "rules"];
+  const secs = VIEWS.map(id => document.getElementById(id));
+  if(secs.some(s => !s)) return;          // structure changed: route nothing rather than half of it
+  secs.forEach(s => s.classList.add("uroute"));
+  const body = document.body;
+
+  /* Same defensive decode as openFor: the hash comes straight off the URL and a
+     hand-typed "#%" would otherwise throw and take the rest of this down. */
+  function viewFor(hash){
+    let id = "";
+    try { id = hash ? decodeURIComponent(String(hash).replace(/^#/, "")) : ""; }
+    catch(e){ return null; }
+    if(!id || id === "hub") return null;
+    const el = document.getElementById(id);
+    return el ? el.closest("section.uroute") : null;
+  }
+  function apply(host){
+    secs.forEach(s => s.classList.toggle("uactive", s === host));
+    body.dataset.route = host ? host.id : "hub";
+  }
+  const route = () => apply(viewFor(location.hash));
+
+  /* Capture phase, so the view is revealed before the browser scrolls to the
+     anchor. Reveal after the scroll and it lands in the wrong place. */
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if(!a) return;
+    const href = a.getAttribute("href");
+    if(href === "#" ) return;
+    apply(viewFor(href));
+  }, true);
+
+  const back = document.getElementById("uback");
+  if(back) back.addEventListener("click", () => {
+    /* drop the hash without leaving a bare "#" in the address bar */
+    try { history.pushState(null, "", location.pathname + location.search); }
+    catch(e){ location.hash = ""; }
+    apply(null);
+    window.scrollTo(0, 0);
+  });
+
+  addEventListener("hashchange", route);
+  addEventListener("popstate", route);
+  route();
 })();
 </script>
 </body>
