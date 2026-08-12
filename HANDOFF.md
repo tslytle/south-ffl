@@ -1043,12 +1043,45 @@ Print drains all fifteen and restores the disclosure state; no console errors an
 that is roughly **2.1 seconds** off the window where a phone is painted but frozen.
 
 **What is still eager, and why:** the draft cheat sheet (used under time pressure on Sept 7, never
-rehearsed, ~17ms — wrong trade), the hub hero and figures strip (outside every section), the swipe
-hints and scroll-spy (they read layout and would measure a hidden view as zero), and the multi-line
-`innerHTML` assignments — standings, `myears`, `h2table`, `h2pick`, `apyears`, `champboard`, the
-record book's first pass. Those last ones are the remaining ~50ms and are wrappable the same way;
-they were left because each needs its statement span wrapped by hand rather than a one-line swap,
-and the `viewFor` guard above is the piece that makes them safe.
+rehearsed, ~17ms — wrong trade), the hub hero and figures strip (outside every section), and the
+swipe hints and scroll-spy (they read layout and would measure a hidden view as zero).
+
+### The `innerHTML` assignments — and a latent bug they were hiding (2026-08-12)
+The last ~50ms. Nine assignments wrapped — `champboard`, `draftyears`, `yearnav`, `seasonlist`,
+`myears`, `h2table`, `h2pick`, the record book's first pass, `apyears` — plus `rosteryears` folded
+into the existing `rosters` registration. **29 board functions across 17 sections.**
+
+**Container-level `addEventListener` calls did not need moving.** They bind to elements in the
+static markup and catch children added later, so they stay eager and keep working.
+
+**Two statements did, and one of them took the page down.** Both operate on the produced DOM
+*without naming its container*, so a scan for the container's id does not find them:
+- `document.querySelectorAll("#rosteryears button")` — sets the selected-season highlight on
+  buttons the assignment above it writes. Folded in, with `rY = R_YEARS[0]` left eager because it
+  is state other code reads.
+- **`SEASONS.forEach(s => drawSeasonBody(s.y))`** — the standings markup only creates each season's
+  *empty* `<tbody>`; this fills them. Left outside the wrap it threw `Cannot set properties of null`
+  and killed the rest of the script: five registrations instead of twenty-nine, and most of the
+  archive blank. **This is the shape to look for when deferring anything else.**
+
+**And then the section hashes did not match — for a good reason.** Everything was byte-identical
+except `#seasons`, which came out **844 characters larger**: 2014 and 2015 only, **422 each**, one
+extra `td.grp` per row. Both builds were internally consistent (header count == body count), so
+nothing was misaligned — the two seasons had simply **gained a `Post` column they never had**.
+
+`seasonRows()` decides that column from `meta.hasPost`, and running eagerly it was reading playoff
+totals **before they were summed**. Deferred, it reads them after. The values are real: six teams
+with playoff records in each year, 5 wins against 5 losses — exactly a six-team bracket, the same
+shape as 2016, which always had the column — four teams showing "—", and Ryan Boggess at 2–0 in
+2014, which the champions board independently confirms as his title year.
+
+So **2014 and 2015 have been silently missing their playoff column on the live site**, and this
+fixes it. It is a visible change to the archive rather than a pure refactor, which is why it is
+called out here rather than buried.
+
+**The saving:** fully eager **578ms**, final **258ms** — **~320ms, about 55% of script time**.
+Against the ~9x ratio Justin's throttled numbers imply, roughly **2.9 seconds** off the window
+where a phone is painted but frozen.
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**

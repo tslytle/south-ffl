@@ -3906,6 +3906,7 @@ document.getElementById("figures").innerHTML = [
 
 /* ---- champions ---- */
 const ring = {};
+lazyBoard("board", () => {
 document.getElementById("champboard").innerHTML = chrono.map(s => {
   const [n,w,l] = s.t[0], o = OWNER_OF[n];
   ring[o] = (ring[o] || 0) + 1;
@@ -3918,6 +3919,7 @@ document.getElementById("champboard").innerHTML = chrono.map(s => {
     <div class="meta">${w}&ndash;${l}${l === 0 ? `<span class="tag best">Undefeated</span>` : bestOf(s).has(n) ? "<em>best record</em>" : ""}</div>
   </button>`;
 }).reverse().join("");
+});
 
 /* ---- owners ledger ---- */
 const finish = t => t.best === 1 ? "Champion &times;" + t.p[0] : `${ord(t.best)} (${t.bestYr})`;
@@ -4156,14 +4158,18 @@ function drawDraft(y){
     `${shownDraft} &middot; ${d.date} &middot; ${d.type} &middot; ${d.clock} &middot; ${d.rounds} rounds &middot; ${Object.values(d.picks).reduce((a,ps) => a + ps.length, 0)} picks` + (d.note ? `<span class="dnote">${d.note}</span>` : "");
   panel.hidden = false; empty.hidden = true;
 }
+lazyBoard("drafts", () => {
 document.getElementById("draftyears").innerHTML =
   `<span class="rlab">Season</span>` + DRAFT_YEARS.map(y => `<button data-y="${y}">${y}</button>`).join("");
+});
 document.getElementById("draftyears").addEventListener("click", e => {
   const b = e.target.closest("button[data-y]"); if(b) drawDraft(+b.dataset.y);
 });
 
 /* ---- seasons ---- */
+lazyBoard("seasons", () => {
 document.getElementById("yearnav").innerHTML = SEASONS.map(s => `<a href="#y${s.y}">${s.y}</a>`).join("");
+});
 
 /* per-column numeric sort values + display cells, built once per season */
 function parseWL(str){ const [w,l] = str.split("-").map(Number); return {w,l}; }
@@ -4235,6 +4241,7 @@ function drawSeasonBody(y){
   });
 }
 const SORTABLE = new Set(["rank","reg","post","pf","ppg","pa","diff","div","home","away","strk","moves"]);
+lazyBoard("seasons", () => {
 document.getElementById("seasonlist").innerHTML = SEASONS.map(s => {
   const meta = seasonRows(s);
   const th = (key,label,grp) => SORTABLE.has(key)
@@ -4263,7 +4270,14 @@ document.getElementById("seasonlist").innerHTML = SEASONS.map(s => {
     ${bracketHTML(s.y)}
   </article>`;
 }).join("");
+/* Inside the same registration, and not by preference: the markup above only
+   creates each season's empty <tbody>, and drawSeasonBody fills it. Left
+   outside, it ran against a container that no longer existed yet and threw
+   "Cannot set properties of null" — which took the rest of the script with it.
+   It names no element id, so a scan for the container's name does not find it;
+   this is the shape to look for when deferring any other assignment. */
 SEASONS.forEach(s => drawSeasonBody(s.y));
+});
 document.getElementById("seasonlist").addEventListener("click", e => {
   const rbtn = e.target.closest("button.tbtn[data-rteam]");
   if(rbtn){ gotoRosterTeam(+rbtn.dataset.ryear, rbtn.dataset.rteam); return; }
@@ -4705,9 +4719,10 @@ function drawTeamPicker(){
     `<button data-t="${esc(n)}" class="${n === rT ? "on" : ""}">${esc(OWNER_OF[n] || n)}</button>`).join("");
 }
 
-document.getElementById("rosteryears").innerHTML =
-  `<span class="rlab">Season</span>` + R_YEARS.map(y => `<button data-ry="${y}">${y}</button>`).join("");
-
+/* The year buttons are written by the "rosters" registration further down,
+   with the highlight that depends on them. The click handler stays here and
+   stays eager: it is bound to the container, which is in the static markup, so
+   it catches buttons that appear later. */
 document.getElementById("rosteryears").addEventListener("click", e => {
   const b = e.target.closest("button[data-ry]"); if(!b) return;
   const y = +b.dataset.ry;
@@ -4731,8 +4746,18 @@ document.getElementById("rosterweeks").addEventListener("click", e => {
 /* The newest season comes pre-selected so opening a roster is one tap, not
    two; the team stays the reader's choice. */
 rY = R_YEARS[0];
-document.querySelectorAll("#rosteryears button").forEach(x => x.classList.toggle("on", +x.dataset.ry === rY));
-lazyBoard("rosters", () => { drawTeamPicker(); drawRoster(); });
+/* These three go together and in this order. The year buttons are written by
+   the innerHTML above, the highlight is applied to those buttons, and the
+   picker reads rY — so deferring the markup without deferring the highlight
+   would leave the toggle querying an empty container and the newest season
+   silently unselected. rY itself stays eager: it is state, and other code
+   reads it. */
+lazyBoard("rosters", () => {
+  document.getElementById("rosteryears").innerHTML =
+    `<span class="rlab">Season</span>` + R_YEARS.map(y => `<button data-ry="${y}">${y}</button>`).join("");
+  document.querySelectorAll("#rosteryears button").forEach(x => x.classList.toggle("on", +x.dataset.ry === rY));
+  drawTeamPicker(); drawRoster();
+});
 
 
 /* ---- archive: owners, games ---- */
@@ -5008,8 +5033,10 @@ function drawMatchups(){
       `<button data-mw="${w}" class="${postWeeks.has(w) ? "po" : ""}">${w}</button>`).join("");
   p.hidden = false; e.hidden = true;
 }
+lazyBoard("matchups", () => {
 document.getElementById("myears").innerHTML =
   `<span class="rlab">Season</span>` + A_YEARS.map(y => `<button data-my="${y}">${y}</button>`).join("");
+});
 // default to most recent season so the section isn't empty on open
 mY = A_YEARS[0];
 lazyBoard("matchups", () => { drawMatchups(); });
@@ -5066,6 +5093,7 @@ for(const y of Object.keys(ARCH.G)){
 }
 const H2NAMES = owners.map(o => o.n).filter(n => H2[n]);
 const shortName = n => { const p = n.split(" "); return p.length > 1 ? p[0] + " " + p[1][0] + "." : n; };
+lazyBoard("h2h", () => {
 document.getElementById("h2table").innerHTML =
   `<thead><tr><th class="corner">Manager</th>${H2NAMES.map(n => `<th>${esc(shortName(n))}</th>`).join("")}<th class="corner">All-time</th></tr></thead><tbody>` +
   H2NAMES.map(a => {
@@ -5080,6 +5108,7 @@ document.getElementById("h2table").innerHTML =
     }).join("");
     return `<tr><th>${esc(a)}</th>${cells}<td><b>${w}&ndash;${l}${t ? "&ndash;"+t : ""}</b></td></tr>`;
   }).join("") + "</tbody>";
+});
 document.getElementById("h2note").textContent =
   `${NUM(totalGames)} games between ${H2NAMES.length} managers, 2014 through 2025 (including ${NUM(totalPlayoffGames)} winners-bracket playoff games). Regular season and playoffs combined, with the playoff record broken out separately.`;
 
@@ -5149,10 +5178,12 @@ function drawH2Detail(){
   box.innerHTML = summary + list;
 }
 
+lazyBoard("h2h", () => {
 document.getElementById("h2pick").innerHTML =
   `<span class="rlab">Manager</span>` + H2NAMES
     .slice().sort((a,b) => a.localeCompare(b))
     .map(n => `<button data-h2="${esc(n)}">${esc(n)}</button>`).join("");
+});
 document.getElementById("h2pick").addEventListener("click", e => {
   const b = e.target.closest("button[data-h2]"); if(!b) return;
   h2sel = (h2sel === b.dataset.h2) ? null : b.dataset.h2;
@@ -5768,9 +5799,11 @@ const rankOf = (title) => RARITY[title] !== undefined ? RARITY[title] : 999;
 /* A first pass so the board isn't empty if anything later fails; the
    full book — including the trade, wire and hindsight records, which
    need data parsed much further down — is painted by paintBook(). */
+lazyBoard("records", () => {
 document.getElementById("recordcards").innerHTML =
   cards.slice().sort((x, z) => rankOf(x[0]) - rankOf(z[0])).map(([h,b,sub,p]) =>
     `<div class="rec-card"><h3>${h}</h3><div class="big">${esc(b)}</div><div class="sub">${sub}</div><p>${p}</p></div>`).join("");
+});
 { const e = document.getElementById("bookera"); if(e) e.innerHTML = ERA_NOTE; }
 
 /* ── Contents, per group ─────────────────────────────────────────────
@@ -7037,8 +7070,10 @@ function drawAllPlay(){
     `In ${apY}, <b>${esc(best.owner)}</b> won ${G2(best.luck)} more games than the scoring alone called for, and ` +
     `<b>${esc(worst.owner)}</b> ${G2(Math.abs(worst.luck))} fewer. A positive number means the schedule was kind. <b>Expected wins</b> is the record the points deserved &mdash; beat nine of the other eleven in a week and you&rsquo;ve earned nine-elevenths of a win, whoever the schedule gave you. Luck is simply the gap between that and the real record.`;
 }
+lazyBoard("allplay", () => {
 document.getElementById("apyears").innerHTML =
   `<span class="rlab">Season</span>` + A_YEARS.map(y => `<button data-ap="${y}">${y}</button>`).join("");
+});
 document.getElementById("apyears").addEventListener("click", ev => {
   const b = ev.target.closest("button[data-ap]"); if(!b) return;
   apY = +b.dataset.ap; drawAllPlay();
