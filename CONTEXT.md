@@ -24,5 +24,14 @@ week-by-week bench data, so their value is the raw whole-class total from
 `DRAFT_TOTALS_2014_2017` (K/DST included) — z-scored the same way but labelled on every row as
 the coarser basis it is.
 
-## Pre-draft tier vs. in-season backlog
-Two-tier scope agreed for this project. **Pre-draft tier**: data-correctness and draft-prep-tool fixes only (ADP refresh, tiers, cheat sheet, known data gaps) — the concrete deliverable ahead of draft night, Sept 7 2026. **In-season backlog**: net-new analytical features (live stats, weekly recaps) that need actual 2026 game data to mean anything — explicitly deferred, not part of this deliverable.
+## Scope tiers: pre-draft, archive, in-season
+Three-tier scope. **Pre-draft tier**: data-correctness and draft-prep-tool fixes (ADP refresh, tiers, cheat sheet, known data gaps) — the concrete deliverable ahead of draft night, Sept 7 2026. **Archive tier**: analytics and presentation over the settled 2014-2025 record (Draft Rankings, manager grade, Steals & Busts, the visual system) — correctness matters, urgency does not; needs no 2026 data. Named 2026-08-12, after two sessions' worth of work had landed here without the two-tier model having a bucket for it. **In-season backlog**: net-new features (live stats, weekly recaps) that need actual 2026 game data to mean anything — explicitly deferred.
+
+## Franchise Grade
+The 55-99 figure on a manager's profile, formerly "manager grade". It measures **franchise achievement** — what this franchise won — not managerial skill: bracket outcomes and regular-season record dominate the weighting, and a title is acknowledged in the code's own comment as the noisiest thing on the record. Renamed per ADR 0006 because the old label invited an argument the weighting could not win ("I'm the better manager, I just lost a bracket") and which was correct. Six axes: HARDWARE, POSTSEASON, SCORING, WINNING, LINEUPS, ACTIVITY. Only managers with at least `GRADE_MIN_SEASONS` (3) seasons are graded — a sample-size requirement, not a reward for tenure; short-tenure grades are marked as small samples. Distinct from a **trait badge**, which is a threshold over career facts shared with the Awards Wall, and describes rather than ranks.
+
+## Judged metric
+Any site number that ranks or grades people rather than reporting a fact — the manager grade and its axes, Draft Rankings' score, Steals & Busts, Start & Sit. Distinct from a **factual extreme** (Record Book highs and lows), which is just the archive sorted and needs no defence. Every judged metric must clear three bars: **defensible** (a manager who disputes it can be walked through the reasoning), **valid** (it measurably correlates with what it claims to measure), and **transparent** (the UI shows its work, weights included). Validity is the gate — an axis that cannot produce a correlation defending its own existence gets dropped or reweighted. ADR 0004's five-candidate comparison is the house method for meeting it.
+
+## Soft freeze
+From ~2026-09-03 until draft night: data-refresh commits (`refresh-adp.py`, `refresh-tiers.py`, cheat-sheet corrections) still land; code and layout changes stop. `main` is the deploy branch and GitHub Pages serves it directly, so every push is a live publish with no staging step — the freeze is the substitute for one.
