@@ -468,6 +468,11 @@ move machines; the rest are from the PC session (2026-08-11/12):
   move 0.8 picks) and `refresh-tiers.py` (FantasyPros updated 8/12, 125/125 in-scope matched, one
   tier change: De'Von Achane 2→3). Nothing worth writing yet — re-run both within a few days of
   **Sept 7** when the market and expert consensus have actually moved.
+- **Standings overflow 14px at a 900px viewport** — found 2026-08-12 while verifying the two-column
+  header, present on the live site too, so it predates that change. Sessions 2 and 3 measured
+  standings at 1887px and 375px and got 0 both times; the band between the phone overrides and the
+  desktop layout has never been checked. Worth a pass at 760-1100px, and worth doing the same sweep
+  for the other tables while in there.
 - **`CHEAT` and `DEPTH_TEAMS` have no refresh script.** The two scripts refresh prices and
   groupings for players already on the sheet; neither will ever notice a player changed teams,
   got hurt, or should be added. That gap is what produced the stale A.J. Brown entry. Cross-
@@ -527,15 +532,67 @@ targets — none of which can see a collapsed layout.**
   text block was `flex:1` and shoved them to the panel edge.
 
 **Still open on the visual side:**
-1. **Panel text stops at ~620px inside a 1177px panel**, so every board has an empty right half.
-   Panels must stay full width (the tables need it), so the fix is a two-column header or wider
-   notes — not a narrower panel.
+1. ~~**Panel text stops at ~620px inside a 1177px panel**, so every board has an empty right half.~~
+   **Done — the board header is two columns.** See the section below.
 2. **Dark-default polarity flip is now LAST, not next.** The user already views in dark, so the
    flip only changes what a first-time visitor gets — lowest visual payoff of anything left, and
    the highest AA risk. Do it with the full 21,341-element sweep, not spot probes.
 3. Bespoke depth (hub, Manager Profiles, Standings) is untouched.
 
+### The two-column board header (2026-08-12, same session)
+The empty right half is closed. A board panel runs the full width of its view because the tables
+inside need it; the header only ever filled the left 647px of 1040, because `.subnote` is capped at
+76ch and the eyebrow, heading and note stack. Sixteen boards therefore opened with half a panel of
+nothing, and the chevron sat in the middle of it.
+
+The header is now a three-track grid — title block, note, chevron — applied at `min-width:900px`
+only, so the phone keeps the stacked header it already had. **No markup changed:** all sixteen
+top-level headers and all nine nested ones are `div > (eyebrow) + heading + note`, so
+`display:contents` on that div promotes the three children into the summary's own grid. The nested
+boards under Steals & Busts and Draft Rankings get the same treatment and the same rule.
+
+**Two things worth knowing if this gets touched:**
+- **The chevron went back to the trailing edge, and that is not a reversal of `5651d12`.** That
+  commit fixed a control stranded ~500px out in blank panel. There is no blank panel now — the
+  chevron sits against the note it follows, and all twenty-five land on one vertical line.
+- **A spanning grid item grows every row it spans, and that was a real defect, caught by
+  measuring.** The note spans both rows, so a tall note grew both, and the extra height landed
+  *between the eyebrow and the heading*: 4px on a two-line note, 12px on three, 33px on Matchups'
+  six, and a nested heading pushed 82px down its own panel — the title block visibly loosening as
+  the note beside it got longer. `grid-template-rows:min-content 1fr` plus `align-self:start` on the
+  heading pins row 1 to the eyebrow and lets the `1fr` row absorb the excess. Gap is now a constant
+  4px on all twenty-five headers at every width tested. This was invisible in a screenshot until you
+  knew to look, and invisible in the source entirely.
+
+**Verified on the real file** (served over `python -m http.server` and loaded in a browser — see the
+working note below), at 375 / 900 / 1265 / 2048px, across all six views, both themes:
+- Page overflow **0** at every width, in every view.
+- Standings tables **0px** against their scrollers at 1265 and 2048 — the "no shell change may take
+  width from content" rule holds. This touches the summary only.
+- All 25 headers: zero clipped, zero notes overflowing the panel, zero title/note overlap, chevron
+  1px inside the padding edge, eyebrow-to-heading a constant 4px.
+- Note measure 537px (~80 characters) at the wrap's full 1040px, 425px at a 900px viewport. The
+  1 : 1.35 column ratio is chosen for exactly that — handing the note every leftover pixel would
+  run the line past 100 characters.
+- Contrast unchanged, because no colour or background changed: worst pair is the gold eyebrow in
+  light mode at **5.23:1**, the same figure ADR 0005 recorded for it.
+- Below 900px the rule does not apply at all — headers measure `display:flex`, exactly as before.
+
+**One pre-existing defect found, not fixed, not caused by this:** at a **900px viewport** the 2025
+standings table overflows its scroller by **14px** (15px at 899). Confirmed present on the live site
+at the same width before this change, so it predates it. Sessions 2 and 3 verified standings at 1887
+and 375px, which is why it was never seen — the breakpoint band between the phone overrides and the
+desktop layout was never measured.
+
 ### Working notes for whoever picks this up
+- **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
+  `python -m http.server 8765` in the repo root, then open `http://127.0.0.1:8765/index.html` in
+  the user's Chrome (Claude in Chrome can screenshot it) and in the in-app Browser pane (which
+  cannot screenshot but *can* resize its viewport, which real Chrome would not let this session do).
+  No branch, no push, no CDN poll, nothing to delete in a merge commit. Two traps: `navigate` forces
+  `https://` onto a bare `file:///` URL so file URLs do not work, and **the pane caches** — it
+  served a pre-edit copy and reported the fix missing until the URL got a `?cb=2` on it. Check a
+  marker (`[...document.styleSheets]` for a string from the new rule) before trusting a measurement.
 - **`preview.html` is the review mechanism and it works.** Pages here is classic
   deploy-from-branch on `main` with no `.github/workflows`, so a branch has no URL. Copy the
   branch's `index.html` to `preview.html` on `main`, push, verify in a real browser, delete it in

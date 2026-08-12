@@ -2717,6 +2717,63 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   .uback{display:none !important}
 }
 
+/* ── The board header is two columns ────────────────────────────────────────
+   A board panel runs the full width of the view because the tables inside it
+   need that width. Its header never used it: .subnote is capped at 76ch and the
+   eyebrow, heading and note stack under one another, so the text stopped at
+   647px inside a 1040px panel and all sixteen boards opened with an empty right
+   half. The chevron then sat in the middle of that emptiness.
+
+   Two columns now — the title block, the note beside it, the control on the
+   trailing edge. The chevron moving back to the edge is not a reversal of the
+   commit that pulled it in beside the heading: that fixed a control stranded
+   ~500px out in blank panel, and there is no blank panel any more. It now sits
+   against the note it follows, which is where a disclosure control belongs.
+
+   No markup changed. All sixteen top-level headers and all nine nested ones are
+   div > (eyebrow) + heading + note, so `display:contents` promotes those three
+   into the summary's own grid rather than needing the note lifted out by hand.
+
+   The 1 : 1.35 split is the note's reading measure, not a taste call: it lands
+   the line at ~80 characters at the widest the wrap ever gets. Handing the note
+   every leftover pixel instead would run it past 100 — the panel is too wide to
+   be one column of prose, which is the whole reason it is two.
+
+   Same rule as every shell step before it: this cannot take width from content.
+   It touches the summary only, spends whitespace the header already had, and
+   below 900px it simply does not apply — the phone keeps its stacked header. */
+@media (min-width:900px){
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead,
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary{
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) auto;
+    grid-template-rows:min-content 1fr;gap:0 var(--sp-5);align-items:start}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead > div,
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary > div{
+    display:contents}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .eyebrow{
+    grid-area:1/1/2/2}
+  /* The heading's 6px bottom margin was separating it from the note underneath;
+     the note is beside it now, so the margin has nothing left to separate.
+
+     `align-self:start` and the `min-content 1fr` rows above are one fix, and
+     they are not cosmetic: the note spans both rows, so a tall note grew BOTH
+     of them and the extra height landed between the eyebrow and the heading.
+     Measured before the fix, that gap ran 4px on a two-line note, 12px on
+     three, 33px on Matchups' six — the title block visibly loosening as the
+     note beside it got longer, and a nested heading pushed 82px down its own
+     panel. Pinning row 1 to the eyebrow and letting the 1fr row absorb every
+     spare pixel holds the gap at 4px on all twenty-five headers. */
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead h3.sec2,
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary h4.ssh{
+    grid-area:2/1/3/2;margin-bottom:0;align-self:start}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .subnote,
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary .subnote{
+    grid-area:1/2/3/3;margin-top:0;align-self:center}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .chev-s,
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary .chev-s{
+    grid-area:1/3/3/4;align-self:center}
+}
+
 /* Functional motion only, and never against an explicit preference. */
 @media (prefers-reduced-motion:no-preference){
   a.ucard{transition:border-color .15s ease,box-shadow .15s ease}
