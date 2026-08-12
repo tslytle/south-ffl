@@ -118,14 +118,23 @@
 }
 /* Dark palette: near-black base with a faint blue-green undertone (not
    literal #000), so surfaces still read as "material" rather than a
-   void. Applied automatically whenever the OS/browser is set to dark —
-   no toggle, no JS, no flash of the wrong theme on load. */
-/* Dark tokens live once and are reused by both triggers: the OS
-   preference (below, suppressed if the reader has explicitly chosen
-   light) and the manual toggle's [data-theme="dark"] override (right
-   after it, same values, so the two can never drift apart). */
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
+   void.
+
+   ── This is the default now, at every OS setting (ADR 0007's Q18) ──────────
+   It used to sit inside @media (prefers-color-scheme:dark), so the page was a
+   light document that went dark for readers whose OS asked. The overhaul made
+   dark the design's home — the hub, the panels and the three-colour system
+   were all drawn against this ground, and light is the supported alternative
+   rather than the base. So the trigger is now "unless the reader has chosen
+   light", full stop: no preference, light preference or dark, the archive
+   opens dark, and the toggle is what changes it. The choice persists in
+   localStorage and is applied by the no-flash script in <head>.
+
+   The selector still carries :not([data-theme="light"]) rather than being a
+   bare :root, because that is exactly what makes the toggle able to win — and
+   it keeps the specificity at (0,2,0), which is what the print block's
+   :root:root relies on to force paper-and-ink on a dark reader's printout. */
+:root:not([data-theme="light"]){
     /* Navy-dark flagship: deep blue-slate surfaces (not near-black green),
        mint doing all the accent work, gold reserved for hardware. */
     --bg:#0B0F1C; --surface:#121828; --raise:#1B2338;
@@ -149,8 +158,10 @@
     --sh:0 1px 2px rgba(0,0,0,.45);
     --sh-lg:0 6px 18px rgba(0,0,0,.4);
     --on-chip:#071019;
-  }
 }
+/* Kept, and still identical: the selector above already matches a reader who
+   toggled to dark, but this is the one rule that says so explicitly, and the
+   print block's :root:root needs something at (0,2,0) to beat. */
 :root[data-theme="dark"]{
   --bg:#0B0F1C; --surface:#121828; --raise:#1B2338;
   --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
@@ -215,10 +226,11 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
   fill:none;stroke:#fff;stroke-width:1.7;transition:opacity .18s ease,transform .3s ease}
 .themetoggle .ic-moon{fill:#fff;stroke:none;opacity:0;transform:rotate(-40deg) scale(.6)}
 .themetoggle .ic-sun{opacity:1;transform:rotate(0) scale(1)}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .ic-sun{opacity:0;transform:rotate(40deg) scale(.6)}
-  :root:not([data-theme="light"]) .ic-moon{opacity:1;transform:rotate(0) scale(1)}
-}
+/* The icon follows the same trigger as the palette — moon while the archive is
+   dark, sun once the reader has chosen light — so it always shows the state
+   the page is in, not the state the OS is in. */
+:root:not([data-theme="light"]) .ic-sun{opacity:0;transform:rotate(40deg) scale(.6)}
+:root:not([data-theme="light"]) .ic-moon{opacity:1;transform:rotate(0) scale(1)}
 :root[data-theme="dark"] .ic-sun{opacity:0;transform:rotate(40deg) scale(.6)}
 :root[data-theme="dark"] .ic-moon{opacity:1;transform:rotate(0) scale(1)}
 
@@ -9056,17 +9068,23 @@ let HINDSIGHT = null;      /* handed to the record book further down */
 /* ── Theme toggle ────────────────────────────────────────────────────
    Flips [data-theme] on <html> and remembers the choice in localStorage;
    the no-flash script at the top of <head> reads that same key before
-   first paint, so a saved preference never flickers through the OS
-   default on the way in. resolved() treats "no explicit choice yet" as
-   whatever the OS currently prefers, so the very first click always
-   switches away from what the reader is actually looking at. */
+   first paint, so a saved preference never flickers through the default
+   on the way in.
+
+   resolved() has to agree with the stylesheet about what "no explicit choice
+   yet" looks like, or the first click is a no-op. It used to answer with the
+   OS preference, which was right while the palette lived in
+   @media (prefers-color-scheme:dark). The palette is now dark at every OS
+   setting unless [data-theme="light"] says otherwise, so this answers "dark"
+   — otherwise a reader on a light-mode phone, looking at a dark page, would
+   click once to set data-theme="dark" (changing nothing they can see) and
+   have to click again. */
 (function(){
   const btn = document.getElementById("themetoggle");
   if(!btn) return;
-  const mq = window.matchMedia("(prefers-color-scheme:dark)");
   const resolved = () => {
     const t = document.documentElement.getAttribute("data-theme");
-    return t === "light" || t === "dark" ? t : (mq.matches ? "dark" : "light");
+    return t === "light" ? "light" : "dark";
   };
   const relabel = () => btn.setAttribute("aria-label", resolved() === "dark" ? "Switch to light theme" : "Switch to dark theme");
   relabel();

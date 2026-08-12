@@ -508,12 +508,9 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    sized by group population, a rail that stretched and stranded, a table that scrolled with
    nothing pinned. Draft Rankings was already off the list (rebuilt in ADR 0004) and so is the
    cheat sheet (restyle only).
-3. **Dark-default theme polarity** (Q18: dark is the design's home, light stays supported). Not
-   started. This is the change most likely to break ADR 0005's zero-AA-failures bar, so it needs
-   the contrast sweep re-run against composited backgrounds in *both* themes before it merges —
-   and the sweep now exists rather than needing rebuilding: **`contrast-sweep.js`** in the repo
-   root, with its four traps and the current zero-failure baseline in its header. Run it at both
-   widths and twice per width; see the section below for why one desktop pass is not enough.
+3. ~~**Dark-default theme polarity** (Q18).~~ **Done 2026-08-12 — see the section below.** The
+   sweep that gated it is checked in as **`contrast-sweep.js`**, with its four traps and the
+   zero-failure baseline in its header; use it for anything that touches colour.
 4. ~~**Deferred `PSTAT`/`ARCH` parse.**~~ **Don't. Measured 2026-08-12 and it is the wrong target.**
    ADR 0007's premise — 1.33MB parsed before first paint, the hub needs none of it — is true about
    bytes and wrong about cost. Instrumented copy of the real file (`performance.mark()` around each
@@ -814,6 +811,45 @@ sweep must be run at **both widths** and **twice per width**, or it will certify
 tested. The four traps that each produced a wrong answer while building this — viewport assertion,
 the two-pass population, Chrome's `color(srgb …)` syntax parsing as near-black, and gradient-painted
 elements being uncompositable — are all documented in the file's header.
+
+### Dark is the default now (2026-08-12) — the last overhaul item
+Q18's decision, shipped. The dark palette used to live inside
+`@media (prefers-color-scheme:dark)`, so the archive was a light document that went dark for readers
+whose OS asked. It is now `:root:not([data-theme="light"])` with no media query: **at every OS
+setting the archive opens dark, and the toggle is what changes it.** The choice still persists in
+localStorage and is still applied by the no-flash script in `<head>`.
+
+Three things this touched, and the second one is the one that would have bitten:
+- The **palette block** loses its media-query wrapper. Specificity is unchanged at (0,2,0) — a media
+  query adds none — so the print block's `:root:root`, which forces paper-and-ink for a dark reader's
+  printout, still wins on source order exactly as before.
+- **`resolved()` in the toggle had to change with it.** It answered with the OS preference, which was
+  right while the palette followed the OS. Left alone, a reader on a light-mode phone would have
+  looked at a dark page, clicked once to set `data-theme="dark"` — changing nothing they could see —
+  and had to click again. It now answers "dark" for "no explicit choice yet", matching the
+  stylesheet. Verified with the OS emulated to light: page opens dark, **one** click reaches light,
+  a second returns to dark, and the aria-label and sun/moon icon track the page rather than the OS.
+- The **toggle icon rules** lose the same wrapper, so the icon shows the state the page is in.
+
+**Verified with `contrast-sweep.js`, all four combinations, fully expanded populations:**
+
+| | checked | failures |
+|---|---|---|
+| 1265px dark | 59,753 | 0 |
+| 1265px light | 59,753 | 0 |
+| 375px dark | 59,501 | 0 |
+| 375px light | 59,501 | 0 |
+
+**One measurement note if you re-run it:** a sweep taken straight after opening the disclosures counts
+~21.5k elements, not ~59.5k. The Matchups board renders each boxscore from a `toggle` handler, so the
+big population only exists once those handlers have run — reveal every view, open every `<details>`,
+then sweep in a *separate* call. The 21.5k number is not wrong, it is just a much smaller population
+than the one this bar was set against, and it is almost exactly what ADR 0005 counted (21,341).
+
+**Not done, deliberately:** no `color-scheme` property was declared. Adding
+`:root{color-scheme:dark}` would make the UA paint scrollbars, form controls and the search caret
+dark to match, which is a real improvement — but it also changes native control rendering, so it
+wants its own look and its own sweep rather than riding along with the polarity change.
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
