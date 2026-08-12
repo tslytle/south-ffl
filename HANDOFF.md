@@ -356,14 +356,13 @@ move machines; the rest are from the PC session (2026-08-11/12):
 - The two corrupted end-of-season snapshots for 2014/2015 Beasts of the Middle East are worked
   around in `DRAFT_TOTALS_2014_2017` but not fixed in `ROSTERS.S` itself — if anything else ever
   reads those snapshots directly, the same bad data is still there.
-- **Awaiting a decision from the user: the two "context" axes in the manager grade.** Measured
-  across the 12 graded managers: `LONGEVITY` (weight 6) takes only **four distinct values**, six
-  of them tied at the 75th percentile, and correlates **0.07** with win rate — it measures tenure,
-  not managing, and costs an 8-season manager ~6% of his grade for joining later. `ACTIVITY`
-  (weight 4) correlates 0.39 with win rate but only **0.11** with titles. Dropping both leaves the
-  top five untouched; biggest move is Alen Huseinbegovic down 3. Recommendation put to the user:
-  drop `LONGEVITY`, move its 6 points to `SCORING`/`LINEUPS`. **Not applied** — it reorders real
-  people, so it's the user's call, not a correctness fix.
+- ~~Awaiting a decision on the two "context" axes in the manager grade.~~ **Decided and shipped
+  2026-08-12 — ADR 0006.** `LONGEVITY` dropped (0.07 with win rate), `ACTIVITY` kept (0.39), and
+  the grade renamed **Franchise Grade** because the weighting measures franchise achievement, not
+  managing. Renormalisation is proportional and automatic — `pfGradeForAxes` divides by the weight
+  sum, so the survivors were left untouched and now total 94 deliberately. Top five hold; five of
+  twelve change rank. Also added `GRADE_SMALL_SAMPLE = 5`, which flags rather than penalises a
+  short career and currently applies to nobody (graded field runs 8-12 seasons).
 - **Pre-draft refresh is not yet due.** Both scripts dry-run clean as of 2026-08-12:
   `refresh-adp.py` (ESPN half-PPR id 8 re-verified at 0.5 pts/reception, 250/250 players, largest
   move 0.8 picks) and `refresh-tiers.py` (FantasyPros updated 8/12, 125/125 in-scope matched, one
