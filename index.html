@@ -72,7 +72,7 @@
      the navy-dark flagship below, not a separate personality. Green is the
      one brand accent; gold appears only where something was won. */
   --bg:#F5F7FA; --surface:#FFFFFF; --raise:#EEF1F6;
-  --ink:#0E1420; --body:#3A4353; --muted:#64708A; --faint:#6E7891;
+  --ink:#0E1420; --body:#3A4353; --muted:#58627C; --faint:#616B84;
   --line:#DFE4EE; --soft:#EAEEF5;
   --accent:#0B6B4E; --accent-dk:#073226; --accent-soft:#E2F4EB; --accent-lt:#159E6E;
   --accent2:#1E7FB0; --accent2-dk:#0F4863; --accent2-soft:#E4F1F9; --accent2-ink:#0F4863;
@@ -110,9 +110,11 @@
      scroll-margin below is derived from this, so the bars stay flush */
   --navh:52px;
   --on-chip:#fff; /* text for any chip/badge filled with a saturated brand color
-                      (accent, gold, silver, bronze, neg) — those colors are dark
-                      in light mode (white text) and bright in dark mode, where
-                      this token flips to near-black instead */
+                      (accent, neg) — those colors are dark in light mode (white
+                      text) and bright in dark mode, where this token flips to
+                      near-black instead */
+  --on-metal:#0B0E11; /* ink for gold/silver/bronze fills, which are bright in
+                         BOTH themes and so never take white — see .rk.m1 */
 }
 /* Dark palette: near-black base with a faint blue-green undertone (not
    literal #000), so surfaces still read as "material" rather than a
@@ -127,7 +129,7 @@
     /* Navy-dark flagship: deep blue-slate surfaces (not near-black green),
        mint doing all the accent work, gold reserved for hardware. */
     --bg:#0B0F1C; --surface:#121828; --raise:#1B2338;
-    --ink:#F2F5FA; --body:#C3CBDC; --muted:#8B95AD; --faint:#7E89A3;
+    --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
     --line:#232C42; --soft:#182034;
     --accent:#2FDA87; --accent-dk:#0A3A2C; --accent-soft:rgba(47,218,135,.14); --accent-lt:#63EBA3;
     --accent2:#4FB4EA; --accent2-dk:#123449; --accent2-soft:rgba(79,180,234,.14); --accent2-ink:#4FB4EA;
@@ -151,7 +153,7 @@
 }
 :root[data-theme="dark"]{
   --bg:#0B0F1C; --surface:#121828; --raise:#1B2338;
-  --ink:#F2F5FA; --body:#C3CBDC; --muted:#8B95AD; --faint:#7E89A3;
+  --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
   --line:#232C42; --soft:#182034;
   --accent:#2FDA87; --accent-dk:#0A3A2C; --accent-soft:rgba(47,218,135,.14); --accent-lt:#63EBA3;
   --accent2:#4FB4EA; --accent2-dk:#123449; --accent2-soft:rgba(79,180,234,.14); --accent2-ink:#4FB4EA;
@@ -495,6 +497,15 @@ details.sub details.sub > .subbody{padding-bottom:20px}
   cursor:pointer;transition:border-color .15s,color .15s}
 .subnav button:hover{border-color:var(--accent);color:var(--accent)}
 
+/* Every link on the page carries a class that colours it — except the
+   handful of ordinary prose links in the footnotes, which had nothing at
+   all and so fell through to the browser's own #0000EE. On the dark
+   theme that is 1.88:1 against the card, effectively unreadable. This is
+   the floor: anything more specific (.plink, .topnav a, .yearnav a, the
+   skip link) still wins on specificity and is unaffected. */
+a{color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+
 /* Player names are links now. They must not shout — a page this dense
    would turn into a wall of blue — so they read as plain text and only
    declare themselves on hover, with a dotted underline that says
@@ -512,6 +523,30 @@ details.sub details.sub > .subbody{padding-bottom:20px}
   font:inherit;color:inherit;cursor:pointer;border-radius:3px}
 .drjump:hover b,.drjump:focus-visible b{color:var(--accent)}
 .drjump:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* The rankings boards borrow .board's striping and hover, but not its
+   geometry: .board is sized for a twelve-round draft grid (fixed layout,
+   1478px of round columns), which stretched these five columns across
+   five screens of sideways scroll on a phone and half a screen on a
+   desktop. These size to their own content instead. */
+table.board.drtable{table-layout:auto;min-width:440px;width:100%}
+/* .board's rank gutter is 38px because the draft grid puts a round number
+   there; "Rank" needs more than that or the header breaks across lines */
+.drtable th.rdc,.drtable td.rdc{width:auto;min-width:46px;white-space:nowrap}
+.drtable th em{display:block;margin-top:2px}
+.drtable td{line-height:1.35}
+.drtable td i{display:block;font-style:normal;font-size:var(--t-tiny);color:var(--faint);margin-top:1px}
+.drtable td b{font-size:var(--t-small)}
+.drtable td.drval{white-space:nowrap}
+.drtable .drunit{font-size:var(--t-tiny);color:var(--muted)}
+/* on a phone the unit label drops under its number rather than forcing
+   another 90px of sideways scroll */
+@media (max-width:760px){
+  .drtable td.drval{white-space:normal}
+  .drtable .drunit{display:block}
+  table.board.drtable{min-width:330px}
+}
+.drtable td b.pos{color:var(--pos)}
+.drtable td b.neg{color:var(--neg)}
 
 /* tables */
 .tw{overflow-x:auto}
@@ -902,12 +937,23 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .rings-d .tr{width:14px;height:14px;fill:var(--trophy)}
 .nickname{display:inline-block;margin-left:8px;font-size:var(--t-tiny);font-weight:600;letter-spacing:.04em;color:var(--faint);font-style:italic;vertical-align:middle}
 
-/* medals */
+/* medals
+   These sat on --on-chip, whose whole premise is that a chip's fill is
+   dark in light mode and bright in dark mode. That holds for the accent
+   and the reds; it does not hold for metal. Gold, silver and bronze are
+   bright in BOTH themes, so white ink on them read at 1.67:1 (silver,
+   light mode) to 3.77:1 (gold) — the worst contrast on the page. And the
+   old gradients leaned on the --*-line tokens for their light stop, which
+   in dark mode are the darker of the pair, so the dark ink failed there
+   too. Metal now always takes near-black ink, and the light stop is
+   derived from the metal itself rather than a border token, so it can
+   only ever be lighter than the base — in either theme. */
 .rk{display:inline-block;min-width:23px;height:23px;line-height:23px;text-align:center;border-radius:50%;
   font-size:var(--t-fine);font-weight:700;color:var(--faint);background:var(--soft)}
-.rk.m1{background:linear-gradient(150deg,var(--gold-lt),var(--gold));color:var(--on-chip);box-shadow:0 1px 3px color-mix(in srgb, var(--gold) 40%, transparent)}
-.rk.m2{background:linear-gradient(150deg,var(--silver-line),var(--silver));color:var(--on-chip);box-shadow:0 1px 3px color-mix(in srgb, var(--silver) 35%, transparent)}
-.rk.m3{background:linear-gradient(150deg,var(--bronze-line),var(--bronze));color:var(--on-chip);box-shadow:0 1px 3px color-mix(in srgb, var(--bronze) 35%, transparent)}
+.rk.m1,.rk.m2,.rk.m3{color:var(--on-metal)}
+.rk.m1{background:linear-gradient(150deg,color-mix(in srgb, var(--gold) 72%, #fff),var(--gold));box-shadow:0 1px 3px color-mix(in srgb, var(--gold) 40%, transparent)}
+.rk.m2{background:linear-gradient(150deg,color-mix(in srgb, var(--silver) 72%, #fff),var(--silver));box-shadow:0 1px 3px color-mix(in srgb, var(--silver) 35%, transparent)}
+.rk.m3{background:linear-gradient(150deg,color-mix(in srgb, var(--bronze) 72%, #fff),var(--bronze));box-shadow:0 1px 3px color-mix(in srgb, var(--bronze) 35%, transparent)}
 
 /* owners */
 .spotbar{display:flex;align-items:center;gap:10px;min-height:30px;font-size:var(--t-base);color:var(--muted);padding:0 2px 10px}
@@ -997,6 +1043,12 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .season-head .sub{font-size:var(--t-fine);font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
 .stand tr.top1{background:var(--gold-soft)}
 .stand tr.top1:hover{background:var(--gold-tint)}
+/* Nine points of side padding on thirteen columns is more air than the
+   numbers need, and it was the difference between the OWNER column having
+   room for an expanded draft list and not. At seven, every pick line fits
+   on one row in all twelve seasons with every row expanded, and the table
+   still never leaves its scroller. */
+.stand tbody td:not(.l),.stand thead th:not(.l){padding-left:7px;padding-right:7px}
 .stand tbody td{vertical-align:top;padding-top:14px}
 .stand tbody td.l{padding-top:12px}
 .stand tbody td.rdc{padding-top:14px}
@@ -1036,6 +1088,11 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .bside.win .bwho b{color:var(--ink);font-weight:700}
 .bside.win .bpts{color:var(--ink);font-weight:700}
 .bside.win .bseed{color:var(--accent)}
+/* Winning sides everywhere sit on an --accent-soft wash. On the dark theme
+   that wash lifts the backdrop enough to drop --faint to 3.95:1, so the
+   quiet second line steps up the same way the bold name above it already
+   does. Bracket, matchup card and trade card share the one rule. */
+.bside.win .bwho i,.mteam.win .who i,.tside.won .ttot span{color:var(--muted)}
 .bnote{font-size:var(--t-tiny);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
   padding:7px 10px;border-top:1px solid var(--soft);background:var(--raise)}
 
@@ -1193,7 +1250,12 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .sssub:first-child{margin-top:0}
 .sssub span{font-size:var(--t-micro);letter-spacing:.06em;color:var(--faint);font-weight:600}
 .sswk{border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px;background:var(--surface);margin-bottom:9px}
-.sswk.flip{border-color:color-mix(in srgb, var(--neg) 40%, transparent);background:linear-gradient(0deg,var(--rust-soft),var(--rust-soft))}
+/* --rust-soft is translucent on the dark theme, so tinting with it alone
+   threw away .sswk's opaque surface and let the group panel show through:
+   the card ended up lighter than the one beside it and its quiet labels
+   fell to 4.3:1. Painting the tint over --surface keeps the card a card. */
+.sswk.flip{border-color:color-mix(in srgb, var(--neg) 40%, transparent);
+  background:linear-gradient(0deg,var(--rust-soft),var(--rust-soft)) var(--surface)}
 .sswkhd{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .sswkwho{font-family:var(--serif);font-size:var(--t-lead);font-weight:600;color:var(--ink)}
 .sswkwho em{font-style:normal;font-size:var(--t-fine);color:var(--muted);margin-left:8px;font-family:var(--sans)}
@@ -1227,7 +1289,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .sswkcol.sat b{color:var(--neg)}
 .sswkcol.sit b{color:var(--pos)}
 .ssflag{display:inline-block;font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--neg);background:var(--rust-soft);border:1px solid color-mix(in srgb, var(--neg) 30%, transparent);border-radius:var(--r-pill);padding:2px 8px;margin-left:8px}
+  color:var(--neg);background:linear-gradient(0deg,var(--rust-soft),var(--rust-soft)) var(--surface);border:1px solid color-mix(in srgb, var(--neg) 30%, transparent);border-radius:var(--r-pill);padding:2px 8px;margin-left:8px}
 .ssflag.big{color:var(--on-chip);background:var(--neg);border-color:var(--neg)}
 .ssptag.gold{color:var(--gold-ink);background:var(--gold-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent)}
 .ssptag{display:inline-block;font-size:var(--t-micro);font-weight:700;letter-spacing:.06em;text-transform:uppercase;
@@ -1583,11 +1645,23 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   .navdrop-toggle{width:44px}
 }
 .dpicks ol{margin:9px 0 3px;padding:0;list-style:none;border-left:2px solid var(--line)}
-.dpicks li{display:flex;align-items:baseline;gap:7px;padding:2px 0 2px 10px;white-space:nowrap}
+/* These pick lines live inside a standings cell, so their width is the
+   standings table's width. Held at nowrap they set the OWNER column's
+   minimum, and opening every row's DRAFT list at once pushed the table
+   16-49px past its scroller in 7 of the 12 seasons -- which read as the
+   MOVES column being cut off. Letting a long name wrap costs nothing
+   (it only ever happens when the column is being squeezed, and the
+   phone breakpoint already wrapped them) and it keeps the table inside
+   its own width no matter how many rows are open. min-width:0 is what
+   lets the flex item actually give ground. */
+.dpicks li{display:flex;align-items:baseline;gap:7px;padding:2px 0 2px 10px}
 .dpicks .dr{font-size:var(--t-tiny);font-weight:600;color:var(--accent);width:26px;flex:none}
-.dpicks li b{font-size:var(--t-base);font-weight:500;color:var(--ink);font-family:var(--sans)}
+.dpicks li b{font-size:var(--t-base);font-weight:500;color:var(--ink);font-family:var(--sans);min-width:0}
 .dpicks .dm,.dpicks .do{font-size:var(--t-fine);color:var(--faint);font-family:var(--sans)}
-.dpicks .do{margin-left:auto;padding-left:10px}
+/* the position/club badge is one token -- it wraps as a unit or not at all,
+   never "WR" over "Ind" */
+.dpicks .dm{white-space:nowrap}
+.dpicks .do{margin-left:auto;padding-left:6px}
 
 /* records */
 .records{display:grid;grid-template-columns:repeat(auto-fit,minmax(264px,1fr));gap:12px}
@@ -1677,7 +1751,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .mgame.flat > .mhead,.mgame.flat{cursor:default}
 .mgame.flat{padding:12px 14px}
 .mwkbar .po{border-color:color-mix(in srgb, var(--gold) 50%, transparent);color:var(--gold-text)}
-.mwkbar .po.on{background:var(--gold);border-color:var(--gold-text);color:var(--on-chip)}
+.mwkbar .po.on{background:var(--gold);border-color:var(--gold-text);color:var(--on-metal)}
 
 /* matchups */
 .mwk{margin-top:22px}
@@ -1908,7 +1982,7 @@ table.h2 td.ev{color:var(--faint)}
   letter-spacing:-.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .twon{flex:none;font-size:var(--t-micro);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--on-chip);background:var(--accent);border-radius:var(--r-pill);padding:3px 8px}
-.tteam{display:block;font-size:var(--t-fine);color:var(--faint);margin:2px 0 10px;
+.tteam{display:block;font-size:var(--t-fine);color:var(--muted);margin:2px 0 10px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .tp{display:flex;align-items:center;gap:9px;padding:5px 0;min-width:0}
@@ -2145,8 +2219,6 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
   #aptable td.rdc{display:none}
   .yearpick button{padding:10px 14px;font-size:var(--t-base)}
   .records{grid-template-columns:1fr}
-  .dpicks li{white-space:normal}
-  .dpicks .do{padding-left:6px}
   footer{padding-bottom:48px}
 }
 @media (max-width:400px){
@@ -2238,7 +2310,7 @@ a,button,summary,.pick,.sslrow{-webkit-tap-highlight-color:color-mix(in srgb, va
      switched to dark on screen still prints on paper, not on black. */
   :root:root{
     --bg:#FFFFFF; --surface:#FFFFFF; --raise:#F3F5F9;
-    --ink:#0E1420; --body:#3A4353; --muted:#64708A; --faint:#6E7891;
+    --ink:#0E1420; --body:#3A4353; --muted:#58627C; --faint:#616B84;
     --line:#DFE4EE; --soft:#EAEEF5;
     --accent:#0B6B4E; --accent-dk:#073226; --accent-soft:#E2F4EB; --accent-lt:#159E6E;
     --accent2:#1E7FB0; --accent2-dk:#0F4863; --accent2-soft:#E4F1F9; --accent2-ink:#0F4863;
@@ -2535,30 +2607,31 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   </div>
 </div></details></section>
 <section id="draftranks"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every class, ranked</p><h3 class="sec2">Draft Rankings</h3>
-  <p class="subnote">Every team&rsquo;s draft, every year, best to worst &mdash; graded on the one thing hindsight actually settles: how many total fantasy points the whole class scored that season.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every team&rsquo;s draft, every year, best to worst &mdash; graded not on how many points the class piled up, but on how far it ran past what the waiver wire was giving away free that season, and then read against the eleven other rooms drafting alongside it.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
 
   <details class="sub" open><summary><div><h4 class="ssh">How this works</h4>
-    <p class="subnote">One idea, three honest caveats.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+    <p class="subnote">Two numbers per row, and the honest limits of both.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <ul class="sshow">
-    <li><b>Only points scored while he was actually on that team.</b> A player taken, dropped a few weeks in, and gone on to have a monster year for someone else earns the drafting team nothing here &mdash; that swing is what Steals &amp; Busts (above) already judges, on its own terms. This asks a narrower question: of the points a manager&rsquo;s own roster actually banked, how much of that came from players he drafted versus players he picked up later? True for every year, 2014 through 2025 &mdash; 2014-2017&rsquo;s numbers were computed separately (this file has no week-by-week roster history that far back to run the live scan 2018+ uses), by pulling real per-game box scores straight from ESPN and applying this league&rsquo;s own scoring rules by hand, then attributing each player&rsquo;s weeks to whichever team&rsquo;s roster actually carried him that season. Same standard everywhere, just sourced differently for the years this file can&rsquo;t compute live.</li>
-    <li><b>Scoring rules changed in 2021, and once before that.</b> 2014-2020 paid zero points per reception; 2021+ pays half a point. 2014 itself scored yardage in flat whole-number blocks (1 point per 25 passing yards, per 10 rushing/receiving) rather than the fractional per-yard rates every later season uses &mdash; confirmed by reverse-engineering it against known season totals, not guessed. Each draft is graded fairly against the rules that were actually live that season, but that means totals aren&rsquo;t directly comparable across either boundary.</li>
-    <li><b>A few small, disclosed gaps remain in the 2014-2017 numbers specifically.</b> Two-point conversions aren&rsquo;t in the stats source used for those years and go uncounted &mdash; a couple of points, in isolated games, for a handful of players. Kickers and defenses for 2014-2017 still use a coarser whole-season method (counts in full if he was on the roster when that season ended, nothing if traded or dropped before then) rather than the per-week precision everything else now gets &mdash; real per-week kicking and defensive stats were a materially bigger lift and were left for later. And two team-years are left out of the ranking entirely rather than shown with a misleading number: 2014 and 2015 &ldquo;Beasts of the Middle East&rdquo; both have corrupted roster records at the source (confirmed independently, not a bug here) &mdash; one is simply empty, the other is full of players who&rsquo;d retired years before that season.</li>
+    <li><b>Only points scored while he was actually on that team.</b> A player taken, dropped a few weeks in, and gone on to have a monster year for someone else earns the drafting team nothing here &mdash; that swing is what Steals &amp; Busts (above) already judges, on its own terms. This asks a narrower question: of what a manager&rsquo;s own roster banked, how much came from men he drafted rather than men he picked up later?</li>
+    <li><b>Value is measured against the wire, not in raw points.</b> Every pick is worth what he scored for the team that drew him <i>minus</i> what a freely available player at his position was scoring over the same stretch &mdash; the same replacement line Steals &amp; Busts holds single picks to, prorated by the weeks that team actually held him. Kickers and defences are left out, exactly as they are from the boards above and for the same reason: nobody streams them and then argues about where they went in the draft. This matters more than it sounds. The old raw-points version of this board rewarded doing nothing: it ran at &minus;0.41 against a manager&rsquo;s roster moves, so the fastest route up it was to draft sixteen men and never touch the waiver wire again. Its all-time runner-up was a 5&ndash;9 team that made one move all season and carried two kickers and two defences from week one to week seventeen &mdash; 467 points of streaming positions &mdash; plus a backup quarterback worth 283 who started three times. Measured against replacement instead, roster moves stop mattering (&#43;0.13) and the number tracks wins better than the old sum did (&#43;0.43 against &#43;0.29). Both figures are plain correlations across the 96 team-drafts from 2018 on.</li>
+    <li><b>The score is relative to that season, which is the only way eras compare.</b> 2014&ndash;2020 paid zero points per reception and 2021&#43; pays half a point; 2014 went further still, scoring yardage in flat whole-number blocks (1 point per 25 passing yards, per 10 rushing or receiving) rather than the fractional rates every later season uses &mdash; reverse-engineered against known season totals, not guessed. Rank on raw figures and the rulebook does the sorting: the old board&rsquo;s bottom twenty was seventeen-parts 2014&ndash;2017. So each class is scored against the others drafting in its own year instead. <b>100 is an average draft for its season, and every 15 points is one standard deviation</b> &mdash; the row also says where the class finished among its own leaguemates. The raw figures are still printed beside it; they just aren&rsquo;t what the board sorts on.</li>
+    <li><b>2014&ndash;2017 sit on a coarser basis, and are marked as such on every row.</b> Working out what the wire was paying needs to know who was on your bench in week nine, and this file has no week-by-week roster history before 2018. Those four seasons keep the whole-class totals computed for them out-of-band &mdash; real per-game box scores pulled straight from ESPN, scored under this league&rsquo;s actual historic rules, then attributed to whichever team&rsquo;s roster carried each player that week &mdash; with kickers and defences included and two-point conversions uncounted, since the stats source doesn&rsquo;t carry them. Their scores are honest against their own season and are placed on the board on that footing; they are not the same measurement as 2018&#43;, and the row says so. Two team-years are left off entirely rather than shown with a misleading number: 2014 and 2015 &ldquo;Beasts of the Middle East&rdquo; both have corrupted roster records at the source (confirmed independently, not a bug here) &mdash; one is simply empty, the other full of players who&rsquo;d retired years before that season.</li>
   </ul>
   </div></details>
 
   <details class="sub" open><summary><div><h4 class="ssh">Best 10</h4>
-    <p class="subnote">The ten highest-scoring draft classes this league has ever produced.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
-  <div class="card"><div class="tw"><table class="board" id="drranktop"></table></div></div>
+    <p class="subnote">The ten drafts that beat their own season by the widest margin.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <div class="card"><div class="tw"><table class="board drtable" id="drranktop"></table></div></div>
   </div></details>
 
   <details class="sub" open><summary><div><h4 class="ssh">Worst 10</h4>
-    <p class="subnote">The ten lowest &mdash; every manager has one of these somewhere.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
-  <div class="card"><div class="tw"><table class="board" id="drrankbottom"></table></div></div>
+    <p class="subnote">The ten that fell furthest behind it &mdash; every manager has one of these somewhere.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <div class="card"><div class="tw"><table class="board drtable" id="drrankbottom"></table></div></div>
   </div></details>
 
-  <details class="sub"><summary><div><h4 class="ssh">Every draft, all 140</h4>
-    <p class="subnote">The full board, for the curious.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
-  <div class="card"><div class="tw"><table class="board" id="drrankfull"></table></div></div>
+  <details class="sub"><summary><div><h4 class="ssh">Every draft, all 138</h4>
+    <p class="subnote">The full board, for the curious &mdash; 140 team-drafts less the two the source data can&rsquo;t account for.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <div class="card"><div class="tw"><table class="board drtable" id="drrankfull"></table></div></div>
   </div></details>
 
 </div></details></section>
@@ -6832,10 +6905,23 @@ const NFL_LOGO = {"ARI":"data:image/webp;base64,UklGRjQOAABXRUJQVlA4TCgOAAAvR8AR
     }));
   }
 
+  /* Ink for a club-coloured chip. The obvious version -- weight the raw
+     0-255 channels and split at half -- is wrong, because sRGB is gamma
+     encoded: a mid-bright colour reads far darker to the eye than its
+     byte value suggests. It put white on Miami teal (3.95:1), Cincinnati
+     and Denver orange (3.37:1), Carolina and Chargers blue (4.03 and
+     4.28:1) -- five clubs under AA when the other ink would have passed
+     every time. This decodes to real relative luminance and simply takes
+     whichever of the two inks contrasts more, so the choice can't be
+     wrong by construction. */
   function textOn(hex){
-    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-    const lum = (0.2126*r + 0.7152*g + 0.0722*b) / 255;
-    return lum < 0.5 ? "#fff" : "#0B0E11";
+    const chan = i => {
+      const v = parseInt(hex.slice(1 + i*2, 3 + i*2), 16) / 255;
+      return v <= 0.03928 ? v/12.92 : Math.pow((v + 0.055)/1.055, 2.4);
+    };
+    const bg = 0.2126*chan(0) + 0.7152*chan(1) + 0.0722*chan(2);
+    const ratio = ink => (Math.max(ink, bg) + 0.05) / (Math.min(ink, bg) + 0.05);
+    return ratio(1) >= ratio(0.00304) ? "#fff" : "#0B0E11";   /* 0.00304 = #0B0E11 */
   }
 
   /* ── The starter line ────────────────────────────────────────────────
@@ -7082,8 +7168,12 @@ const ordSuffix = n => (n % 10 === 1 && n % 100 !== 11) ? "st"
 const STARTER_PTS_2017 = {"Caleb Sturgis":13,"Packers D/ST":24,"Kyle Rudolph":92.6,"Giovani Bernard":101.7,"Ty Montgomery":68.6,"Jordy Nelson":75.3,"Matt Ryan":247.8,"Demaryius Thomas":99.0,"Michael Thomas":145.1,"Panthers D/ST":90,"Michael Crabtree":97.9,"Hunter Henry":39.1,"A.J. Green":150.1,"Andy Dalton":51.05,"Wil Lutz":149,"Ameer Abdullah":46.5,"Dalvin Cook":54.4,"Paul Perkins":4.7,"Tyreek Hill":170.2,"Torrey Smith":29.0,"Lamar Miller":153.8,"Lions D/ST":69,"Adam Vinatieri":90,"Julio Jones":155.9,"Joe Mixon":98.7,"Aaron Rodgers":146.35,"Delanie Walker":85.2,"Matt Bryant":70,"Sterling Shepard":37.0,"Kareem Hunt":232.7,"Brandin Cooks":141.5,"Evan Engram":73.8,"Tom Brady":324.15,"Corey Coleman":11.3,"Derrick Henry":10.1,"Redskins D/ST":38,"Theo Riddick":79.7,"Rob Gronkowski":151.0,"Dustin Hopkins":31,"Doug Baldwin":127.3,"Larry Fitzgerald":147.15,"David Johnson":7,"Davante Adams":95.4,"Cam Newton":319.6,"Matt Prater":107,"Drew Brees":289.45,"Tevin Coleman":117.7,"Marshawn Lynch":132.3,"Steelers D/ST":66,"Zach Ertz":126.0,"Martavis Bryant":31.6,"LeSean McCoy":201.4,"T.Y. Hilton":102.0,"Ezekiel Elliott":163.1,"Terrelle Pryor Sr.":15.3,"Kirk Cousins":212.25,"Carlos Hyde":155.0,"Marvin Jones Jr.":119.1,"Bills D/ST":20,"Rob Kelley":13.2,"Stephen Gostkowski":163,"Jimmy Graham":102.3,"Ben Roethlisberger":205.55,"DeMarco Murray":114.5,"Jamison Crowder":43.3,"Ravens D/ST":160,"Matt Forte":32.9,"Melvin Gordon":217.7,"Cairo Santos":21,"Jason Witten":45.7,"Golden Tate":114.1,"Dan Bailey":40,"Amari Cooper":70.6,"Devonta Freeman":147.4,"Russell Wilson":310.85,"Greg Olsen":3.8,"Seahawks D/ST":64,"Kelvin Benjamin":65.7,"Christian McCaffrey":143.2,"Brandon Marshall":1,"Terrance West":24.5,"Travis Kelce":150.5,"Leonard Fournette":180.6,"Alshon Jeffery":138.1,"Le'Veon Bell":256.6,"Sammy Watkins":72.3,"Falcons D/ST":16,"Matthew Stafford":170.8,"Justin Tucker":136,"DeAndre Hopkins":213.8,"Rams D/ST":110,"Derek Carr":136.35,"Martellus Bennett":9.0,"Mason Crosby":48,"Emmanuel Sanders":33.7,"Mark Ingram":214.6,"Todd Gurley II":319.3,"Jordan Howard":175.3,"Isaiah Crowell":79.5,"Dez Bryant":115.0,"Dak Prescott":249.45,"Jordan Reed":31.0,"Chris Boswell":80,"Antonio Brown":193.2,"Eagles D/ST":134,"C.J. Anderson":113.7,"Bilal Powell":39.7,"Coby Fleener":18.1,"Jay Ajayi":81.5,"Bengals D/ST":40,"Jameis Winston":112.25,"Mike Evans":124.6,"Austin Hooper":14.4,"Jarvis Landry":63.9,"Cowboys D/ST":23,"Cardinals D/ST":35,"Buccaneers D/ST":57,"Blair Walsh":84,"Shane Vereen":8.6,"Chiefs D/ST":12,"Mike Gillislee":31.6,"Tyler Eifert":4.2,"Keenan Allen":147.4,"Texans D/ST":18,"DeSean Jackson":68.3,"Jeremy Maclin":12.5,"Giorgio Tavecchio":18,"Chargers D/ST":38,"Jacquizz Rodgers":15.2,"Raiders D/ST":19,"Tyrell Williams":22.9,"Odell Beckham Jr.":49.0,"Graham Gano":38,"Randall Cobb":23.1,"Jay Cutler":16.15,"Chris Johnson":8.4,"Broncos D/ST":48,"Duke Johnson Jr.":105.5,"Browns D/ST":18,"Dolphins D/ST":35,"James White":23.5,"Titans D/ST":53,"Eric Ebron":15.2,"Jack Doyle":40.1,"Patriots D/ST":59,"Ed Dickson":4.4,"Vikings D/ST":103,"Frank Gore":33.1,"Chris Carson":6.6,"Carson Palmer":24.05,"DeVante Parker":14.6,"Phil Dawson":22,"Giants D/ST":-4,"Deshaun Watson":137.05,"Charles Clay":19.3,"Ryan Succop":69,"Jared Cook":55.4,"Tyrod Taylor":32.85,"Mike Wallace":23.2,"Cameron Brate":35.6,"Latavius Murray":114.5,"Stefon Diggs":45.8,"Robbie Gould":62,"Adam Thielen":47.3,"DeShone Kizer":3.25,"Danny Amendola":11.7,"Andre Ellington":6.3,"Robby Anderson":93.2,"Eli Manning":15.25,"Doug Martin":66.6,"Jake Elliott":42,"Devin Funchess":26.5,"Greg Zuerlein":115,"Pierre Garcon":14.3,"49ers D/ST":6,"Chris Hogan":28.5,"LeGarrette Blount":29.6,"Ka'imi Fairbairn":8,"Will Fuller V":15.4,"Austin Seferian-Jenkins":28.2,"Marcus Mariota":55.35,"Samaje Perine":66.4,"John Brown":12.9,"Elijah McGuire":2.2,"Alvin Kamara":148.8,"Eric Decker":8.8,"Josh McCown":37.9,"Chris Thompson":52.7,"Jermaine Kearse":11.7,"Bears D/ST":30,"Adrian Peterson":59.4,"Javorius Allen":31.4,"Jaguars D/ST":109,"Alex Smith":60.5,"Ted Ginn Jr.":43.9,"Rishard Matthews":4,"Chris Ivory":23.3,"Carson Wentz":178.2,"Saints D/ST":38,"Thomas Rawls":14.0,"Mohamed Sanu":19.9,"Philip Rivers":156.3,"George Kittle":1.6,"Orleans Darkwa":33.0,"DeAndre Washington":12.8,"Harrison Butker":56,"Nick Rose":45,"Wendell Smallwood":1.4,"O.J. Howard":0.2,"Zay Jones":14.5,"Nelson Agholor":6.0,"Vernon Davis":16.8,"Stephen Hauschka":18,"Jerick McKinnon":25.6,"Zach Miller":0,"Kai Forbath":38,"Aaron Jones":2.3,"Jacoby Brissett":22.6,"Tyler Kroft":25.9,"Kenyan Drake":82.9,"Alex Collins":85.6,"Cooper Kupp":10.1,"Tyler Lockett":2.6,"Jared Goff":90.05,"Marqise Lee":24.5,"Alfred Morris":33.9,"Ryan Fitzpatrick":51.05,"David Njoku":0.3,"Jets D/ST":6,"Robert Woods":40.5,"JuJu Smith-Schuster":47.0,"Paul Richardson":4.3,"Josh Lambo":45,"Jamaal Williams":62.1,"Josh Doctson":17.4,"Kenny Stills":6.5,"Kerwynn Williams":31.1,"Dion Lewis":43.2,"Seth Roberts":4.6,"Austin Ekeler":4,"Josh Gordon":23.3,"Devontae Booker":0.8,"Rex Burkhead":19.0,"Julius Thomas":2.6,"Patrick Murray":3,"Dede Westbrook":9.5,"Marquise Goodwin":12.4,"Nick Foles":38.0,"Case Keenum":32.55,"Jonathan Stewart":5.4,"Peyton Barber":5.5};
 
 /* Final, per-drafting-team point totals for 2014-2017 -- each team's draft
-   picks, summed only for points scored while actually on THAT team's roster,
-   the same standard draftRankings() applies to 2018+. This file has no
+   picks, summed only for points scored while actually on THAT team's roster.
+   Note this is the WHOLE class, kickers and defences included, in raw points:
+   draftRankings() measures 2018+ against replacement level instead, which
+   needs week-by-week bench data these years don't have, so these four
+   seasons are scored on this coarser basis and the board says so on every
+   affected row. This file has no
    week-by-week roster history for these years (season-end snapshots only),
    so this was computed out-of-band: real per-game box scores pulled from
    ESPN's own stats API (independent of the fantasy platform's data
@@ -7282,67 +7372,152 @@ function draftValue(){
   return out;
 }
 
-/* Every draft, every team, ranked by the one thing a draft can be judged
-   on with hindsight: how many total fantasy points the whole class ended
-   up scoring. Not extra-value-over-replacement (that's Steals & Busts,
-   above) -- just the sum, the same "how good was this haul" question
-   asked at the level of a whole draft instead of one pick.
+/* ── Every draft, every team, ranked ─────────────────────────────────
+   This board used to add up every point every drafted player scored while
+   he sat on the drafting team's roster, and rank on that raw sum. It read
+   like a draft grade and wasn't one. Three things were wrong with it, and
+   the numbers say so out loud:
 
-   2018+ reuses the exact same weekly roster scan draftValue() runs (same
-   tot[] construction, so the numbers agree with Steals & Busts' underlying
-   data). 2014-2017 have no weekly roster data in this file at all (see the
-   comment above SEASON_PTS_2014) -- those four years use the season-total
-   tables sourced straight from ESPN's own history instead.
+   1. It paid for hoarding, not for drafting. Across 2018-2025 the raw
+      total correlated -0.41 with a manager's roster moves that season:
+      the surest way up the board was to draft sixteen men and never touch
+      the waiver wire again. The 2023 board's runner-up all-time was a
+      5-9 team that made exactly one move all year and kept both of its
+      kickers and both of its defences from week one to week seventeen --
+      467 points of streaming positions nobody in this league even
+      remembers drafting, plus a backup quarterback who scored 283 while
+      starting three times.
+   2. It rewarded bulk over usefulness. A quarterback outscores any back
+      alive, so a bench QB banked more "draft value" than a starting RB2.
+      Steals & Busts already solved this for single picks by judging every
+      man at his own position against replacement level. A whole draft
+      deserves the same measure.
+   3. It could not compare eras. 2014's whole-number scoring and 2021's
+      half-PPR don't produce the same size of number, so the old board's
+      bottom twenty was seventeen-parts 2014-2017 -- an artefact of the
+      rulebook, not a run of bad drafting.
 
-   One honest caveat, not swept under the rug: 2014-2020 scored zero points
-   per reception, 2021+ half a point. A QB-led draft class from 2016 and a
-   WR-led one from 2023 aren't accumulating points under the same rules --
-   this ranks each draft fairly against the rules that were actually live
-   that year, not across eras. */
+   So the ranking is now built in two steps.
+
+   VALUE. For 2018+, each pick is worth what he scored FOR THE TEAM THAT
+   DREW HIM, minus what the wire was handing out free at his position over
+   the same stretch -- replacementAt()'s line, the same one Steals & Busts
+   measures single picks against, prorated by the weeks that team actually
+   held him. Sum that over the class. Kickers and defences are left out,
+   exactly as SKILL leaves them out of the hindsight boards above, and for
+   the same reason. A man held all year who never beat the wire subtracts,
+   because the roster spot he ate was real; a man cut in week two costs
+   almost nothing, because the spot came back. Measured this way the metric
+   is flat against roster moves (+0.13) and tracks wins better than the old
+   raw sum did (+0.43 against +0.29), across the 96 team-drafts from 2018 on.
+
+   SCORE. Value is then read against the rest of that season's league --
+   100 is an average draft for its own year, and every 15 points is one
+   standard deviation. That, not the raw figure, is what the board sorts
+   on, so a 2014 class and a 2023 class are asked the same question:
+   how far ahead of the other eleven men in the room were you?
+
+   2014-2017 keep the coarser basis they were computed on out-of-band
+   (whole-class totals, kickers and defences included -- see the comment
+   above DRAFT_TOTALS_2014_2017), because this file has no week-by-week
+   roster history that far back to measure replacement against. Their
+   scores are honest within their own season and are marked as the
+   different basis they are; they are not pretending to be the same
+   measurement. */
 function draftRankings(){
   const out = [];
   Object.keys(DRAFTS).map(Number).sort((a, b) => a - b).forEach(y => {
     if(!ROSTERS.S[y]) return;
     if(ROSTERS.S[y].static){
-      /* 2014-2017: this file has no week-by-week roster history for these
-         years to run the 2018+ scan below, so their per-drafting-team
-         totals were computed out-of-band and are looked up directly here
-         -- see the comment above DRAFT_TOTALS_2014_2017 for the full
-         methodology and its disclosed limits. Two team-years are missing
-         from that table on purpose (corrupted source data, not a bug) and
-         are excluded here rather than shown as a misleading 0. */
+      /* 2014-2017: no week-by-week roster history here, so the per-team
+         class totals computed out-of-band are looked up directly. Two
+         team-years are missing from that table on purpose (corrupted
+         source data, not a bug) and are excluded rather than shown as a
+         misleading 0. */
       const totals = DRAFT_TOTALS_2014_2017[y];
       if(!totals) return;
       Object.entries(DRAFTS[y].picks).forEach(([team, list]) => {
         const pts = totals[team];
         if(pts == null) return;
-        out.push({ y, team, pts, picks: list.length, seasonOnly: true });
+        out.push({ y, team, basis: "total", value: pts, pts, picks: list.length });
       });
       return;
     }
-    /* 2018+: points scored specifically while rostered by the team that
-       drafted him -- a player taken, dropped week 2, and later a star for
-       someone else earns the drafting team nothing here (that swing is
-       Steals & Busts' job, not this one). Scanned per team, not pooled
-       globally first, so a name only ever counts toward whichever roster
-       actually carried him that week. */
-    Object.keys(ROSTERS.S[y].teams).forEach(tn => {
-      const held = {};
+    /* Where the wire sat that season: every player's points pooled once
+       across the whole league (the same tot[] draftValue() builds, so the
+       two boards can't drift), sorted by position, cut at the startable
+       line. */
+    const tot = {}, posOf = {}, counted = {};
+    const teams = Object.keys(ROSTERS.S[y].teams);
+    let weeks = 0;
+    teams.forEach(tn => {
+      for(let w = 1; w <= 17; w++){
+        const r = rosterAt(y, tn, w);
+        if(!r || !r.list) continue;
+        if(w > weeks) weeks = w;
+        r.list.forEach(e => {
+          const p = ARCH.P[e.id]; if(!p) return;
+          const k = e.id + "|" + w; if(counted[k]) return; counted[k] = 1;
+          tot[p[0]] = (tot[p[0]] || 0) + (e.pts || 0);
+          posOf[p[0]] = p[1];
+        });
+      }
+    });
+    const byPos = {};
+    Object.keys(tot).forEach(n => {
+      const p = posOf[n];
+      if(!p || !LINEUP[p]) return;
+      (byPos[p] = byPos[p] || []).push(tot[n]);
+    });
+    Object.keys(byPos).forEach(p => byPos[p].sort((a, b) => b - a));
+    const { rep } = replacementAt(byPos, startsBar(y));
+
+    /* Then each team's own class, scanned on its own roster only -- a
+       player taken, dropped week 2 and later a star for somebody else
+       earns the drafting team nothing here (that swing is Steals &
+       Busts' job, not this one). */
+    teams.forEach(tn => {
+      const held = {}, wk = {};
       for(let w = 1; w <= 17; w++){
         const r = rosterAt(y, tn, w);
         if(!r || !r.list) continue;
         r.list.forEach(e => {
           const p = ARCH.P[e.id]; if(!p) return;
           held[p[0]] = (held[p[0]] || 0) + (e.pts || 0);
+          wk[p[0]]   = (wk[p[0]] || 0) + 1;
         });
       }
       const list = (DRAFTS[y].picks[tn]) || [];
-      let sum = 0;
-      list.forEach(pk => { const v = held[pk[1]]; if(v != null) sum += v; });
-      out.push({ y, team: tn, pts: Math.round(sum * 10) / 10, picks: list.length });
+      let por = 0, raw = 0;
+      list.forEach(pk => {
+        const v = held[pk[1]];
+        if(v != null) raw += v;
+        /* the man's real position, not the slot he was drafted into */
+        const pos = posOf[pk[1]] || pk[3];
+        if(!LINEUP[pos]) return;      /* kickers and defences sit this out */
+        if(v == null) return;         /* never rostered: no gain, no cost  */
+        por += v - (rep[pos] || 0) * ((wk[pk[1]] || 0) / (weeks || 1));
+      });
+      out.push({ y, team: tn, basis: "por", value: Math.round(por * 10) / 10,
+                 pts: Math.round(raw * 10) / 10, picks: list.length });
     });
   });
-  out.sort((a, b) => b.pts - a.pts);
+
+  /* Read every class against its own season: 100 is that year's average
+     draft, 15 points is one standard deviation. Population sd, not
+     sample -- these twelve teams are the whole league, not a draw from
+     a bigger one. */
+  const byYear = {};
+  out.forEach(r => (byYear[r.y] = byYear[r.y] || []).push(r));
+  Object.keys(byYear).forEach(y => {
+    const grp = byYear[y], n = grp.length;
+    const mean = grp.reduce((a, r) => a + r.value, 0) / n;
+    const sd = Math.sqrt(grp.reduce((a, r) => a + (r.value - mean) * (r.value - mean), 0) / n) || 1;
+    grp.slice().sort((a, b) => b.value - a.value)
+       .forEach((r, i) => { r.inSeason = i + 1; r.of = n; });
+    grp.forEach(r => { r.z = (r.value - mean) / sd; r.score = Math.round(100 + 15 * r.z); });
+  });
+  out.sort((a, b) => b.z - a.z || b.value - a.value);
   out.forEach((r, i) => { r.rank = i + 1; });
   return out;
 }
@@ -7364,15 +7539,24 @@ function jumpToDraft(y){
   const rows = draftRankings();
   if(!rows.length) return;
   const era = y => (y >= 2021 ? "&frac12;-PPR" : "0-PPR");
+  /* The value cell says which measurement it is, on every row, so the two
+     bases can never be mistaken for one another at a glance. */
+  const drVal = r => r.basis === "por"
+    ? `<b class="${r.value < 0 ? "neg" : "pos"}">${sgn(r.value)}</b> <span class="drunit">over replacement</span>
+       <i>${NUM(r.pts)} class pts</i>`
+    : `<b>${NUM(r.pts)}</b> <span class="drunit">class points</span>
+       <i>older basis &mdash; see below</i>`;
   const drRow = r => `<tr>
       <td class="rdc">${r.rank}</td>
       <td><button class="drjump" data-y="${r.y}" title="Open the ${r.y} draft board">
         <b>${esc(OWNER_OF[r.team] || r.team)}</b><br><i>${esc(r.team)}</i></button></td>
-      <td>${r.y}</td>
-      <td>${era(r.y)}</td>
-      <td><b>${num(r.pts)}</b> pts</td>
+      <td>${r.y}<br><i>${era(r.y)}</i></td>
+      <td><b>${r.score}</b><br><i>${ord(r.inSeason)} of ${r.of}</i></td>
+      <td class="drval">${drVal(r)}</td>
     </tr>`;
-  const head = `<thead><tr><th class="rdc">Rank</th><th>Team</th><th>Year</th><th>Scoring</th><th>Points</th></tr></thead>`;
+  const head = `<thead><tr><th class="rdc">Rank</th><th>Team</th><th>Year</th>` +
+    `<th>Draft score<em>100 = average for that year</em></th>` +
+    `<th>Value<em>what the class was worth</em></th></tr></thead>`;
   const draw = (el, list) => { if(el) el.innerHTML = head + `<tbody>${list.map(drRow).join("")}</tbody>`; };
   draw(topEl, rows.slice(0, 10));
   draw(botEl, rows.slice(-10).reverse());

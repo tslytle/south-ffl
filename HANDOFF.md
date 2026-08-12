@@ -214,6 +214,97 @@ old raw per-player `SEASON_PTS_2014..2017` tables entirely — nothing else in t
 them, confirmed by grep before removing). `draftRankings()`'s static-year branch is now a direct
 lookup into that table instead of a runtime snapshot-based calculation.
 
+## Session 2 (PC): full data + visual audit, Draft Rankings metric rebuilt
+
+### Draft Rankings ranked hoarding, not drafting — rebuilt (ADR 0004)
+User's flag: Ermin's 2023 team went 5-9 and its draft still came out **2nd best all-time**. It
+wasn't a one-off. The old metric summed every point every drafted player scored while on the
+drafting roster, which measured three wrong things:
+- **It paid for not touching the waiver wire.** Across the 96 team-drafts from 2018-2025 the raw
+  total correlated **-0.41** with roster moves. Ermin 2023 made one move all year and carried two
+  kickers and two defences week 1 → week 17 (467 pts), plus Stafford at 282.8 while starting
+  three times. 1,054 of his 2,323.9 "draft points" never reached a starting lineup.
+- **It rewarded bulk over usefulness** (a bench QB out-banked a starting RB2).
+- **It couldn't compare eras** — 17 of the old bottom 20 rows were 2014-2017, an artefact of the
+  rulebook, not bad drafting.
+
+Now: **value over replacement** per skill pick (K/DST excluded, matching `SKILL`), prorated by
+weeks held, measured against the same `replacementAt()`/`STARTS_BAR` line Steals & Busts uses;
+then **z-scored within its own season** and shown as `100 + 15z`. Negatives are kept deliberately
+— flooring at 0 re-introduces a churn signal. Five candidate bases were measured before choosing
+(table in ADR 0004); VOR-with-negatives is the only one effectively neutral on roster moves
+(+0.13) and it tracks wins best (+0.43 vs +0.29 for the old sum).
+
+Result: Ermin 2023 → **37 / 138, score 109, 3rd of 12 that year** — right, given that team was
+4th in the league in points scored and lost on schedule luck. 2014-2017 now hold 8 of the top 20
+and 8 of the bottom 20 (was 2 and 17). Rows carry `basis: "por" | "total"` plus `score`, `z`,
+`inSeason`, `of`; the old `seasonOnly` flag is gone (nothing outside the renderer read it).
+
+**Still coarse:** 2014-2017 can't be measured against replacement — no week-by-week bench data in
+this file — so they keep the raw whole-class totals as their value basis, labelled as such on
+every row. Closing it means re-pulling per-*player* weekly box scores for those four seasons (the
+same ESPN lift already scoped out once for K/D-ST) and baking per-pick rather than per-team.
+
+### Data audit — the archive is clean
+Wrote a reconciliation harness (loads the page's own JS in a Node VM with a DOM stub, so the real
+functions can be re-run out of band). Checked and clean:
+- **Weekly lineup data reconciles exactly with the standings.** For all 8 live seasons, summing
+  each team's starters over the regular-season weeks equals its `SEASONS` points-for **to the
+  cent**, every team, every year.
+- **`ARCH.G` reconciles exactly with the standings too** — W/L/PF/PA per team per season, once
+  `resultOf()`'s 2014 tiebreaks are applied (the two whole-number ties in 2014 are already
+  handled correctly by `TIEBREAK_WINNER`; a naive check flags them as 4 mismatches, they aren't).
+- 1,138 games is exactly right (counted from `ARCH.G`). 17 owners, 12 seasons: right.
+- DRAFTS: no duplicate or missing overall picks, no player drafted twice in a year, no unknown
+  positions, every drafting team present in both `SEASONS` and `ROSTERS`. The only uneven pick
+  count is 2020 "All I Do Is Winn" at 15 — the known, documented missing slot.
+- No player name resolves to two different ids **within the same season** (cross-season reuse is
+  by design), so the name-keyed point sums can't silently merge two men.
+- `OWNERS` covers every team name that ever appears; no team claimed by two owners.
+
+### Visual audit — five real defects, all fixed (ADR 0005)
+Measured computed foreground against the *composited* background (alpha tints resolved, gradient
+stops taken at their darkest) for all 21,341 text-bearing elements, in both themes.
+- **Draft Rankings tables were 1,478px wide for five columns** — they reused `.board`, which is
+  fixed-sized for the twelve-round draft grid. Half a screen of sideways scroll on desktop, five
+  screens on a phone. New `.drtable` modifier sizes to content: now 986px (fits) on desktop and
+  330px on mobile.
+- **The 1st/2nd/3rd medal chips took white ink on metal** — 1.67:1 (silver, light) to 3.77:1
+  (gold). `--on-chip`'s dark-fill-in-light-mode premise doesn't hold for metal. New `--on-metal`.
+- **`textOn()` had no sRGB gamma decode**, so it put white on five clubs' BYE chips that needed
+  dark (Miami 3.95, Cincinnati/Denver 3.37, Carolina 4.03, Chargers 4.28). Now picks by real
+  contrast ratio; all 32 clubs pass.
+- **`--muted`/`--faint` sat under AA** — 3.79:1 at worst in light mode, across thousands of
+  elements. Nudged in both themes.
+- **Three prose links (`nflverse` ×2) had no colour rule** and rendered browser-default `#0000EE`,
+  1.88:1 on dark. Added a base `a{color:var(--accent)}` floor.
+- Translucent tints (`.sswk.flip`, `.ssflag`) now paint over `var(--surface)` so a tinted card
+  keeps its own base instead of letting the panel behind show through.
+- Copy fix: the full board's heading said "all 140"; it renders 138.
+- **Both themes now measure zero AA failures.** Treat that as the standing bar.
+
+Also checked and clean: no duplicate element ids, no `NaN`/`undefined`/`[object Object]` anywhere
+in the rendered text, no heading-level skips, one `<h1>`, no images missing `alt`, no page-level
+horizontal overflow at 1265px or 375px, no console errors.
+
+**Standings overflow — traced properly and fixed.** First pass reported this as a general
+`.stand` overflow; it isn't. Closed, every standings table is *exactly* its scroller's width.
+The overflow only appears when a row's **DRAFT** disclosure is opened: those pick lines were
+`white-space:nowrap` inside the OWNER cell, so they set that column's minimum and pushed the
+table 16-49px past its scroller in 7 of the 12 seasons — which is what clipped MOVES. Three
+changes, in order of what each buys:
+- `.dpicks li` no longer forces `nowrap` (and the name gets `min-width:0`), so a long name wraps
+  rather than widening the table. This alone takes worst-case overflow to **0** — it's the
+  safety net that guarantees the table can always fit.
+- `.stand` non-name cells go from 9px to 7px of side padding, returning ~48px to the OWNER
+  column, so in practice **nothing has to wrap**: 0 wrapped lines out of 2,239 with every row in
+  every season expanded at once.
+- `.dpicks .dm` (the `WR Ind` badge) keeps `nowrap` so it can't split across lines, and `.do`'s
+  left padding drops 10px → 6px. The now-redundant phone overrides for both were removed.
+
+Verified across all 12 seasons in three states — all closed, one open, all twelve open —
+overflow 0 in every case.
+
 ## Still open (next round of the grilling session)
 These were queued but not yet asked/answered when the session paused to move machines:
 - The 2020 Round 16 / Pick 8 mystery pick is effectively closed as "slot known (Revenge Tour's
