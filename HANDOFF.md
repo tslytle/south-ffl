@@ -342,6 +342,76 @@ seasons skew to the higher-scoring years.
 Net: the grade board's top 8 is unchanged; 9-12 reorder (Ermin 9th→12th, Braxton 12th→10th,
 Alen 10th→9th). **Every** manager's rank bars change. Shipped as `dca48e1`.
 
+## Session 3 (PC, 2026-08-12): judged-metric pass, then the overhaul begins
+
+A `/grill-with-docs` session. The scope decided was two things: audit the logic behind
+everything the site *judges*, then a complete visual and navigational overhaul. Audience was
+pinned as **league members on phones, arriving from a group-chat link, ninety seconds of
+attention** — that answer decided most of what follows. See ADRs 0006-0010 and `CONTEXT.md`.
+
+### Vocabulary and scope, now written down
+`CONTEXT.md` gained four entries: the **Archive tier** (analytics over the settled 2014-2025
+record — two sessions of work had landed there with no bucket to put it in), the **soft freeze**
+from ~Sept 3, **Franchise Grade**, and **judged metric** — the standard everything below was held
+to. A judged metric must be *defensible*, *valid* and *transparent*, with **validity as the
+gate**, and anything failing it gets demoted to a plain fact rather than deleted.
+
+### The judged-metric pass — five surfaces, four defects
+- **Franchise Grade** (ADR 0006, 0009). Renamed from "manager grade": the weighting always
+  measured franchise achievement, and the old label invited an argument it couldn't win. Three
+  axes dropped. `LONGEVITY` measured tenure (0.07 with win rate). `LINEUPS` was **noise** —
+  intraclass correlation −0.002 across 1,374 graded manager-weeks, with between-manager variance
+  *lower* than within-manager, and a 4,000-shuffle permutation test putting the real spread below
+  chance median (p = 0.61) — and it carried 17% of the grade. `ACTIVITY` measured a genuinely
+  stable trait (split-half 0.82) but a move rate is process, not achievement, and its 0.39 link to
+  winning duplicates what `WINNING` measures directly. Four achievement axes remain: HARDWARE
+  27.0%, SCORING 25.7%, POSTSEASON 24.3%, WINNING 23.0%.
+- **Steals & Busts** (ADR 0008). `gain = posSlot − posFin` subtracted two ranks from different
+  populations — drafted (~57 RBs) versus everyone rostered (~85). Le'Veon Bell was "RB4, finished
+  RB82" in a year 56 RBs were drafted, and it put a torn preseason ACL (McKinnon, RB13) above
+  Michael Thomas at **WR1**. Steals were provably unaffected and untouched.
+- **Start & Sit** — the board passes and is unchanged; only its grade axis failed.
+- **Trait badges** (ADR 0010). The worst defect of the session: "January Man · Wins in the
+  bracket" was on **11 of 17 owners including one with a 0-for-career playoff record**, because
+  `postPct` is not a percentage — it holds 0.5 per appearance plus 1 per win, per season,
+  regressed. Now 4 of 17, all winning records. Badges now test the **raw** record with a
+  minimum-seasons floor, and rank badges use one fixed field.
+- **Scouting descriptors** — audited, pass unchanged on four axes.
+
+### The overhaul, first three commits, all merged and live
+Decided: dark-native app language, hub plus routed views, **all eighteen surfaces kept**, uniform
+shell before bespoke depth, preserved URLs, single file and no build step retained, and the draft
+cheat sheet **restyled only, never redesigned** — it is the one surface used under time pressure
+on Sept 7 and it will never be rehearsed.
+- **Uniform vocabulary** — `.uview/.uhead`, `.uhero`, `.ucard`, `.ustat`, `.uchip`, `.utable` +
+  `.uwrap`, `.ugrid`, `.udisc`, all prefixed `u` because `.card`, `.stat` and `.chip` are taken.
+  Zero raw hex, so ADR 0005's AA bar is inherited rather than re-argued. New tokens: `--t-hero`,
+  a `--sp-1..6` spacing scale (the file had radius and type scales but none for spacing).
+- **The hub** — eighteen doors in six groups, one tap each, on plain anchors because `openFor()`
+  already opens a target's ancestors. Nav moved to the functional register (Season, Managers,
+  History, Drafts, Records, Rules); section headings keep their editorial voice. A phase line
+  counts down to the draft, then switches to last season's champion defending — deliberately not
+  a standings snapshot, since live 2026 data doesn't exist in this file.
+- **Routed views** — the six top-level sections are the six views, the hub is its own route, the
+  masthead is hub-route decoration. Nothing moves in the DOM, so every URL ever pasted in the
+  group chat still resolves.
+
+**Three things worth keeping in mind if this gets touched:**
+1. **The router must run last.** Every draw function lays out and measures its tables while still
+   visible; hide a section before layout and its tables measure zero and collapse on reveal.
+   Verified: 14 tables at 1006px, none collapsed.
+2. **The route click handler is on the capture phase**, so a view is revealed before the browser
+   scrolls to the anchor.
+3. **Routing degrades to nothing.** `body[data-route]` is the only CSS hook and only the router
+   sets it, so with JS off the document is the single scrolling page it always was. Print has its
+   own rule that ignores routing, or the PDF would be one screen of doors.
+
+**Verification note.** All of the above was measured, not eyeballed — the Node VM harness for the
+data and grade work, and a **published `preview.html` in a real browser** for anything visual.
+That mattered: the back control measured **75×16px** on a 375px viewport, a third of the touch
+minimum, and nothing in the markup or CSS looked wrong. `preview.html` is the ADR 0007 review
+mechanism (Pages has no branch previews here) and is deleted in each merge commit.
+
 ## Still open
 Carried forward across sessions — the first four were queued when the original session paused to
 move machines; the rest are from the PC session (2026-08-11/12):
@@ -372,6 +442,33 @@ move machines; the rest are from the PC session (2026-08-11/12):
   groupings for players already on the sheet; neither will ever notice a player changed teams,
   got hurt, or should be added. That gap is what produced the stale A.J. Brown entry. Cross-
   checking `CHEAT` against `DEPTH_TEAMS` is what caught it, and it is still a manual pass.
+
+### Overhaul, remaining — in the order it should be done
+The vocabulary, hub and router are merged and live. What's left, with the traps:
+1. **Apply the uniform shell to the eighteen surfaces.** The bulk of the work and the whole
+   reason ADR 0007 chose "uniform shell, tiered depth" — eighteen surfaces cost one design plus
+   eighteen applications, not eighteen designs. Resist bespoke work until every surface is at
+   least coherent.
+2. **Bespoke depth, in this order and only if time allows:** hub, Manager Profiles, Standings.
+   Draft Rankings is off the list (rebuilt in ADR 0004) and so is the cheat sheet (restyle only).
+3. **Dark-default theme polarity** (Q18: dark is the design's home, light stays supported). Not
+   started. This is the change most likely to break ADR 0005's zero-AA-failures bar, so it needs
+   the contrast sweep re-run against composited backgrounds in *both* themes before it merges.
+4. **Deferred `PSTAT`/`ARCH` parse.** 1.33MB of JSON parsed before first paint, and the hub needs
+   none of it. **More delicate than ADR 0007 implies:** both are `const X = {…}` object literals,
+   so deferring means turning them into strings plus a lazy accessor — and the data contains
+   apostrophes (`Wan'Dale Robinson`, `Le'Veon Bell`), which rules out single-quoted strings and
+   pushes you to template literals across an 821KB span. That is the same shape of edit that once
+   silently deleted ~2MB of this file. Wants a scratch-copy test and a byte-count diff before it
+   goes near `index.html`.
+5. **Copy gap, low stakes:** four owners now fall back to `Journeyman · Still writing the story`
+   alone, which reads wrong for Tate Grainger at ten seasons. There is no badge for a long-serving
+   manager with no title and no top-3 finish. Flagged in ADR 0010 as a copy decision, not a
+   correctness one.
+
+**Open design questions, not yet put to the user:** whether landing deep inside a long routed view
+is acceptable (`#h2h` lands ~16,000px down the History view — correct, but a long scroll), and
+whether "← All boards" is the right label and placement for the way home.
 
 ## Environment notes for a fresh Claude Code session
 - This repo still has no `.claude/settings.local.json` of its own. There is one a level up, in
