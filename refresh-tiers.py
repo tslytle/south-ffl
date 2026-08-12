@@ -67,12 +67,19 @@ APOSTROPHE_RE = re.compile(r"[‘’ʼ]")
 
 
 def normalize_name(name):
-    """Loose match key: strip generational suffixes, normalize apostrophes,
-    drop periods, collapse whitespace. Used only as a fallback when an exact
-    name match fails -- exact match is preferred and far more common."""
+    """Loose match key: strip generational suffixes, drop apostrophes and
+    periods, collapse whitespace. Used only as a fallback when an exact name
+    match fails -- exact match is preferred and far more common.
+
+    Apostrophes are dropped rather than merely folded to one shape, because
+    sources disagree about whether a name carries one at all: ESPN writes
+    "Tre' Harris" where NFL.com, the Chargers and Pro-Football-Reference all
+    write "Tre Harris". Folding curly to straight left those two as different
+    keys, which cost that player his ADP silently until check-cheat.py found
+    it on 2026-08-12. refresh-adp.py normalizes by the same rules."""
     n = APOSTROPHE_RE.sub("'", name)
     n = SUFFIX_RE.sub("", n)
-    n = n.replace(".", "")
+    n = n.replace("'", "").replace(".", "")
     n = re.sub(r"\s+", " ", n).strip()
     return n.lower()
 

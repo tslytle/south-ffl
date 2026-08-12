@@ -495,10 +495,20 @@ move machines; the rest are from the PC session (2026-08-11/12):
     and rows tint on hover, so a flat `--surface` fill like `.ledger`'s would knock the champion
     row's first cell out of its own colour), or raise the card-layout breakpoint from 760px to
     ~914px so tablets get the phone treatment instead of a squeezed table. Worth asking which.
-- **`CHEAT` and `DEPTH_TEAMS` have no refresh script.** The two scripts refresh prices and
-  groupings for players already on the sheet; neither will ever notice a player changed teams,
-  got hurt, or should be added. That gap is what produced the stale A.J. Brown entry. Cross-
-  checking `CHEAT` against `DEPTH_TEAMS` is what caught it, and it is still a manual pass.
+- **`CHEAT` and `DEPTH_TEAMS` still have no *refresh* script — but the cross-check is automated
+  now.** The two refresh scripts keep prices and groupings current for players already on the
+  sheet; neither will ever notice a player changed teams, got hurt, or should be added. That gap
+  produced the stale A.J. Brown entry, and cross-checking `CHEAT` against `DEPTH_TEAMS` is what
+  caught it. **`check-cheat.py`** (2026-08-12) is that pass written down — read-only, no network.
+  Run it before draft night and after any hand-edit:
+
+  ```bash
+  python check-cheat.py
+  ```
+
+  It exits 1 on any ERROR. What it cannot do is tell you a player was traded — only that the file
+  disagrees with itself. Checking the sheet against the actual NFL is still a human job, and still
+  wants a live search rather than memory (training data confidently says PHI).
 
 ### Overhaul, remaining — in the order it should be done
 The vocabulary, hub and router are merged and live. What's left, with the traps:
@@ -850,6 +860,42 @@ than the one this bar was set against, and it is almost exactly what ADR 0005 co
 `:root{color-scheme:dark}` would make the UA paint scrollbars, form controls and the search caret
 dark to match, which is a real improvement — but it also changes native control rendering, so it
 wants its own look and its own sweep rather than riding along with the polarity change.
+
+### The cheat-sheet cross-check, automated — and what it found (2026-08-12)
+`check-cheat.py` is the manual `CHEAT`-vs-`DEPTH_TEAMS` pass, written down. It checks the 32-team
+shape and bye ranges, `CHEAT`'s position-rank sequences, duplicate names and overall ranks, null
+overall ranks (the value/reach threshold coerces a null to 0 in JS and calls every pick a value),
+team abbreviations against `NFL_LOGO`, each player's bye against his own listed team's, duplicate
+`ESPN_VERIFIED` ids — and, the reason it exists, **every name that appears in both files, for
+team and bye agreement.** Verified against the real bug: re-inject A.J. Brown's stale `PHI`/bye 10
+into a scratch copy and it errors and exits 1.
+
+**It found a live defect on its first calibrated run.** `ADP_2026` held **`"Tre' Harris"`** while
+the sheet, the depth chart and `ESPN_VERIFIED` all say **`"Tre Harris"`**. The page looks up
+`ADP_2026[name]` with the sheet's spelling, so that receiver had **no market price and no
+value/reach tag**, and nothing on the page said so.
+
+**The sheet is not the one that is wrong.** ESPN writes `Tre' Harris`; NFL.com, the Chargers
+themselves and Pro-Football-Reference — where this site's player links point — all write
+`Tre Harris`. It is a join problem, not a spelling problem, so the fix went into the join:
+- `refresh-adp.py` keyed the table straight off ESPN's `fullName`. It now re-keys to the sheet's
+  spelling wherever the two differ only by punctuation or a suffix, and **prints every re-key** so
+  it lands in the run output and the diff instead of being silent.
+- **Both normalisers now DROP apostrophes rather than folding curly to straight.** That was the
+  actual hole: `refresh-tiers.py` has matched exact-then-normalised since it was written, but
+  `Tre' Harris` and `Tre Harris` stayed different keys under it, because sources disagree about
+  whether the name carries an apostrophe *at all*. Same rules both scripts now.
+- The one live key in `index.html` was renamed by hand so the tag works today rather than at the
+  September refresh. Both scripts dry-run clean afterwards: ADP reports the single re-key,
+  tiers still matches 125/125.
+
+**A note on calibrating a checker.** The first version emitted 27 warnings, all of them expected
+scope, and a tool that cries wolf on its first run gets ignored. The heuristic that produced most
+of them — "his overall rank is inside 250, so a 250-entry ADP table should have him" — is simply
+wrong: those 250 are the top 250 *by draft-room position*, a different population from the sheet's
+top 250 by expert rank. What survives is the signal that matters: a near-match (difflib at 0.86)
+between a name one table has and a name the other nearly has. It now reports **0 errors, 0
+warnings, 11 notes**, and every note is a real statement about scope rather than a shrug.
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**

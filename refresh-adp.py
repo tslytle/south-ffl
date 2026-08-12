@@ -51,6 +51,59 @@ INDEX_HTML = Path(__file__).parent / "index.html"
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
 
 
+SUFFIX_RE = re.compile(r"\s+(Jr\.?|Sr\.?|II|III|IV|V)$", re.IGNORECASE)
+APOSTROPHE_RE = re.compile(r"[‘’ʼ]")
+
+
+def normalize_name(name):
+    """Loose match key -- same rules as refresh-tiers.py, deliberately.
+
+    ADP_2026 is looked up at runtime as ADP_2026[name] where `name` is CHEAT's
+    spelling, so a key written under ESPN's spelling is not a cosmetic
+    difference: it is a player with no market price and no value/reach tag, and
+    nothing on the page says so. That is not hypothetical -- ESPN lists the
+    Chargers receiver as "Tre' Harris" while NFL.com, the Chargers themselves
+    and Pro-Football-Reference (where this site's player links go) all write
+    "Tre Harris", so he silently had no ADP until check-cheat.py found it on
+    2026-08-12.
+
+    refresh-tiers.py has matched exact-then-normalized since it was written;
+    this script keyed straight off ESPN's fullName. Same rules both sides now.
+    """
+    n = APOSTROPHE_RE.sub("'", name)
+    n = SUFFIX_RE.sub("", n)
+    # Apostrophes are DROPPED, not just normalized to one shape. Sources
+    # disagree about whether the name has one at all -- ESPN "Tre' Harris" vs
+    # NFL.com/Chargers/PFR "Tre Harris" -- so folding curly to straight is not
+    # enough; that was the whole failure. Same for periods, for "A.J." vs "AJ".
+    n = n.replace("'", "").replace(".", "")
+    n = re.sub(r"\s+", " ", n).strip()
+    return n.lower()
+
+
+def rekey_to_sheet(espn, cheat):
+    """Return ESPN's ADP keyed by the sheet's spelling wherever the two differ
+    only by punctuation or a suffix. Reported, never silent -- a rename that
+    happens without being printed is how the next one goes unnoticed."""
+    sheet = [row[2] for rows in cheat.values() for row in rows]
+    by_norm = {}
+    for name in sheet:
+        by_norm.setdefault(normalize_name(name), []).append(name)
+
+    out, rekeyed = {}, []
+    for name, adp in espn.items():
+        if name in sheet:
+            out[name] = adp
+            continue
+        hits = by_norm.get(normalize_name(name), [])
+        if len(hits) == 1:
+            out[hits[0]] = adp
+            rekeyed.append((name, hits[0]))
+        else:
+            out[name] = adp          # genuinely not on the sheet, or ambiguous
+    return out, rekeyed
+
+
 def fail(msg):
     print(f"ERROR: {msg}", file=sys.stderr)
     sys.exit(1)
@@ -181,6 +234,13 @@ def main():
 
     html = load_index_html()
     old_adp, adp_span = extract_const(html, "ADP_2026")
+    cheat, _ = extract_const(html, "CHEAT")
+
+    espn, rekeyed = rekey_to_sheet(espn, cheat)
+    if rekeyed:
+        print(f"  {len(rekeyed)} keyed to the sheet's spelling so the runtime lookup finds them:")
+        for espn_name, sheet_name in rekeyed:
+            print(f"    ESPN {espn_name!r} -> sheet {sheet_name!r}")
 
     added = sorted(set(espn) - set(old_adp))
     removed = sorted(set(old_adp) - set(espn))
