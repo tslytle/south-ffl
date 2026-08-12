@@ -2612,6 +2612,31 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:
 /* a shade tighter than the standalone-page rhythm, since the panel head now
    does the separating that the hairline and its 34px of air used to do */
 body[data-route]:not([data-route="hub"]) .uactive details.sub > .subbody{padding-top:var(--sp-4)}
+
+/* ── Uniform shell, step 3: the panel inside a panel ────────────────────────
+   The boards nested under Steals & Busts and Draft Rankings marked their
+   nesting with a 2px left rail. Against panelled parents a rail reads as a
+   different system, so it becomes a quieter panel instead: --soft rather than
+   --raise, --r-sm rather than --r-md. One step down in weight, same language.
+
+   Note these nested summaries carry no .subhead class — they use a plain
+   summary with an h4.ssh — so step 2's rule never touched them, and this one is
+   written for the level rather than piggy-backing on it.
+
+   The indent goes 18px -> 12px, deliberately in that direction: nested content
+   gains six pixels of width. Same reasoning as step 2 — a nested board holds
+   real tables, and no shell step is allowed to take width away from them. */
+body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub{
+  border-left:0;padding-left:var(--sp-3);margin-top:var(--sp-4)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub:first-of-type{
+  margin-top:var(--sp-2)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary{
+  background:var(--soft);border:1px solid var(--line);border-radius:var(--r-sm);
+  padding:var(--sp-2) var(--sp-3)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary:hover{
+  border-color:var(--accent)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px}
 /* back to the hub, shown only when you are inside a view */
 /* min-height is the touch target, not decoration: this is the only way out of
    a view on a phone, and it measured 75x16px before — a third of the 44px
