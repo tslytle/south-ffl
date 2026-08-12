@@ -908,6 +908,54 @@ top 250 by expert rank. What survives is the signal that matters: a near-match (
 between a name one table has and a name the other nearly has. It now reports **0 errors, 0
 warnings, 11 notes**, and every note is a real statement about scope rather than a shrug.
 
+### Boards draw on reveal — the first three (2026-08-12)
+**Justin ran the measurement I could not.** On a real, visible browser: first paint at **312ms**
+unthrottled and **420ms at 6x CPU** — it was never blocked, so ADR 0007's framing (and mine) was
+aimed at the wrong metric. `domInteractive` is **697ms** unthrottled and **2,990ms at 6x**. That is
+~2.6 seconds on a mid-range phone where the page is painted but the main thread is locked: no
+toggle, no search, no countdown, no router. Nearly all of it is eighteen boards being built at load,
+on the hub route, which shows none of them.
+
+`LAZY_BOARDS` lets a board register instead of drawing, and the router draws what the view it is
+revealing contains — **after** the reveal, which satisfies ADR 0007's "a draw measures its tables
+while visible" by construction rather than by luck.
+
+**Three are converted, and they are deliberately the ones that could not be done piecemeal:**
+`trades` (writes `TRADE_DEALS`), `steals` (writes `HINDSIGHT`), and `records`, which reads both and
+renders against `[]` and `null` without them — losing rows silently rather than failing. `records`
+therefore calls `drawBoard("trades")` and `drawBoard("steals")` itself, so the chain runs in order
+whichever door the reader opens first.
+
+**Two things need boards without revealing a view, and both are wired:** `beforeprint` (a PDF holds
+every section, drawn or not) and Expand all (which would otherwise open an empty panel). **Search
+needs nothing** — it indexes `OWNERS` and a fixed section list, not board DOM, and its results
+navigate by hash through the router.
+
+**Proof it changes nothing.** Rendered `innerHTML` length and hash for `trlist`, `trsum` and
+`recordcards`, plus `TRADE_DEALS.length` and the `HINDSIGHT` counts, captured from the live
+pre-refactor build and compared against the new one down three separate entry paths:
+
+| path | trlist | recordcards | TRADE_DEALS | HINDSIGHT |
+|---|---|---|---|---|
+| live build (baseline) | 67831 / −1250439290 | 773998 / −2010759261 | 42 | 569 / 755 |
+| open `#records` first (the hard case) | identical | identical | 42 | identical |
+| `#building` then `#records` | identical | identical | 42 | identical |
+| `beforeprint` from the hub | identical | identical | 42 | identical |
+
+Expand all also drains the map, and `afterprint` restores the disclosure state.
+
+**The saving, measured honestly:** `domInteractive − responseEnd` over two loads each, same pane —
+**before 526 / 481ms, after 403 / 421ms**, so roughly **90ms** (range 60–123). Noisy, two samples,
+in a hidden pane. Scaled by the 6x ratio Justin's numbers imply (~9x observed), that is around
+**0.8s** off a phone's locked-main-thread window, from three of eighteen boards.
+
+**To convert another board:** `(function(){` → `lazyBoard("<section id>", function(){`, its closing
+`})();` → `});`, and check what globals its body writes that anything below it reads. Nothing else
+is needed — the router, print and Expand all triggers are generic. The four layout-reading sites
+(~6739, ~7033, ~7408, ~9116+ in the pre-refactor numbering: swipe hints and scroll-spy) are the
+ones that must NOT be converted without moving to reveal-time, or they measure a hidden view and
+get zero.
+
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
   `python -m http.server 8765` in the repo root, then open `http://127.0.0.1:8765/index.html` in

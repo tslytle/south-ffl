@@ -5763,6 +5763,9 @@ document.addEventListener("click", e => {
   const a = e.target.closest('a[href^="#"]');
   if(a){ openFor(a.getAttribute("href")); return; }
   const btn = e.target.closest("[data-all]");
+  /* Expand all has to mean all: a board that registered itself instead of
+     drawing at load would otherwise open as an empty panel. */
+  if(btn && btn.dataset.all === "1") drawAllBoards();
   if(btn) sects().forEach(d => d.open = btn.dataset.all === "1");
   /* No pre-expand needed here — the print stylesheet (further down)
      already forces every <details> open with !important for anyone who
@@ -8250,6 +8253,59 @@ function jumpToDraft(y){
 
 
 
+/* ── Boards that draw when their view is first shown ────────────────────────
+   Measured on a real browser, 2026-08-12: first paint lands at 312ms
+   unthrottled and 420ms at 6x CPU — it was never blocked. What IS blocked is
+   everything after it. `domInteractive` is 697ms unthrottled and **2,990ms at
+   6x**, so on the mid-range phone this league actually reads on there are
+   ~2.6 seconds where the page is painted but the main thread is locked: no
+   toggle, no search, no countdown, no router. Nearly all of it is this file
+   building all eighteen boards at load — on the hub route, which shows none
+   of them.
+
+   So a board can register itself instead of drawing itself, and the router
+   draws what the view it is revealing actually contains. Three registered so
+   far, chosen because they are the one real dependency chain in the file and
+   therefore the one group that cannot be done piecemeal:
+
+       trades   -> writes TRADE_DEALS   (~90ms, with the scoring rulebook)
+       steals   -> writes HINDSIGHT     (~32ms, with the waiver values)
+       records  -> READS BOTH           (the biggest board on the site)
+
+   Both globals' own declarations say "handed to the record book further down",
+   and the record book renders against `[]` and `null` without them — quietly
+   losing rows rather than failing. That is why `records` pulls its two
+   dependencies in itself rather than trusting draw order: whichever view the
+   reader opens first, the chain runs in the right sequence.
+
+   Anything that needs a board without revealing its view has to say so. Two
+   do, and both are wired below: `beforeprint` (a PDF contains every section,
+   drawn or not) and Expand all (which would otherwise open an empty panel).
+   Search does NOT need one — it indexes OWNERS and a fixed section list, not
+   board DOM, and its results navigate by hash, which goes through the router.
+
+   The draw runs AFTER the view is revealed, deliberately: ADR 0007's note that
+   "a draw function measures its tables while visible" is the reason the router
+   runs last, and drawing on reveal satisfies it by construction. */
+const LAZY_BOARDS = new Map();
+function lazyBoard(id, fn){ LAZY_BOARDS.set(id, fn); }
+function drawBoard(id){
+  const fn = LAZY_BOARDS.get(id);
+  if(!fn) return;                     /* already drawn, or never registered */
+  LAZY_BOARDS.delete(id);             /* delete FIRST: a throw must not re-run it */
+  try { fn(); }
+  catch(e){ console.error("board '" + id + "' failed to draw", e); }
+}
+function drawAllBoards(){ [...LAZY_BOARDS.keys()].forEach(drawBoard); }
+function drawBoardsIn(section){
+  if(!section) return;
+  /* snapshot the keys: drawBoard mutates the map as it goes */
+  [...LAZY_BOARDS.keys()].forEach(id => {
+    const el = document.getElementById(id);
+    if(el && section.contains(el)) drawBoard(id);
+  });
+}
+
 /* ── The scoring rulebook ────────────────────────────────────────────
    Transcribed from the league's own scoring settings page, then checked
    value-by-value against the mSettings export — the export only carries
@@ -8295,7 +8351,7 @@ let TRADE_DEALS = [];      /* handed to the record book further down */
    the difference.) Raw points flattered whichever side got the
    quarterback; the raw figure is still on the card, just not the
    verdict. */
-(function(){
+lazyBoard("trades", function(){
   const list = document.getElementById("trlist");
   if(!list || !TRADE_MOVES.size) return;
 
@@ -8731,7 +8787,7 @@ let TRADE_DEALS = [];      /* handed to the record book further down */
     draw();
   }));
   draw();
-})();
+});
 
 /* ── Waiver wire ─────────────────────────────────────────────────────
    A pickup is judged by what he scored FOR THE TEAM THAT CLAIMED HIM,
@@ -8845,7 +8901,7 @@ let HINDSIGHT = null;      /* handed to the record book further down */
    every week of every season — so they're worked out once here and then
    handed to the all-time boards and the manager panel, which are the
    same lists sliced two different ways. */
-(function(){
+lazyBoard("steals", function(){
   if(typeof DRAFTS === "undefined") return;
   const rows   = draftValue();
   const wire   = waiverMoves();
@@ -8959,7 +9015,7 @@ let HINDSIGHT = null;      /* handed to the record book further down */
     cur = b.dataset.m; draw();
   });
   draw();
-})();
+});
 
 /* ── More for the record book ────────────────────────────────────────
    Everything above this line — the trade ledger, the waiver values, the
@@ -8967,8 +9023,15 @@ let HINDSIGHT = null;      /* handed to the record book further down */
    board, which is built near the top. These cards are pushed in now and
    the board is repainted. All of it is derived, not typed: change a
    season's data and these change with it. */
-(function(){
+lazyBoard("records", function(){
   if(!document.getElementById("recordcards")) return;
+  /* This board READS what the two above it write — TRADE_DEALS and HINDSIGHT,
+     both declared "handed to the record book further down" — and renders
+     against [] and null without them, losing rows silently rather than
+     failing. Pull them in rather than trusting that the reader happened to
+     open Draft, Rosters & Trades first. Both calls are no-ops once drawn. */
+  drawBoard("trades");
+  drawBoard("steals");
   const stat = v => `<span class="stat">${v}</span>`;
   const add = (title, rarity, big, sub, body) => {
     RARITY[title] = rarity;
@@ -9076,7 +9139,7 @@ let HINDSIGHT = null;      /* handed to the record book further down */
   }
 
   paintBook();
-})();
+});
 
 
 
@@ -9269,6 +9332,11 @@ let HINDSIGHT = null;      /* handed to the record book further down */
        guard the second pass would record the already-expanded state as
        the original and the reader's collapsed sections never come back. */
     if(restore) return;
+    /* A PDF contains every section whether or not the reader ever opened it,
+       so any board still holding a registration has to draw before the
+       snapshot is taken — otherwise it prints as an empty panel. This is the
+       one place that needs boards drawn without a view being revealed. */
+    drawAllBoards();
     const all = Array.from(document.querySelectorAll("details"));
     restore = all.map(d => [d, d.open]);
     document.querySelectorAll("#mbody details.mgame").forEach(fillLazyBox);
@@ -9882,6 +9950,11 @@ drawDraft(DRAFT_YEARS[0]);
        accordion affordance removed, so it must actually BE open or the reader
        gets a title and an empty screen. */
     if(host){ const d = sectOf(host); if(d) d.open = true; }
+    /* Last, and after the reveal: any board in this view that registered itself
+       instead of drawing at load now draws, while it is visible — which is the
+       condition the comment above this function is about. On the hub this draws
+       nothing, which is the entire point. */
+    if(host) drawBoardsIn(host);
   }
 
   /* The header is pointer-events:none inside a view, but a <summary> is still
