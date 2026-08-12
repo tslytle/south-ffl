@@ -503,18 +503,34 @@ move machines; the rest are from the PC session (2026-08-11/12):
 ### Overhaul, remaining — in the order it should be done
 The vocabulary, hub and router are merged and live. What's left, with the traps:
 1. ~~Apply the uniform shell.~~ **Done — four steps, merged and live.** See the section above.
-2. **Bespoke depth, in this order and only if time allows:** hub, Manager Profiles, Standings.
-   Draft Rankings is off the list (rebuilt in ADR 0004) and so is the cheat sheet (restyle only).
+2. ~~**Bespoke depth:** hub, Manager Profiles, Standings.~~ **All three done 2026-08-12** — see the
+   three sections above. Each turned out to be a structural defect rather than a restyle: doors
+   sized by group population, a rail that stretched and stranded, a table that scrolled with
+   nothing pinned. Draft Rankings was already off the list (rebuilt in ADR 0004) and so is the
+   cheat sheet (restyle only).
 3. **Dark-default theme polarity** (Q18: dark is the design's home, light stays supported). Not
    started. This is the change most likely to break ADR 0005's zero-AA-failures bar, so it needs
    the contrast sweep re-run against composited backgrounds in *both* themes before it merges.
-4. **Deferred `PSTAT`/`ARCH` parse.** 1.33MB of JSON parsed before first paint, and the hub needs
-   none of it. **More delicate than ADR 0007 implies:** both are `const X = {…}` object literals,
-   so deferring means turning them into strings plus a lazy accessor — and the data contains
-   apostrophes (`Wan'Dale Robinson`, `Le'Veon Bell`), which rules out single-quoted strings and
-   pushes you to template literals across an 821KB span. That is the same shape of edit that once
-   silently deleted ~2MB of this file. Wants a scratch-copy test and a byte-count diff before it
-   goes near `index.html`.
+4. ~~**Deferred `PSTAT`/`ARCH` parse.**~~ **Don't. Measured 2026-08-12 and it is the wrong target.**
+   ADR 0007's premise — 1.33MB parsed before first paint, the hub needs none of it — is true about
+   bytes and wrong about cost. Instrumented copy of the real file (`performance.mark()` around each
+   declaration and each `<script>` block, served locally, marks read from the page):
+   - `const PSTAT = {…}`, 802KB of JSON: **5.0ms**. `const ARCH = {…}`, 495KB: **2.5ms**. Together
+     **7.5ms**, about **1.6% of script time**. Engines parse object literals far faster than the
+     size suggests; `JSON.parse` of the same payloads re-run in-page is ~7ms each.
+   - The whole data block — `SEASONS` through `ROSTERS`, every table and lookup — is **83.7ms**.
+   - **The first `<script>` block is 458.7ms of 461ms of total script time.** Every other block on
+     the page is ≤1.3ms. Of that 458.7ms, ~375ms is the code *after* the data: the draw functions
+     building all eighteen boards at load.
+
+   So the ~7.5ms deferral was going to be bought with the single riskiest edit on the list — the
+   821KB template-literal transform, the same shape of edit that once silently deleted ~2MB of this
+   file. Not worth it. **The real target is that ~375ms of eager drawing**, on a route (the hub)
+   that displays none of it. Note the trap in ADR 0007's working notes cuts the *other* way here:
+   "the router must run last, because a draw function measures its tables while still visible" —
+   drawing a view when it is first revealed means drawing it while visible, which is the condition
+   that note is asking for. Numbers above are a 20-core desktop; a phone will be several times
+   slower in absolute terms but the proportions are what matter.
 5. **Copy gap, low stakes:** four owners now fall back to `Journeyman · Still writing the story`
    alone, which reads wrong for Tate Grainger at ten seasons. There is no badge for a long-serving
    manager with no title and no top-3 finish. Flagged in ADR 0010 as a copy decision, not a
