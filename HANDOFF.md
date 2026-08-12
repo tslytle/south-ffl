@@ -38,8 +38,13 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
   - **Still open:** the player, if one was ever actually drafted there, isn't recoverable from
     ESPN's data — it has no player or team attached at all. Would need the user's own memory or
     a leaguemate's records; no ESPN league-ID API lookup exists in the codebase currently.
-- **Backups**: retire `.BACKUP-before-*.html` files once current state is committed to git —
-  agreed, not yet executed as of this handoff.
+- **Backups retired.** Once the tier/ADP refresh work was committed (satisfying the "once
+  current state is committed to git" precondition), deleted all four stale loose files from the
+  parent folder: `index_9-dark_3-improved.BACKUP-before-reorg.html`,
+  `index_9-dark_3-improved.backup-before-webp.html`, `South-FFL-Website.zip`, and
+  `index_9-dark_3-improved.html` (the pre-git working copy) — all superseded by this git repo
+  per ADR 0001. The parent folder now contains only `south-ffl/` (this repo) and unrelated
+  session files (`.claude/`, `skills-lock.json`).
 - **`refresh-tiers.py` built (ADR 0003)** — and the ADR's original plan had a real bug, caught
   before it shipped: the single "all positions" page ADR 0003 named
   (`half-point-ppr-cheatsheets.php`, `position_id: "ALL"`) has a *global cross-position* `tier`
@@ -83,7 +88,6 @@ These were queued but not yet asked/answered when the session paused to move mac
 - The 2020 Round 16 / Pick 8 mystery pick is effectively closed as "slot known (Revenge Tour's
   traded-away/orphaned pick), player unrecoverable from ESPN data" — revisit only if the user
   turns up a memory or record of who was actually drafted there.
-- Executing the backup cleanup (delete `.BACKUP-*.html` files) now that git covers history.
 - Anything else surfaced once "rock-solid the existing draft-prep tools" (agreed scope for the
   pre-draft data-analysis tier) gets audited in detail — that audit hadn't started yet.
 
