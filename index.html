@@ -1413,6 +1413,9 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 /* direct child only — the weight chips inside .pfgradewhy are spans too */
 .pfgrade > span{display:block;font-size:var(--t-micro);font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:var(--accent);margin-top:3px}
 .pfgraderank{display:block;font-style:normal;font-size:var(--t-fine);font-weight:600;color:var(--muted);margin-top:5px}
+/* small-sample caveat under the rank. Same two tokens as .pfgradewhy, whose
+   contrast is already proven in both themes (ADR 0005). */
+.pfsample{display:block;font-style:normal;font-size:var(--t-micro);font-weight:600;color:var(--faint);margin-top:5px;letter-spacing:.01em}
 .pfgradewhy{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 10px;font-style:normal;
   font-size:var(--t-micro);line-height:1.5;color:var(--faint);margin:7px auto 0;max-width:250px;letter-spacing:.01em}
 .pfgradewhy span{white-space:nowrap}
@@ -5416,18 +5419,31 @@ function pfRadar(axes){
 }
 
 /* ---- shared axis + grade computation, reused for the league-wide grade rank ---- */
-/* Grade weights. A franchise is judged first on what it won, but a title runs
-   through a three-week single-elimination bracket, so it is also the noisiest
-   thing on the record. Hardware and Postseason both measure that same January
-   window, so their combined share is capped rather than stacked. Scoring and
-   Lineups are the least luck-dependent signals of how a franchise was actually
-   run, and Winning is the largest sample on the sheet, so those three carry the
-   balance. Longevity and Activity are context, not quality — a manager should
-   not climb for merely persisting or for churning the wire — so they are kept
-   deliberately small. */
+/* Franchise Grade weights. A franchise is judged first on what it won, but a
+   title runs through a three-week single-elimination bracket, so it is also the
+   noisiest thing on the record. Hardware and Postseason both measure that same
+   January window, so their combined share is capped rather than stacked.
+   Scoring and Lineups are the least luck-dependent signals of how a franchise
+   was actually run, and Winning is the largest sample on the sheet, so those
+   three carry the balance. Activity is context, not quality — a manager should
+   not climb for churning the wire — so it is kept deliberately small.
+
+   LONGEVITY was dropped per ADR 0006. It took four distinct values across the
+   twelve graded managers, six of them tied, and correlated 0.07 with win rate:
+   it measured when someone joined, not how they managed, which is the same
+   thing this comment already argued against. ACTIVITY was measured alongside it
+   at 0.39 and kept.
+
+   These numbers deliberately sum to 94, not 100. pfGradeForAxes divides by the
+   sum of whatever weights it is handed, so leaving the survivors untouched IS
+   the proportional renormalisation — HARDWARE 21.3%, SCORING 20.2%, POSTSEASON
+   19.1%, WINNING 18.1%, LINEUPS 17.0%, ACTIVITY 4.3%. Do not "fix" them to add
+   up to 100: that would silently reweight the grade. The UI derives the
+   displayed percentages the same way, per manager, so an axis dropped for
+   missing data renormalises there too. */
 function pfWeights(){
-  /* bracket outcomes 38 · team quality 36 · lineup skill 16 · context 10 */
-  return { HARDWARE:20, POSTSEASON:18, SCORING:19, WINNING:17, LINEUPS:16, LONGEVITY:6, ACTIVITY:4 };
+  /* bracket outcomes 40.4 · team quality 38.3 · lineup skill 17.0 · context 4.3 */
+  return { HARDWARE:20, POSTSEASON:18, SCORING:19, WINNING:17, LINEUPS:16, ACTIVITY:4 };
 }
 
 /* The percentiles behind the grade come from pfRankScope, not from the full
@@ -5438,7 +5454,9 @@ function pfWeights(){
    number arrived at against two different fields. It mattered most on the
    axes where the ungraded five are outliers: a manager with eight seasons
    sat at the 41st percentile for longevity against everyone and the 17th
-   against the field he is actually being graded in. */
+   against the field he is actually being graded in. (That axis has since been
+   dropped — ADR 0006 — but the scoping bug it exposed was never specific to
+   it, and the fix still applies to every remaining axis.) */
 function pfAxesForRow(me){
   const PF_WEIGHT = pfWeights(), P = pfRankScope(me.n);
   const all = [
@@ -5447,7 +5465,6 @@ function pfAxesForRow(me){
     { k:"POSTSEASON",  v: P.pct("postPct",  me.postPct)  },
     { k:"HARDWARE",    v: P.pct("hardware", me.hardware) },
     { k:"LINEUPS",     v: me.hasLineup ? P.pct("lineup", me.lineup) : 0, need:"lineup" },
-    { k:"LONGEVITY",   v: P.pct("seasons",  me.seasons)  },
     { k:"ACTIVITY",    v: P.pct("moves",    me.moves)    }
   ];
   // scoring/moves start in 2016, lineup detail in 2018; drop what a manager predates
@@ -5467,6 +5484,15 @@ function pfGradeForAxes(axes){
 var PFGRADE = null;
 /* only managers with the full modern record are graded */
 var GRADE_MIN_SEASONS = 3;
+/* Below this, the grade is flagged as a small sample rather than hidden. Every
+   rate feeding the grade is regressed toward the league mean over priors of
+   K_SEA = 3 seasons and K_POST = 4 (see pfMetrics), so a career shorter than
+   five seasons is still being pulled substantially toward average — the figure
+   reflects the prior about as much as the manager. Dropping LONGEVITY (ADR
+   0006) removed the axis that penalised short tenure; this discloses the
+   uncertainty instead of scoring it. No one currently qualifies: the graded
+   field runs 8 to 12 seasons. It exists for the next manager to join. */
+var GRADE_SMALL_SAMPLE = 5;
 function pfIsGraded(n){
   try { const me = pfMetrics().by[n];
         return !!(me && me.hasPts && me.hasLineup && me.seasons >= GRADE_MIN_SEASONS); }
@@ -5549,14 +5575,13 @@ function pfBuild(o){
   const DESC = {
     WINNING:"a relentless regular-season winner", SCORING:"a points machine",
     POSTSEASON:"a manager who shows up in January", HARDWARE:"a trophy collector",
-    LINEUPS:"a sharp lineup setter", LONGEVITY:"a fixture of this league",
+    LINEUPS:"a sharp lineup setter",
     ACTIVITY:"a restless roster tinkerer"
   };
   const FLAW = {
     WINNING:"but the weekly wins have been hard to come by", SCORING:"though the scoring has lagged the field",
     POSTSEASON:"but the bracket has been unkind", HARDWARE:"though the trophy case is still waiting",
     LINEUPS:"though too many points have been left on the bench",
-    LONGEVITY:"on a short run of seasons",
     ACTIVITY:"and largely lets the roster ride"
   };
   const hiTxt = DESC[hi.k] || "a steady hand";
@@ -5732,13 +5757,21 @@ function pfBuild(o){
       <div class="pfradarwrap">
         ${pfRadar(axes)}
         ${pfIsGraded(o.n)
-          ? `<div class="pfgrade"><b>${gradeOut}</b><span>Manager grade</span>
-              <em class="pfgraderank">${ord(pfGradeRanks().rankOf[o.n])} of ${pfGradeRanks().count}</em>
+          ? `<div class="pfgrade"><b>${gradeOut}</b><span>Franchise grade</span>
+              <em class="pfgraderank">${ord(pfGradeRanks().rankOf[o.n])} of ${pfGradeRanks().count}</em>${
+              o.seasons < GRADE_SMALL_SAMPLE
+                ? `<em class="pfsample">${o.seasons} seasons &mdash; small sample</em>` : ""}
               <em class="pfgradewhy" title="Each axis shows where this manager stands among the graded managers, and the grade blends them - the percentages are how much each part counts. Scoring is judged within each season, so the old and new scoring eras compare fairly, and short careers lean toward the middle rather than being judged on one hot year.">${
                 /* one span per axis instead of a middot-joined string: the
-                   separators used to strand at the end of a wrapped line */
-                axes.slice().sort((a,b) => b.w - a.w)
-                    .map(a => `<span>${a.k[0] + a.k.slice(1).toLowerCase()} ${a.w}%</span>`).join("")
+                   separators used to strand at the end of a wrapped line.
+                   Percentages are derived from this manager's own axis set, so
+                   they always total 100 even when an axis was dropped for
+                   missing data — the same renormalisation pfGradeForAxes does. */
+                (() => {
+                  const wsum = axes.reduce((s,a) => s + a.w, 0) || 1;
+                  return axes.slice().sort((a,b) => b.w - a.w)
+                    .map(a => `<span>${a.k[0] + a.k.slice(1).toLowerCase()} ${(a.w / wsum * 100).toFixed(1)}%</span>`).join("");
+                })()
               }</em></div>`
           : `<div class="pfgrade nograde"><b>&mdash;</b><span>Not graded</span>
               <em class="pfgradewhy">${o.seasons < GRADE_MIN_SEASONS
@@ -6118,7 +6151,7 @@ function fillGradeCells(){
     btn.removeAttribute("title");
     btn.querySelector("b").textContent = pfGradeForAxes(pfAxesForRow(me)).toFixed(1);
     btn.querySelector("i").textContent = isCard ? "" : ord(R.rankOf[n]) + "/" + R.count;
-    if(isCard) btn.title = "Manager grade — " + ord(R.rankOf[n]) + " of " + R.count;
+    if(isCard) btn.title = "Franchise grade — " + ord(R.rankOf[n]) + " of " + R.count;
   });
 }
 fillGradeCells();
