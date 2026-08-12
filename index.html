@@ -3218,7 +3218,14 @@ const chrono = [...SEASONS].sort((a,b) => a.y - b.y);
 const LG_PPG = {};
 chrono.forEach(s => {
   let pf = 0, g = 0;
-  s.t.forEach(row => { if(row.length > 3){ pf += row[3]; g += row[0] + row[1]; } });
+  /* row is [team, W, L, PF, PA, ...] -- games is W+L, i.e. row[1]+row[2].
+     This read row[0]+row[1], which adds the team NAME to the wins: string
+     concatenation, so pf/g came out NaN, so the `if(LG_PPG[s.y])` guard
+     below silently skipped every season and relPf/relG stayed 0 for every
+     manager. That zeroed the era-relative scoring metric league-wide --
+     every profile read "1st/12" for points per game, and SCORING (19% of
+     the grade) was a flat 50 for everyone. */
+  s.t.forEach(row => { if(row.length > 3){ pf += row[3]; g += row[1] + row[2]; } });
   if(g) LG_PPG[s.y] = pf / g;
 });
 chrono.forEach(s => s.t.forEach(([n,w,l],i) => {
@@ -3303,7 +3310,7 @@ const OWN_SORTABLE = {
   moves:    o => o.mvSeasons ? o.mv : -1,
   grade:    o => { try { const M = pfMetrics(); const me = M.by[o.n];
                          if(!me || !me.hasPts || !me.hasLineup || me.seasons < GRADE_MIN_SEASONS) return null;
-                         return pfGradeForAxes(pfAxesForRow(me, M)); }
+                         return pfGradeForAxes(pfAxesForRow(me)); }
                    catch(e) { return null; } }
 };
 /* ---- division alignment, by season ---- */
@@ -3415,7 +3422,7 @@ let mgrSort = "grade";
 function mgrGrade(o){
   try { const M = pfMetrics(), me = M.by[o.n];
         if(!me || !me.hasPts || !me.hasLineup || me.seasons < GRADE_MIN_SEASONS) return -1;
-        return pfGradeForAxes(pfAxesForRow(me, M)); }
+        return pfGradeForAxes(pfAxesForRow(me)); }
   catch(e){ return -1; }
 }
 function drawManagers(){
@@ -5361,11 +5368,10 @@ function pfMetrics(){
     const equal = vals.filter(x => x === v).length;
     return Math.round(((below + equal / 2) / vals.length) * 100);
   };
-  // 1 = best. ordinal rank within the relevant pool (higher value = better)
-  const rank = (key, v) => {
-    const vals = pool(key).map(r => r[key]).sort((a,b) => b - a);
-    return vals.indexOf(v) + 1;
-  };
+  /* 1 = best. Counting how many beat you is equivalent to indexOf on a sorted
+     list for values that are in the pool, and unlike indexOf it can't return
+     0 for a value that isn't — same form pfRankScope uses, so the two agree. */
+  const rank = (key, v) => pool(key).filter(r => r[key] > v).length + 1;
   const poolSize = key => pool(key).length;
   PFM = { rows, pct, rank, poolSize, count: rows.length,
           by: Object.fromEntries(rows.map(r => [r.n, r])) };
@@ -5424,16 +5430,25 @@ function pfWeights(){
   return { HARDWARE:20, POSTSEASON:18, SCORING:19, WINNING:17, LINEUPS:16, LONGEVITY:6, ACTIVITY:4 };
 }
 
-function pfAxesForRow(me, M){
-  const PF_WEIGHT = pfWeights();
+/* The percentiles behind the grade come from pfRankScope, not from the full
+   metrics table: a graded manager is measured against the other graded
+   managers, and only an ungraded one falls back to the whole seventeen-name
+   roll. Before this they were scored against all seventeen while the grade
+   itself was ranked "Nth of 12" and the bars beside it read /12 — the same
+   number arrived at against two different fields. It mattered most on the
+   axes where the ungraded five are outliers: a manager with eight seasons
+   sat at the 41st percentile for longevity against everyone and the 17th
+   against the field he is actually being graded in. */
+function pfAxesForRow(me){
+  const PF_WEIGHT = pfWeights(), P = pfRankScope(me.n);
   const all = [
-    { k:"WINNING",     v: M.pct("winPct",   me.winPct)   },
-    { k:"SCORING",     v: M.pct("ppg",      me.ppg)      },
-    { k:"POSTSEASON",  v: M.pct("postPct",  me.postPct)  },
-    { k:"HARDWARE",    v: M.pct("hardware", me.hardware) },
-    { k:"LINEUPS",     v: me.hasLineup ? M.pct("lineup", me.lineup) : 0, need:"lineup" },
-    { k:"LONGEVITY",   v: M.pct("seasons",  me.seasons)  },
-    { k:"ACTIVITY",    v: M.pct("moves",    me.moves)    }
+    { k:"WINNING",     v: P.pct("winPct",   me.winPct)   },
+    { k:"SCORING",     v: P.pct("ppg",      me.ppg)      },
+    { k:"POSTSEASON",  v: P.pct("postPct",  me.postPct)  },
+    { k:"HARDWARE",    v: P.pct("hardware", me.hardware) },
+    { k:"LINEUPS",     v: me.hasLineup ? P.pct("lineup", me.lineup) : 0, need:"lineup" },
+    { k:"LONGEVITY",   v: P.pct("seasons",  me.seasons)  },
+    { k:"ACTIVITY",    v: P.pct("moves",    me.moves)    }
   ];
   // scoring/moves start in 2016, lineup detail in 2018; drop what a manager predates
   const use = all.filter(a => {
@@ -5462,7 +5477,7 @@ function pfGradeRanks(){
   const M = pfMetrics();
   const list = owners.filter(o => { const me = M.by[o.n];
       return me && me.hasPts && me.hasLineup && me.seasons >= GRADE_MIN_SEASONS; })
-    .map(o => ({ n: o.n, grade: pfGradeForAxes(pfAxesForRow(M.by[o.n], M)) }))
+    .map(o => ({ n: o.n, grade: pfGradeForAxes(pfAxesForRow(M.by[o.n])) }))
     .sort((a,b) => b.grade - a.grade);
   const rankOf = {};
   list.forEach((r,i) => rankOf[r.n] = i + 1);
@@ -5524,7 +5539,7 @@ function pfBuild(o){
   const ppg = o.g ? (o.pf / o.g).toFixed(1) : null;
 
   /* ---- radar axes: percentile vs the league ---- */
-  const axes = pfAxesForRow(me, M);
+  const axes = pfAxesForRow(me);
   const grade = (axes.reduce((s,a) => s + a.v, 0) / axes.length);
   const gradeOut = pfGradeForAxes(axes).toFixed(1);   // map to a 55-99 style scale
 
@@ -6101,7 +6116,7 @@ function fillGradeCells(){
     }
     btn.classList.remove("nograde");        // may have been set on an earlier pass
     btn.removeAttribute("title");
-    btn.querySelector("b").textContent = pfGradeForAxes(pfAxesForRow(me, M)).toFixed(1);
+    btn.querySelector("b").textContent = pfGradeForAxes(pfAxesForRow(me)).toFixed(1);
     btn.querySelector("i").textContent = isCard ? "" : ord(R.rankOf[n]) + "/" + R.count;
     if(isCard) btn.title = "Manager grade — " + ord(R.rankOf[n]) + " of " + R.count;
   });
