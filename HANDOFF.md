@@ -582,13 +582,20 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    trips to the Alma Bowl and six losses. `Ringless` never reached them: it wants a .550 record and
    all three are sub-.500. Nothing in the set had any concept of a runner-up.
 
-   Added as the **third branch of the hardware chain** (`else if(o.p[1] >= 1)`), so a man with a
-   ring can never be a bridesmaid by construction. Justin's call from four options; the descriptor
-   is singular ("Lost the Alma Bowl", not "Alma Bowls") because Colin has one final and Tate has
-   three. **It also lands on a fourth man who was never in the fallback list:** Alen Huseinbegovic
-   (12 seasons, 0-1-0) already wore `Wire Hawk + Original` and now wears `Bridesmaid` too — true,
-   and the rule is the one chosen, but worth knowing it reached past the eight. Tightening to
-   `o.p[1] >= 2` would drop Alen and Colin both.
+   Added as the **third branch of the hardware chain**, so a man with a ring can never be a
+   bridesmaid by construction. Shipped first at `o.p[1] >= 1`, then **narrowed the same day to
+   `o.p[1] >= 2`** on Justin's call, because at one final it also caught Alen Huseinbegovic (12
+   seasons, 0-1-0), who already wore `Wire Hawk + Original` — a badge landing on a third of the
+   league says less than one marking a specific kind of career.
+
+   It is now **Tate Grainger** (0-3-0) and **Ermin Cerimovic** (0-2-0), and since every holder has
+   two or more, the descriptor went back to the plural it was drafted with: **`Bridesmaid · Alma
+   Bowls, no rings`**.
+
+   **The cost, taken knowingly:** Colin Moore — eleven seasons, one final and two thirds — returns
+   to `Journeyman · Still writing the story`, which is the copy this badge existed to fix.
+   `o.p[1] + o.p[2] >= 2` would take him without taking Alen, if that trade ever looks better; it
+   is noted at the rule. The fallback now sits on Colin plus the five one- and two-season careers.
 
 **Open design questions, not yet put to the user:** whether landing deep inside a long routed view
 is acceptable (`#h2h` lands ~16,000px down the History view — correct, but a long scroll), and

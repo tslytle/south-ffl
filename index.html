@@ -6252,19 +6252,26 @@ function computeTraits(o){
   else if(o.p[0] === 1) traits.push(["Champion", "Has a ring"]);
   /* The third branch of the hardware chain, and an else-if by design: a man
      with a ring is not a bridesmaid, and the chain makes that impossible to
-     get wrong. Without it, three of the longest careers in the league fell
-     through to "Journeyman - Still writing the story" — Tate Grainger at ten
-     seasons, Ermin Cerimovic and Colin Moore at eleven — men who between them
-     have been to six Alma Bowls and lost all six. `Ringless` doesn't reach
-     them: it wants a .550 record and all three are sub-.500. Nothing in the
-     set had any concept of a runner-up.
+     get wrong. Without it the longest careers in the league fell through to
+     "Journeyman - Still writing the story", which reads wrong at ten and
+     eleven seasons. `Ringless` doesn't reach them either: it wants a .550
+     record and they are all sub-.500. Nothing in the set had any concept of a
+     runner-up.
 
-     Note the descriptor is singular and says "Lost the Alma Bowl" rather than
-     naming a count: Colin has one final and Tate has three, and a badge that
-     reads "Alma Bowls" is wrong for the first man on the list. The Record Book
-     already tells the longer version of this story — see `bridesmaid`, which
-     picks the titleless owner with the most silver-and-bronze. */
-  else if(o.p[1] >= 1) traits.push(["Bridesmaid", "Lost the Alma Bowl"]);
+     The threshold is TWO finals, not one. At one it also caught Alen
+     Huseinbegovic, who already wears Wire Hawk and Original — true, but a
+     badge that lands on a third of the league says less than one that marks a
+     specific kind of career. At two it is Tate Grainger (three Alma Bowl
+     losses) and Ermin Cerimovic (two), and it stays plural, so the descriptor
+     can name what happened rather than hedging the count.
+
+     The cost, and it is a real one: Colin Moore — eleven seasons, one final
+     and two thirds — goes back to `Journeyman`, which is the copy this badge
+     existed to fix. `o.p[1] + o.p[2] >= 2` would take him without taking Alen,
+     if that trade ever looks better. The Record Book tells the longer version
+     either way — see `bridesmaid`, which picks the titleless owner with the
+     most silver-and-bronze. */
+  else if(o.p[1] >= 2) traits.push(["Bridesmaid", "Alma Bowls, no rings"]);
   if(enough && me.hasPts && M.rank("ppg", me.ppg) <= 3) traits.push(["Big Bat", "Top-3 scoring"]);
   if(enough && me.hasPts && M.rank("moves", me.moves) <= 3 && me.moves > 0) traits.push(["Wire Hawk", "Top-3 in moves"]);
   if(enough && gp && o.w / gp >= 0.55 && !o.p[0]) traits.push(["Ringless", "Wins without hardware"]);
