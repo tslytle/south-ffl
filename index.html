@@ -2707,7 +2707,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   </div></details>
 
   <details class="sub" open><summary><div><h4 class="ssh">From the draft</h4>
-    <p class="subnote">Counted within his position &mdash; a back taken as the twelfth RB off the board who finishes the year as the RB3 climbed nine spots. Three names per position, so the board isn&rsquo;t all quarterbacks.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+    <p class="subnote">Counted within his position, against the men drafted alongside him &mdash; a back taken twelfth of the fifty-seven RBs off the board who finishes third among them climbed nine spots. Both numbers come from that same fifty-seven, so the difference between them means something. Three names per position, so the board isn&rsquo;t all quarterbacks.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div id="dvlist"></div>
   </div></details>
 
@@ -7343,10 +7343,33 @@ function rankPicks(picks, tot, posOf, teams, basis, bar, held){
   const seen = {};
   skill.slice().sort((a, b) => a.overall - b.overall)
     .forEach(p => { seen[p.pos] = (seen[p.pos] || 0) + 1; p.posSlot = seen[p.pos]; });
+
+  /* The finish that gets *subtracted* from the draft slot has to be ranked in
+     the same field the slot came from. posSlot is a rank among the players
+     DRAFTED at that position (~57 RBs); byPos ranks against everyone ROSTERED
+     at it (~85 RBs), a field 1.3-1.8x larger. Subtracting one from the other
+     was arithmetic between two different populations, and it inflated exactly
+     the wrong picks: a man who scored nothing let every one-week waiver
+     pickup leapfrog him, so Jerick McKinnon 2018 (torn ACL in August, drafted
+     RB13) outranked Michael Thomas 2020 (drafted WR1) on the bust board.
+     47% of busts carried an inflated finish, by up to 34 places.
+
+     So posFinDr ranks him among the drafted — same field, honest subtraction —
+     and that is what the card shows and what gain uses. posFin keeps ranking
+     against everyone rostered, because "could you actually have started him"
+     is genuinely a question about the whole pool, and that is the steals
+     filter below. The two agree for every steal on the board today: at the
+     top of a position, everyone who outscored you was drafted too. */
+  const draftedByPos = {};
+  skill.forEach(p => (draftedByPos[p.pos] = draftedByPos[p.pos] || []).push(p.pts));
+  Object.keys(draftedByPos).forEach(p => draftedByPos[p].sort((a, b) => b - a));
+
   skill.forEach(p => {
-    const arr = byPos[p.pos] || [];
+    const arr = byPos[p.pos] || [], dr = draftedByPos[p.pos] || [];
     p.posFin  = arr.filter(v => v > p.pts).length + 1;
-    p.gain    = p.posSlot - p.posFin;
+    p.posFinDr = dr.filter(v => v > p.pts).length + 1;
+    p.posDrafted = dr.length;
+    p.gain    = p.posSlot - p.posFinDr;
     p.vor     = p.pts - (rep[p.pos] || 0);
     p.repRank = rank[p.pos];
     p.basis   = basis;
@@ -8234,7 +8257,7 @@ let HINDSIGHT = null;      /* handed to the record book further down */
       <span class="dvtag">${p.pos}</span>
       <span class="dvwho"><b>${pLink(p.name, p.y, null, p.pid)}</b>
         <span>${esc(byTeam ? p.team : who(p.team))} &middot; ${p.y}</span>
-        <span class="dvmove">Taken ${p.pos}${p.posSlot}, finished ${p.pos}${p.posFin}${
+        <span class="dvmove">Taken ${p.pos}${p.posSlot} of ${p.posDrafted}, finished ${p.pos}${p.posFinDr}${
           p.rostered && p.kept < p.rostered
             ? ` &middot; kept ${p.kept} of ${p.rostered} wk${p.rostered === 1 ? "" : "s"}` : ""}</span></span>
       <span class="dvnum"><b>${sgn(p.gain)}</b>spots<em>${
