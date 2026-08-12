@@ -2497,9 +2497,18 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
    door rendered its title and sub-line inline — "Draft NightMonday, September
    7". Structural checks all passed; only looking at it caught this. */
 a.uhubdoor{display:flex;flex-direction:column;gap:2px}
-.uhubdoor b{font-family:var(--serif);font-size:var(--t-lead);font-weight:700;
-  color:var(--ink);line-height:1.15}
-.uhubdoor span{font-size:var(--t-fine);color:var(--muted)}
+/* Inter, not Oswald. Oswald is condensed display type — it carries the
+   masthead at 90px and reads cramped at card size, which is what made these
+   doors look wrong. Inter at --t-body with a tight tracking is legible at a
+   glance, which is the whole job of a door. */
+.uhubdoor b{font-family:var(--sans);font-size:var(--t-body);font-weight:650;
+  color:var(--ink);line-height:1.25;letter-spacing:-.01em}
+.uhubdoor span{font-size:var(--t-fine);color:var(--muted);line-height:1.35}
+/* --raise, not --surface: on the dark ground --surface (#121828) sits only a
+   few points off --bg (#0B0F1C), so eighteen doors read as faint outlines
+   rather than as objects. --raise is the same fill the board panels use, so
+   the hub and the views agree about what a panel is. */
+a.uhubdoor{background:var(--raise);padding:var(--sp-3) var(--sp-4)}
 a.uhubdoor:hover b{color:var(--accent)}
 
 /* ── card ─────────────────────────────────────────────────────────────── */
