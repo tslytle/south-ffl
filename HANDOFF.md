@@ -627,6 +627,40 @@ Champions showing the current holder, Records showing the high score — and it 
 need `PSTAT`/`ARCH`, which is exactly the 1.33MB parse item 4 below wants to defer *because the hub
 needs none of it*. Decide the deferral first; the doors can be fed afterwards.
 
+### Manager Profiles: the rail travels, and the sparklines meet their axis (2026-08-12)
+Second bespoke-depth surface. Two defects, both structural, both found by looking at the open
+profile rather than at the code.
+
+**The career rail stretched and stranded.** `.pfbody` is a 300px + 1fr grid. The left column holds
+six career figures and four rank bars — 660px of content — and the right holds everything you
+scroll: breakdown, twelve season rows, three charts, sixteen rivalries, draft history. As a plain
+grid column the rail stretched to match, so the worst profile carried **1,689px of empty raised
+panel**, and the figures you want beside a season row were a screen and a half above it.
+`align-self:start` sizes the rail to its content — that alone kills the empty column, at any window
+height. `position:sticky` then keeps it beside whatever you scrolled to, **gated on the window
+being tall enough to show all of it**: `.pfcard` is capped at `calc(100vh - 68px)`, the rail runs
+633-660px across all seventeen managers (measured, every one), so the gate is `min-height:760px` —
+a 692px scrollport against a 660px rail. Short window: no pinning, but still no dead column. Below
+861px `.pfbody` is one column and neither rule applies.
+
+**The trend sparklines were drawing at half their own width.** The SVG is `width="100%"
+height="56"` over a `0 0 260 56` viewBox, and the default `preserveAspectRatio` is `meet` — it fits
+*both* axes, so in a 521px box the height bound it and the chart drew 260px wide, centred. The axis
+labels underneath are a flex row and did span the full 521px, so twelve seasons of shape sat
+squeezed into the middle half of their own axis. `aspect-ratio:260/56` with `height:auto` scales the
+drawing uniformly to whatever column it is in: 521x112 on desktop, 295x64 on a phone, chart and
+labels the same width at both, markers still circles because nothing is stretched on one axis only.
+Profiles get ~160px taller; the charts became readable.
+
+Verified at 375x812, 1265x700 and 1265x900: rail sticky only where it fits, chart width equal to
+label width at every size, no page or card overflow, phone layout unchanged.
+
+**Still open on this surface** (not attempted, in rough order of payoff): the hero's three-column
+`1fr auto 1.15fr` leaves a gap between the avatar and the radar; the Franchise Grade — the number
+the whole modal is about — sits under the radar at small size; and `Roster moves` still shows as a
+ranked bar although ADR 0009 dropped ACTIVITY from the grade, which is defensible under the
+"demote to a plain fact" rule but is worth a deliberate look rather than an assumption.
+
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
   `python -m http.server 8765` in the repo root, then open `http://127.0.0.1:8765/index.html` in

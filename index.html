@@ -1445,6 +1445,31 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .pfbody{display:grid;grid-template-columns:300px 1fr;gap:0}
 .pfleft{padding:20px;border-right:1px solid var(--line);background:var(--raise)}
 .pfright{padding:20px}
+/* ── The career rail travels with the reader ────────────────────────────────
+   .pfleft holds who this manager is — six career figures and four rank bars —
+   and .pfright holds everything you scroll through: the breakdown, twelve
+   season rows, three trend charts, sixteen rivalries, the draft history. As a
+   plain grid column the rail stretched to match: 660px of content in a 2,316px
+   column. Measured across all seventeen managers the worst case left **1,689px
+   of empty raised panel**, and the career figures you want beside a season row
+   sat a screen and a half above it.
+
+   Two changes, and the first matters more than the second. `align-self:start`
+   sizes the rail to its content, which is what kills the empty column — that
+   holds at any window height. `position:sticky` then keeps it beside whatever
+   you have scrolled to, which is only honest if the rail actually fits in the
+   card: .pfcard is capped at calc(100vh - 68px), and the rail runs 633-660px
+   across the seventeen, so the pinning is gated on a viewport tall enough to
+   show all of it (760px leaves a 692px scrollport against a 660px rail) rather
+   than pinning a panel whose bottom cannot be reached. Below 861px .pfbody is a
+   single column and neither rule applies — the phone stacks, as it did. */
+@media (min-width:861px){
+  .pfleft{align-self:start;border-right:0;border:1px solid var(--line);
+    border-radius:var(--r-md)}
+}
+@media (min-width:861px) and (min-height:760px){
+  .pfleft{position:sticky;top:0}
+}
 .pfbody h4{font-size:var(--t-tiny);font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);
   margin:0 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line)}
 .pfbody .pfright h4{margin-top:24px}
@@ -1531,6 +1556,16 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
    see the "Profile scoring-trend sparkline" script near the end of
    the file, which reads the same SEASONS/OWNER_OF data pfBuild() does */
 .pftrend{padding:8px 2px 0}
+/* The sparkline is written width="100%" height="56" over a 260x56 viewBox, and
+   the default preserveAspectRatio is "meet" — it fits BOTH axes, so a 521px-wide
+   box scaled by the height instead and drew a 260px chart centred in it. The
+   axis labels below are a flex row and did span the full width, so twelve
+   seasons of shape were squeezed into the middle half of their own axis.
+   Sizing by aspect-ratio scales the whole drawing uniformly to the column it is
+   in: the chart meets its labels, and the markers stay circles because nothing
+   is stretched on one axis. Height follows width, so a narrow column gets a
+   shorter chart rather than a distorted one. */
+.pftrend svg{display:block;width:100%;height:auto;aspect-ratio:260/56}
 .pftrend-lbl{display:flex;justify-content:space-between;font-size:var(--t-micro);
   color:var(--faint);margin-top:2px;padding:0 4px}
 .pfyr{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:12px;
