@@ -503,28 +503,28 @@ deliberately reused existing tokens so ADR 0005's contrast bar could not break. 
 made that obvious, and also caught a defect four shell steps had been built on top of.
 
 **The bug: hub doors rendered title and sub-line inline** ("Draft NightMonday, September 7").
- and the door rule are BOTH 0-1-1, so source order decided, and the hub
-rules sit above  in that block. The first fix () changed nothing for exactly
-that reason;  (0-2-1) wins wherever it sits. **The hub shipped with eighteen
+`a.ucard{display:block}` and the door rule are BOTH 0-1-1, so source order decided, and the hub
+rules sit above `.ucard` in that block. The first fix (`a.uhubdoor`) changed nothing for exactly
+that reason; `a.ucard.uhubdoor` (0-2-1) wins wherever it sits. **The hub shipped with eighteen
 doors verified for target resolution, tap depth, heading order, overflow at two widths and touch
 targets — none of which can see a collapsed layout.**
 
 **What changed, and why:**
-- **Door titles Oswald -> Inter** at . Oswald is condensed display type: it carries the
+- **Door titles Oswald -> Inter** at `--t-body`. Oswald is condensed display type: it carries the
   masthead at 90px and reads cramped at card size. It is fine from ~25px up, so view headers
   (30px) and board headers (25px) keep it — the earlier claim that Oswald was "arguing with
   itself" was wrong and was retracted.
-- **Door fill  -> .** On the dark ground  (#121828) sits a few
-  points off  (#0B0F1C), so eighteen cards read as faint outlines.
+- **Door fill `--surface` -> `--raise`.** On the dark ground `--surface` (#121828) sits a few
+  points off `--bg` (#0B0F1C), so eighteen cards read as faint outlines.
 - **Three colours, three jobs: mint = interaction, gold = editorial voice, neutral = structure.**
-   had been marking links, hover, focus AND every eyebrow, chip label and rule, so it
-  signalled nothing. Eyebrows moved off accent — then off  too, because fully monochrome
-  is wrong for a league trophy case — and onto , which is also the masthead's italic
+  `--accent` had been marking links, hover, focus AND every eyebrow, chip label and rule, so it
+  signalled nothing. Eyebrows moved off accent — then off `--muted` too, because fully monochrome
+  is wrong for a league trophy case — and onto `--gold-text`, which is also the masthead's italic
   FFL. Measured: 9.15/11.18 dark, 5.23/5.51 light.
-- **Hub group labels** / -> /; they had been quieter than the
+- **Hub group labels** `--t-micro`/`--muted` -> `--t-fine`/`--body`; they had been quieter than the
   sub-lines inside the cards they labelled.
 - **Board disclosure chevrons** moved back beside their headings (~1155px -> ~905px); the header
-  text block was  and shoved them to the panel edge.
+  text block was `flex:1` and shoved them to the panel edge.
 
 **Still open on the visual side:**
 1. **Panel text stops at ~620px inside a 1177px panel**, so every board has an empty right half.
