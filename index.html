@@ -2566,9 +2566,12 @@ body[data-route]:not([data-route="hub"]) :is(.uhub){display:none}
 /* the masthead, ticker and expand-all bar belong to the front door only */
 body[data-route]:not([data-route="hub"]) :is(header.gameBorder,.ticker,.allctl){display:none}
 /* back to the hub, shown only when you are inside a view */
+/* min-height is the touch target, not decoration: this is the only way out of
+   a view on a phone, and it measured 75x16px before — a third of the 44px
+   minimum. Caught by measuring it on a real 375px viewport, not by looking. */
 .uback{display:none;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-4);
-  font-size:var(--t-small);font-weight:700;color:var(--accent);
-  background:none;border:0;padding:0;cursor:pointer;font-family:inherit}
+  min-height:44px;font-size:var(--t-small);font-weight:700;color:var(--accent);
+  background:none;border:0;padding:0 var(--sp-2) 0 0;cursor:pointer;font-family:inherit}
 body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 .uback:hover{text-decoration:underline}
 .uback:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
