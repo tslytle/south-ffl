@@ -2629,6 +2629,15 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead{
   padding:var(--sp-3) var(--sp-4)}
 body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:hover{
   border-color:var(--accent)}
+/* The text block is flex:1, which shoved the chevron to the far edge of a
+   full-width panel — around 500px from the heading it belongs to, reading as
+   unrelated furniture. Letting the block size to its content puts the control
+   back beside what it controls. The panel stays full width because the tables
+   inside it need that width. */
+body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead{
+  justify-content:flex-start}
+body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead > div{
+  flex:0 1 auto}
 body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:focus-visible{
   outline:2px solid var(--accent);outline-offset:2px}
 /* a shade tighter than the standalone-page rhythm, since the panel head now
