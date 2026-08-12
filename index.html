@@ -2563,8 +2563,30 @@ body[data-route] section.uroute{display:none}
 body[data-route] section.uroute.uactive{display:block}
 body[data-route="hub"] :is(.uhub){display:block}
 body[data-route]:not([data-route="hub"]) :is(.uhub){display:none}
-/* the masthead, ticker and expand-all bar belong to the front door only */
-body[data-route]:not([data-route="hub"]) :is(header.gameBorder,.ticker,.allctl){display:none}
+/* the masthead and ticker belong to the front door only. .allctl deliberately
+   stays on both: Download-as-PDF is a front-door action and Expand/Collapse all
+   is a within-a-view one, so hiding the bar inside views (as an earlier pass
+   did) removed the controls from the one place they are useful. */
+body[data-route]:not([data-route="hub"]) :is(header.gameBorder,.ticker){display:none}
+
+/* ── Uniform shell: a routed view presents as a screen, not an accordion ────
+   A view contains exactly one top-level section, so that section's collapsible
+   header is chrome with nothing to collapse into — the reader is already there.
+   The eyebrow, title and note stay exactly as written; what goes is the
+   accordion affordance: the chevron, the hover fill, the rounded summary that
+   implied a closed panel, and the 56px break that separated it from siblings it
+   no longer has.
+
+   Scoped to an active routed view, so with JS off every section is still a
+   working accordion on one scrolling page. */
+body[data-route]:not([data-route="hub"]) section.uroute.uactive{margin-top:var(--sp-4)}
+body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect > summary.sechead{
+  cursor:default;pointer-events:none;background:none;border-radius:0;
+  padding:0 0 var(--sp-4);border-bottom:1px solid var(--line)}
+body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect > summary.sechead:hover{background:none}
+body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect > summary.sechead:hover h2.sec{color:var(--ink)}
+body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect > summary.sechead .chev{display:none}
+body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect[open] > summary.sechead{margin-bottom:var(--sp-5)}
 /* back to the hub, shown only when you are inside a view */
 /* min-height is the touch target, not decoration: this is the only way out of
    a view on a phone, and it measured 75x16px before — a third of the 44px
@@ -9501,10 +9523,29 @@ drawDraft(DRAFT_YEARS[0]);
     const el = document.getElementById(id);
     return el ? el.closest("section.uroute") : null;
   }
+  /* Only the top-level section is details.sect — the eighteen boards inside are
+     details.sub — so a plain descendant query finds the right one without :scope. */
+  const sectOf = s => s.querySelector("details.sect");
+
   function apply(host){
     secs.forEach(s => s.classList.toggle("uactive", s === host));
     body.dataset.route = host ? host.id : "hub";
+    /* Inside a view that section's header is styled as a screen header with the
+       accordion affordance removed, so it must actually BE open or the reader
+       gets a title and an empty screen. */
+    if(host){ const d = sectOf(host); if(d) d.open = true; }
   }
+
+  /* The header is pointer-events:none inside a view, but a <summary> is still
+     focusable and Enter still toggles it. Reopen if that happens on the screen
+     the reader is currently looking at. */
+  secs.forEach(s => {
+    const d = sectOf(s);
+    if(!d) return;
+    d.addEventListener("toggle", () => {
+      if(!d.open && s.classList.contains("uactive") && body.dataset.route !== "hub") d.open = true;
+    });
+  });
   const route = () => apply(viewFor(location.hash));
 
   /* Capture phase, so the view is revealed before the browser scrolls to the
