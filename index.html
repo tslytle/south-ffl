@@ -2438,6 +2438,104 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
 .twon.tlost{background:var(--ink);color:var(--surface)}
 .twon.tpatch{background:var(--gold-soft);color:var(--gold-text)}
 </style>
+<style>
+/* ══ Uniform vocabulary (ADR 0007) ═══════════════════════════════════════
+   The overhaul keeps all eighteen surfaces, which is only affordable if they
+   share one set of components rather than getting eighteen designs. This block
+   is that set. Everything here is prefixed `u`, because `.card`, `.stat` and
+   `.chip` are already taken by existing surfaces and must keep working
+   untouched while screens migrate one at a time.
+
+   Rules this block obeys, all of them earned the hard way:
+   - Colour comes only from existing tokens, which already measure zero WCAG AA
+     failures in both themes (ADR 0005). Nothing here introduces a raw hex.
+   - No component sets a fixed width. `.drtable` had to be invented because
+     Draft Rankings reused `.board`, which is hard-sized for the draft grid and
+     forced 1,478px of sideways scroll. Wide content scrolls inside its own
+     container, never the page.
+   - Anything that could set a table's minimum width is allowed to wrap. The
+     standings overflow traced back to `white-space:nowrap` on pick lines.
+
+   New tokens, additive — no existing value is changed:
+   --t-hero      the hub headline. The scale stopped at --t-h2 (30px), which is
+                 a section title, not a front door.
+   --sp-*        a spacing scale. The document had radius and type scales but
+                 no spacing scale, so padding was ad hoc per surface.
+   --u-sh-*      elevation for a card-based app language. */
+:root{
+  --t-hero:40px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+  --u-sh-card:var(--sh);
+  --u-sh-pop:var(--sh-lg);
+}
+
+/* ── a routed screen ──────────────────────────────────────────────────── */
+.uview{display:flex;flex-direction:column;gap:var(--sp-5)}
+.uhead{display:flex;flex-direction:column;gap:var(--sp-1)}
+.uhead .ueyebrow{font-family:var(--sans);font-size:var(--t-micro);font-weight:700;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--accent)}
+.uhead h2{font-family:var(--serif);font-size:var(--t-h2);font-weight:700;
+  line-height:1.08;letter-spacing:-.01em;color:var(--ink);margin:0}
+.uhead p{font-size:var(--t-small);color:var(--muted);margin:0;max-width:62ch}
+
+/* ── the hub headline. The one place --t-hero is used. ────────────────── */
+.uhero h1{font-family:var(--serif);font-size:var(--t-hero);font-weight:700;
+  line-height:1.04;letter-spacing:-.02em;color:var(--ink);margin:0}
+@media (max-width:520px){ .uhero h1{font-size:var(--t-h3)} }
+
+/* ── card ─────────────────────────────────────────────────────────────── */
+.ucard{background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:var(--sp-4);box-shadow:var(--u-sh-card);
+  min-width:0}                       /* min-width:0 so a card inside a grid can shrink */
+.ucard > h3{font-family:var(--serif);font-size:var(--t-h4);font-weight:700;
+  color:var(--ink);margin:0 0 var(--sp-2)}
+a.ucard{display:block;color:inherit;text-decoration:none}
+a.ucard:hover{border-color:var(--accent);box-shadow:var(--u-sh-pop)}
+a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── stat block: a figure and what it is ──────────────────────────────── */
+.ustat{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ustat b{font-family:var(--serif);font-size:var(--t-h3);font-weight:700;
+  line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.ustat span{font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted)}
+.ustat em{font-style:normal;font-size:var(--t-fine);color:var(--faint)}
+
+/* ── chip ─────────────────────────────────────────────────────────────── */
+.uchip{display:inline-block;padding:2px var(--sp-2);border-radius:var(--r-pill);
+  font-size:var(--t-tiny);font-weight:700;letter-spacing:.04em;
+  background:var(--soft);color:var(--body);white-space:nowrap}
+.uchip.on{background:var(--accent);color:var(--on-chip)}
+
+/* ── table. Sizes to content and scrolls in its own box, never the page. ─ */
+.uwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.utable{width:100%;border-collapse:separate;border-spacing:0;
+  font-size:var(--t-base);font-variant-numeric:tabular-nums}
+.utable th{font-family:var(--sans);font-size:var(--t-tiny);font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:var(--sp-2) 7px;border-bottom:1px solid var(--line);
+  white-space:nowrap}
+.utable td{padding:var(--sp-2) 7px;border-bottom:1px solid var(--soft);
+  text-align:right;color:var(--body)}
+.utable th:first-child,.utable td:first-child{text-align:left;min-width:0}
+.utable tbody tr:last-child td{border-bottom:0}
+.utable tbody tr:hover td{background:var(--soft)}
+
+/* ── responsive grid. Cards shrink rather than forcing a scrollbar. ────── */
+.ugrid{display:grid;gap:var(--sp-3);grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
+
+/* ── disclosure ───────────────────────────────────────────────────────── */
+.udisc > summary{cursor:pointer;list-style:none;display:flex;align-items:center;
+  gap:var(--sp-2);padding:var(--sp-2) 0;font-size:var(--t-small);
+  font-weight:700;color:var(--accent)}
+.udisc > summary::-webkit-details-marker{display:none}
+.udisc > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Functional motion only, and never against an explicit preference. */
+@media (prefers-reduced-motion:no-preference){
+  a.ucard{transition:border-color .15s ease,box-shadow .15s ease}
+}
+</style>
 </head>
 <body>
 
