@@ -2489,8 +2489,12 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
 /* ── the hub itself: eighteen doors, six groups ────────────────────────── */
 .uhub{margin:var(--sp-6) 0}
 .uhubgroups{display:flex;flex-direction:column;gap:var(--sp-5);margin-top:var(--sp-5)}
-.uhubgroup > h3{font-family:var(--sans);font-size:var(--t-micro);font-weight:700;
-  letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+/* These label the groups they sit above, and at --t-micro/--muted they were
+   quieter than the sub-lines inside the cards they were labelling, so the
+   grouping read as an afterthought. --body at --t-fine outranks the card
+   sub-lines without competing with the card titles. */
+.uhubgroup > h3{font-family:var(--sans);font-size:var(--t-fine);font-weight:700;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--body);
   margin:0 0 var(--sp-2)}
 /* a.uhubdoor, not .uhubdoor: a.ucard above sets display:block and at 0-1-1
    outranks a bare class, so the flex column silently never applied and every
@@ -2669,6 +2673,13 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summ
 
    Dropping a background and 11px of padding cannot take width from content; it
    returns some. Same rule as steps 2 and 3. */
+/* ── Accent means interactive ────────────────────────────────────────────────
+   --accent was marking links, hover, focus AND every eyebrow, chip label and
+   structural rule, so it signalled nothing in particular. Inside a view it now
+   marks only things you can act on; the eyebrows and the board-index label are
+   text, so they read as text. The masthead is untouched — its eyebrow sits
+   inside a link, where accent is correct. */
+body[data-route]:not([data-route="hub"]) .uactive :is(.eyebrow,.subnav .rlab){color:var(--muted)}
 body[data-route]:not([data-route="hub"]) .uactive .subnav{
   background:none;border:0;border-radius:0;
   padding:0 2px var(--sp-3);margin:0 0 var(--sp-4)}
