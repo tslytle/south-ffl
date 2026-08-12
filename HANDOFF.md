@@ -525,13 +525,46 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
 
    So the ~7.5ms deferral was going to be bought with the single riskiest edit on the list — the
    821KB template-literal transform, the same shape of edit that once silently deleted ~2MB of this
-   file. Not worth it. **The real target is that ~375ms of eager drawing**, on a route (the hub)
-   that displays none of it. Note the trap in ADR 0007's working notes cuts the *other* way here:
-   "the router must run last, because a draw function measures its tables while still visible" —
-   drawing a view when it is first revealed means drawing it while visible, which is the condition
-   that note is asking for. Numbers above are a 20-core desktop; a phone will be several times
-   slower in absolute terms but the proportions are what matter.
-5. **Copy gap, low stakes:** four owners now fall back to `Journeyman · Still writing the story`
+   file. Not worth it. **The real target is the ~320ms of eager drawing** in that same block, on a
+   route (the hub) that displays none of it. Numbers above are a 20-core desktop; a phone will be
+   several times slower in absolute terms but the proportions are what matter.
+
+5. **Deferring the draw work — scoped 2026-08-12, deliberately not attempted. Read this first.**
+   The cost is real but it is *diffuse*, and the code is not shaped for a cheap fix. Per-span, from
+   the same instrumented copy (marks at 25 top-level statement boundaries through the block):
+   `~91ms` NFL schedule + draft rankings + scoring rulebook + **trades**, `~63ms` rosters/matchups
+   setup, `~32ms` steals & busts + waivers, `~28ms` start & sit + grade cells, then a long tail of
+   3-17ms spans. There is no single hotspot to lift out.
+
+   **The blocker is that each board's IIFE both computes and renders, and some of them hand globals
+   to boards further down.** Two confirmed, and their own comments say so:
+   - `TRADE_DEALS` is assigned inside the trades IIFE (~line 8523) and read by the record book
+     (~8922). Its declaration is commented "handed to the record book further down".
+   - `HINDSIGHT` is assigned inside the steals/busts IIFE (~8796) and read by the record book
+     (~8993-9013), with the same comment.
+
+   So deferring a board is not "move the call later" — it is splitting compute from render for
+   every board in the chain, or the record book renders against `[]` and `null` and silently loses
+   rows. That is the whole reason this looks cheaper than it is.
+
+   **The design that would work**, if someone takes it on: split each IIFE into `computeX()` (runs
+   eagerly, cheap, populates the shared globals) and `renderX()` (registered in a `Map` keyed by
+   section id); have the router call the renderers for the view it is revealing; add `beforeprint`
+   and the Expand-all/PDF buttons as force-draw-everything triggers, and a `requestIdleCallback`
+   drain as a backstop so a missed trigger means "a moment late", never "never".
+
+   **Two constraints not to trip over.** ADR 0007's note that "the router must run last, because a
+   draw measures its tables while visible" applies to a *specific* few: the only layout reads in
+   the whole block are at lines ~6739, ~7033, ~7408 and ~9116+ (`getBoundingClientRect`,
+   `scrollWidth`/`clientWidth` for the swipe hints and scroll-spy). None of them are inside the
+   heavy spans, so the expensive boards are safe to defer — but those four must stay eager or move
+   to reveal-time, never to an idle drain while their view is `display:none`, or they measure zero.
+   And **the payoff is still unproven at the thing the user feels**: neither browser available here
+   reports `paint` entries (`document.visibilityState` is `hidden` in both the in-app pane and the
+   CDP-driven Chrome tab), so First Contentful Paint could not be measured. What is measured is
+   ~320ms of main-thread work before the parser reaches the end of the document. Get an FCP number
+   from a real visible browser before spending the refactor.
+6. **Copy gap, low stakes:** four owners now fall back to `Journeyman · Still writing the story`
    alone, which reads wrong for Tate Grainger at ten seasons. There is no badge for a long-serving
    manager with no title and no top-3 finish. Flagged in ADR 0010 as a copy decision, not a
    correctness one.
@@ -713,14 +746,34 @@ pinned and unpinned, header cells landing on exactly the same offsets as the bod
 0 in all six views, and **every table still exactly its scroller's width at 1265** — the session-2
 invariant holds. The phone is untouched: every cell computes `static`, no shadow, card layout intact.
 
-**One thing found and deliberately not fixed:** `.stand tr.top1{background:var(--gold-soft)}` and its
-`:hover` pair are **dead on desktop**. `tbody td` paints `--surface` (or `--raise`, or `--accent-soft`
-on hover) per cell, and a cell background covers a row background, so the champion row has never shown
-gold on desktop — only in the phone card layout, where the cells go transparent. It is a two-line fix
-(`.stand tr.top1 td{background:var(--gold-soft)}` plus the hover), but it introduces a background pair
-ADR 0005's sweep has never measured, and the row is already marked twice over — gold rank chip, ALMA
-BOWL CHAMPION badge — so it is a deliberate design call with a contrast obligation attached, not a
-tidy-up. Left for a decision.
+**One thing found, tried, measured and rejected — the champion row's gold.**
+`.stand tr.top1{background:var(--gold-soft)}` and its `:hover` pair are **dead on desktop**: `tbody td`
+paints every cell (`--surface`, `--raise` on an even row, `--accent-soft` on hover) and a cell
+background covers a row background, so the gold has only ever shown in the phone card layout, where
+those cells go transparent. The obvious two-line fix is to paint the cells instead
+(`.stand tr.top1 td{…}`, which does win at (0,2,2) against the stripe's (0,1,3)) — **it was written,
+measured against the live build, and reverted.** 1265px, dark, composited backgrounds:
+
+| | live | with the gold fill | AA needs |
+|---|---|---|---|
+| `td.dim` / `td.grp` / `.divsub` / `.dm` / `.do` | 4.58 | **2.89** | 4.5 |
+| `.team` | 5.48 | **3.46** | 4.5 |
+| `td.neg` | 5.16 | **3.26** | 4.5 |
+| `.tag` | 6.41 | **4.25** | 4.5 |
+| failing elements in champion rows | 0 | **467** | 0 |
+
+A 14% tint lightens the dark ground enough to sink every muted and faint figure in the row. ADR 0005's
+floor is the standing bar, so the fill loses; the reasoning is now a comment at the rule so nobody
+"fixes" it again. The row needs nothing anyway — it is already marked twice, gold rank chip and ALMA
+BOWL CHAMPION badge. **If a third marker is ever wanted it must not touch the background** — an edge
+or a border, not a fill.
+
+(Two measuring notes worth keeping. The sweep must assert its own viewport: the first run of this
+looked like a no-op because the pane was still at 375px from an earlier check, where the phone layout
+makes the whole question moot. And `span.rk`, the medal chip, reads 1.09-1.96 in *both* builds — that
+is the compositor in the harness, not a real failure: the chip is painted with a gradient, and
+`backgroundColor` reports transparent for those, so the walk lands on the wrong ancestor. ADR 0005
+tuned that chip deliberately with `--on-metal`.)
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**

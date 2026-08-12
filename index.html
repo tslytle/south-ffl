@@ -1041,6 +1041,25 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .season-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:4px 2px 6px}
 .season-head .y{font-family:var(--serif);font-size:var(--t-h2);font-weight:600;color:var(--ink);letter-spacing:-.01em}
 .season-head .sub{font-size:var(--t-fine);font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+/* The champion's row. These two paint on a PHONE only, and that is not an
+   oversight to fix — it was tried and measured on 2026-08-12.
+
+   Why they are inert on desktop: `tbody td` paints every cell (--surface,
+   --raise on an even row, --accent-soft on hover), and a cell background covers
+   a row background. The phone card layout sets those cells transparent, so
+   there the row's own gold shows through.
+
+   Why not just paint the cells (`.stand tr.top1 td{background:var(--gold-soft)}`,
+   which does win at (0,2,2) against the stripe's (0,1,3)): --gold-soft is a 14%
+   tint, and lightening the dark ground that much sinks every muted and faint
+   figure in the row below AA. Measured against the live build, 1265px, dark,
+   composited: td.dim / td.grp / .divsub / .dm / .do 4.58 -> 2.89, .team
+   5.48 -> 3.46, td.neg 5.16 -> 3.26, .tag 6.41 -> 4.25 — 467 failing elements
+   against 0. ADR 0005's floor is the standing bar, so the fill loses.
+
+   The row is already marked twice over — gold rank chip, ALMA BOWL CHAMPION
+   badge — so it needs nothing. If a third marker is ever wanted, it has to be
+   one that does not touch the background: an edge or a border, not a fill. */
 .stand tr.top1{background:var(--gold-soft)}
 .stand tr.top1:hover{background:var(--gold-tint)}
 /* Nine points of side padding on thirteen columns is more air than the
