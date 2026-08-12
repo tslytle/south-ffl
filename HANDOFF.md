@@ -1079,6 +1079,17 @@ So **2014 and 2015 have been silently missing their playoff column on the live s
 fixes it. It is a visible change to the archive rather than a pure refactor, which is why it is
 called out here rather than buried.
 
+**Confirmed, on two independent axes.** 2015 was reconstructed from `ARCH.G` directly — the raw game
+log, not the aggregate the column is built from. Those games carry three bracket flags, and filtering
+to **flag 1 (winner's bracket)**, the only one the site counts toward playoff records, reproduces the
+restored column exactly: byes to the top two seeds, week-14 quarters (Ryan def. Leo 99.6–94.1, Adam
+def. Michael 135.05–76.95), week-15 semis (Ermin def. Ryan 130.65–95.75, Christian def. Adam
+95.1–70.15) and the Alma Bowl (**Christian Winn 158.9 – Ermin Cerimovic 102.7**). Five games, 5–5.
+**Justin then confirmed it against his own memory of that season** (2026-08-12), including the two
+rows most likely to look wrong: Ermin holding the best regular record at 9–4 but placing 2nd, since
+RK is final placement, and Leo at 8–5 taking the 6 seed. Treat 2014/2015's `Post` column as verified,
+not as a side effect to keep an eye on.
+
 **The saving:** fully eager **578ms**, final **258ms** — **~320ms, about 55% of script time**.
 Against the ~9x ratio Justin's throttled numbers imply, roughly **2.9 seconds** off the window
 where a phone is painted but frozen.
