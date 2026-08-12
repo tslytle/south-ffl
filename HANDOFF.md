@@ -82,14 +82,61 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
     not-yet-committed tier refresh along with it (both lived in the same uncommitted
     `index.html`). Recovered by re-running both scripts — but the lesson holds: don't
     blanket-revert a file with mixed uncommitted work, `git stash` or a scoped patch instead.
+- **A serious bug in `refresh-tiers.py`/`refresh-adp.py` themselves, caught before shipping
+  further.** Both used a single whole-document regex
+  (`(?:/\*[\s\S]*?\*/\s*\n)*const NAME = `) to strip/replace the source comment above
+  `ADP_2026`/`TIER_2026`. The lazy `[\s\S]*?` inside a repeated group can backtrack across huge
+  unrelated spans — on a live run it matched from near the top of the `<style>` block all the
+  way down to `const TIER_2026 =`, and `re.sub` replaced that entire span (fonts/CSS/JS
+  preamble) with a two-line comment, silently deleting ~2MB of the file. Not caught by the
+  script (no shape/size sanity check existed) — caught by chance while eyeballing line numbers
+  during the tools audit below. Fixed by replacing the regex with a bounded backward scan from
+  the known declaration position (`strip_preceding_comments()` in both scripts) that can only
+  ever touch the comment block(s) directly above the target `const`. Verified via a scratch-copy
+  test (both scripts, run twice each) before reapplying to the real file. **Lesson:** a
+  whole-document regex with a lazy wildcard inside a repeated group is not safe for
+  find-and-replace on a large file, even when it "worked" on the first try — test idempotency
+  (run twice) and diff `--stat` byte/line counts before trusting a write-back script.
+
+## Started this session: auditing the draft-prep tools ("rock-solid" pass)
+Scope, per `CONTEXT.md`: data-correctness and draft-prep-tool fixes only — `CHEAT`,
+`DEPTH_TEAMS`, `ADP_2026`, `TIER_2026`, and the value/reach/cliff logic that reads them. Not a
+UI/feature audit.
+
+**Checked and clean:**
+- `CHEAT`: position-rank sequences, team abbreviations (all 32 valid), bye-week ranges,
+  duplicate names/ranks within a position — all clean, no issues found.
+- `CHEAT` internal bye-week consistency (every player's bye matches their own listed team's true
+  bye, per `DEPTH_TEAMS`) — zero mismatches.
+- `DEPTH_TEAMS`: exactly 32 teams, no duplicate/missing abbreviations vs. `NFL_LOGO`.
+- Draft night countdown target (`2026-09-07T18:00:00-05:00`) — confirmed Sept 7, 2026 actually
+  is a Monday, matches "Monday Sept 7" everywhere else in the docs.
+- 40 players present in `DEPTH_TEAMS` but absent from `CHEAT` (backup QBs, TE2s, kickers) —
+  spot-checked several for hidden name-typos against `CHEAT`; none found. This is intentional
+  scope (`CHEAT` only ranks the draftable/fantasy-relevant depth per position), not a bug.
+
+**Found and fixed:** `CHEAT` had **A.J. Brown listed at `PHI`/bye 10** — stale. He was traded
+Philadelphia → New England on 2026-06-01 (confirmed via live web search against SI, NBC Sports,
+ESPN, NFL.com, Yahoo — not assumed from training-data knowledge, which predates the trade and
+would have said PHI). `DEPTH_TEAMS` already had this correct (`NE`, bye 11) — cross-referencing
+the two datasets against each other is what surfaced it; internal-consistency checks on `CHEAT`
+alone did not (his stale entry was self-consistent, just outdated). Corrected to
+`["A.J. Brown","NE",11]`. This was the only mismatch between the two datasets — confirmed
+isolated, not a systemic staleness problem, by re-running the same cross-check after the fix
+(zero remaining mismatches).
+
+**Not yet audited:** the value/reach delta threshold logic itself (`max(3, round(orank*0.10))`)
+hasn't been stress-tested for edge cases; `ADP_2026`/`TIER_2026` key coverage beyond the checks
+already run by their own refresh scripts; player-link resolution (`pLink`/`PID`/`ESPN_EXTRA`)
+hasn't been swept for broken/dead entries. Pick up here next.
 
 ## Still open (next round of the grilling session)
 These were queued but not yet asked/answered when the session paused to move machines:
 - The 2020 Round 16 / Pick 8 mystery pick is effectively closed as "slot known (Revenge Tour's
   traded-away/orphaned pick), player unrecoverable from ESPN data" — revisit only if the user
   turns up a memory or record of who was actually drafted there.
-- Anything else surfaced once "rock-solid the existing draft-prep tools" (agreed scope for the
-  pre-draft data-analysis tier) gets audited in detail — that audit hadn't started yet.
+- Draft-prep tools audit is in progress (see section above) — value/reach logic, ADP/TIER key
+  coverage, and player-link resolution still need a pass.
 
 ## Environment notes for a fresh Claude Code session
 - This repo has no `.claude/settings.local.json` yet — none of the Mac session's local
