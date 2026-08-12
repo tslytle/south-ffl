@@ -505,6 +505,14 @@ details.sub details.sub > .subbody{padding-bottom:20px}
 .plink:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
 @media print{ .plink{border-bottom:0;color:inherit} }
 
+/* Draft Rankings rows are clickable through to that year's board -- looks
+   like a plain table cell until hovered/focused, same restraint as .plink,
+   not a default browser button. */
+.drjump{display:block;width:100%;text-align:left;background:none;border:0;padding:0;
+  font:inherit;color:inherit;cursor:pointer;border-radius:3px}
+.drjump:hover b,.drjump:focus-visible b{color:var(--accent)}
+.drjump:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 /* tables */
 .tw{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:var(--t-base)}
@@ -2528,8 +2536,31 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
 </div></details></section>
 <section id="draftranks"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every class, ranked</p><h3 class="sec2">Draft Rankings</h3>
   <p class="subnote">Every team&rsquo;s draft, every year, best to worst &mdash; graded on the one thing hindsight actually settles: how many total fantasy points the whole class scored that season.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
-  <p class="subnote drnote">2014-2020 scored zero points per reception, 2021+ half a point &mdash; each draft is graded fairly against the rules live that year, but that means totals aren&rsquo;t directly comparable across eras (a QB-heavy 2016 class and a WR-heavy 2023 class aren&rsquo;t racking up points the same way).</p>
-  <div class="card"><div class="tw"><table class="board" id="drranktable"></table></div></div>
+
+  <details class="sub" open><summary><div><h4 class="ssh">How this works</h4>
+    <p class="subnote">One idea, two honest caveats.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <ul class="sshow">
+    <li><b>Only points scored while he was actually on that team.</b> A player taken, dropped a few weeks in, and gone on to have a monster year for someone else earns the drafting team nothing here &mdash; that swing is what Steals &amp; Busts (above) already judges, on its own terms. This asks a narrower question: of the points a manager&rsquo;s own roster actually banked, how much of that came from players he drafted versus players he picked up later?</li>
+    <li><b>Scoring rules changed in 2021.</b> 2014-2020 paid zero points per reception; 2021+ pays half a point. Each draft is graded fairly against the rules that were actually live that season, but that means totals aren&rsquo;t directly comparable across the boundary &mdash; a QB-heavy 2016 class and a WR-heavy 2023 class aren&rsquo;t racking up points the same way.</li>
+    <li><b>2014-2017 measures this a little more coarsely, for a real reason.</b> This file only has week-by-week roster history starting 2018 &mdash; 2014-2017 exist as end-of-season snapshots only. So for those four years, a pick counts in full if he was still on the drafting team&rsquo;s roster when the season ended, and counts for nothing if he was traded or dropped before then &mdash; whole-season in or out, not a per-week trim the way 2018+ gets. A team with no snapshot on file for a given year (one 2014 case) is left out of the ranking entirely rather than shown with a misleading zero.</li>
+  </ul>
+  </div></details>
+
+  <details class="sub" open><summary><div><h4 class="ssh">Best 10</h4>
+    <p class="subnote">The ten highest-scoring draft classes this league has ever produced.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <div class="card"><div class="tw"><table class="board" id="drranktop"></table></div></div>
+  </div></details>
+
+  <details class="sub" open><summary><div><h4 class="ssh">Worst 10</h4>
+    <p class="subnote">The ten lowest &mdash; every manager has one of these somewhere.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <div class="card"><div class="tw"><table class="board" id="drrankbottom"></table></div></div>
+  </div></details>
+
+  <details class="sub"><summary><div><h4 class="ssh">Every draft, all 140</h4>
+    <p class="subnote">The full board, for the curious.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <div class="card"><div class="tw"><table class="board" id="drrankfull"></table></div></div>
+  </div></details>
+
 </div></details></section>
 <section id="rosters"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Week by week</p><h3 class="sec2">Rosters</h3>
   <p class="subnote">Every roster, every week. Players picked up that week are marked, each line carries that week&rsquo;s box score, and the moves below show exactly who came and went.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
@@ -7262,29 +7293,57 @@ function draftRankings(){
                         2016: SEASON_PTS_2016, 2017: SEASON_PTS_2017 };
   Object.keys(DRAFTS).map(Number).sort((a, b) => a - b).forEach(y => {
     if(!ROSTERS.S[y]) return;
-    let pts;
     if(ROSTERS.S[y].static){
-      pts = SEASON_PTS[y];
+      /* 2014-2017: no weekly roster data exists in this file to know which
+         weeks a team actually held a player (see the comment above
+         SEASON_PTS_2014), so the 2018+ approach below can't run here. The
+         one thing this file DOES have for these years is each team's
+         end-of-season roster snapshot (ROSTERS.S[y].teams[team].snap) --
+         so a draft pick counts here only if he was still on the drafting
+         team's roster at season's end. A pick traded or dropped mid-season
+         earns nothing, same spirit as the 2018+ rule even though the
+         evidence is coarser (whole-season in/out, not per-week). */
+      const pts = SEASON_PTS[y];
       if(!pts) return;  /* a static year with no sourced table -- skip, don't guess */
-    } else {
-      const tot = {}, counted = {};
-      Object.keys(ROSTERS.S[y].teams).forEach(tn => {
-        for(let w = 1; w <= 17; w++){
-          const r = rosterAt(y, tn, w);
-          if(!r || !r.list) continue;
-          r.list.forEach(e => {
-            const p = ARCH.P[e.id]; if(!p) return;
-            const k = e.id + "|" + w; if(counted[k]) return; counted[k] = 1;
-            tot[p[0]] = (tot[p[0]] || 0) + (e.pts || 0);
-          });
-        }
+      Object.entries(DRAFTS[y].picks).forEach(([team, list]) => {
+        const rec = ROSTERS.S[y].teams[team];
+        if(!rec || !rec.snap || !rec.snap.length) return;  /* no end-of-season snapshot on file -- exclude, don't show a misleading 0 */
+        const kept = new Set(rec.snap.map(r => { const p = ARCH.P[r[0]]; return p && p[0]; }).filter(Boolean));
+        /* Zero overlap between a full 16-pick draft and a full 16-man
+           snapshot isn't plausible roster churn -- every other team-year in
+           this dataset keeps at least one pick. One real case (2015 Beasts
+           of the Middle East) turned out to be a snapshot full of players
+           who'd retired years before 2015 -- corrupted source data, not a
+           genuinely bad draft. Treat 0-of-N the same as no snapshot at all:
+           exclude rather than show a number that isn't actually true. */
+        const anyDrafted = list.some(pk => kept.has(pk[1]));
+        if(!anyDrafted) return;
+        let sum = 0;
+        list.forEach(pk => { if(kept.has(pk[1])){ const v = pts[pk[1]]; if(v != null) sum += v; } });
+        out.push({ y, team, pts: Math.round(sum * 10) / 10, picks: list.length, seasonOnly: true });
       });
-      pts = tot;
+      return;
     }
-    Object.entries(DRAFTS[y].picks).forEach(([team, list]) => {
+    /* 2018+: points scored specifically while rostered by the team that
+       drafted him -- a player taken, dropped week 2, and later a star for
+       someone else earns the drafting team nothing here (that swing is
+       Steals & Busts' job, not this one). Scanned per team, not pooled
+       globally first, so a name only ever counts toward whichever roster
+       actually carried him that week. */
+    Object.keys(ROSTERS.S[y].teams).forEach(tn => {
+      const held = {};
+      for(let w = 1; w <= 17; w++){
+        const r = rosterAt(y, tn, w);
+        if(!r || !r.list) continue;
+        r.list.forEach(e => {
+          const p = ARCH.P[e.id]; if(!p) return;
+          held[p[0]] = (held[p[0]] || 0) + (e.pts || 0);
+        });
+      }
+      const list = (DRAFTS[y].picks[tn]) || [];
       let sum = 0;
-      list.forEach(pk => { const v = pts[pk[1]]; if(v != null) sum += v; });
-      out.push({ y, team, pts: Math.round(sum * 10) / 10, picks: list.length });
+      list.forEach(pk => { const v = held[pk[1]]; if(v != null) sum += v; });
+      out.push({ y, team: tn, pts: Math.round(sum * 10) / 10, picks: list.length });
     });
   });
   out.sort((a, b) => b.pts - a.pts);
@@ -7292,21 +7351,43 @@ function draftRankings(){
   return out;
 }
 
+/* Jumps to and opens that year's actual board in Drafts, above -- drawDraft()
+   toggles, so only call it when this year isn't already the one showing
+   (otherwise a second click on the same row would close it instead). */
+function jumpToDraft(y){
+  if(shownDraft !== y) drawDraft(y);
+  let el = document.getElementById("drafts");
+  while(el){ if(el.tagName === "DETAILS") el.open = true; el = el.parentElement; }
+  const panel = document.getElementById("draftpanel");
+  if(panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 (function(){
-  const table = document.getElementById("drranktable");
-  if(!table || typeof DRAFTS === "undefined") return;
+  const topEl = document.getElementById("drranktop"), botEl = document.getElementById("drrankbottom"),
+        fullEl = document.getElementById("drrankfull");
+  if(!topEl || typeof DRAFTS === "undefined") return;
   const rows = draftRankings();
   if(!rows.length) return;
   const era = y => (y >= 2021 ? "&frac12;-PPR" : "0-PPR");
-  table.innerHTML = `<thead><tr><th class="rdc">Rank</th><th>Team</th><th>Year</th><th>Scoring</th><th>Points</th></tr></thead><tbody>${
-    rows.map(r => `<tr${r.rank === 1 ? ' class="top1"' : ""}>
+  const drRow = r => `<tr>
       <td class="rdc">${r.rank}</td>
-      <td><b>${esc(OWNER_OF[r.team] || r.team)}</b><br><i>${esc(r.team)}</i></td>
+      <td><button class="drjump" data-y="${r.y}" title="Open the ${r.y} draft board">
+        <b>${esc(OWNER_OF[r.team] || r.team)}</b><br><i>${esc(r.team)}</i></button></td>
       <td>${r.y}</td>
       <td>${era(r.y)}</td>
-      <td><b>${num(r.pts)}</b></td>
-    </tr>`).join("")
-  }</tbody>`;
+      <td><b>${num(r.pts)}</b> pts</td>
+    </tr>`;
+  const head = `<thead><tr><th class="rdc">Rank</th><th>Team</th><th>Year</th><th>Scoring</th><th>Points</th></tr></thead>`;
+  const draw = (el, list) => { if(el) el.innerHTML = head + `<tbody>${list.map(drRow).join("")}</tbody>`; };
+  draw(topEl, rows.slice(0, 10));
+  draw(botEl, rows.slice(-10).reverse());
+  draw(fullEl, rows);
+  [topEl, botEl, fullEl].forEach(el => {
+    if(!el) return;
+    el.addEventListener("click", e => {
+      const b = e.target.closest("button.drjump");
+      if(b) jumpToDraft(+b.dataset.y);
+    });
+  });
 })();
 
 
