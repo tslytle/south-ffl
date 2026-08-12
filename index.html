@@ -2478,10 +2478,25 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   line-height:1.08;letter-spacing:-.01em;color:var(--ink);margin:0}
 .uhead p{font-size:var(--t-small);color:var(--muted);margin:0;max-width:62ch}
 
-/* ── the hub headline. The one place --t-hero is used. ────────────────── */
-.uhero h1{font-family:var(--serif);font-size:var(--t-hero);font-weight:700;
+/* ── the hub headline. The one place --t-hero is used.
+   h1 *or* h2: the masthead already owns the document's only <h1> and one of the
+   merge gates is that it stays that way, so the hub heads itself with an h2 and
+   still gets hero type. ─────────────────────────────────────────────────── */
+.uhero h1,.uhero h2{font-family:var(--serif);font-size:var(--t-hero);font-weight:700;
   line-height:1.04;letter-spacing:-.02em;color:var(--ink);margin:0}
-@media (max-width:520px){ .uhero h1{font-size:var(--t-h3)} }
+@media (max-width:520px){ .uhero h1,.uhero h2{font-size:var(--t-h3)} }
+
+/* ── the hub itself: eighteen doors, six groups ────────────────────────── */
+.uhub{margin:var(--sp-6) 0}
+.uhubgroups{display:flex;flex-direction:column;gap:var(--sp-5);margin-top:var(--sp-5)}
+.uhubgroup > h3{font-family:var(--sans);font-size:var(--t-micro);font-weight:700;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+  margin:0 0 var(--sp-2)}
+.uhubdoor{display:flex;flex-direction:column;gap:2px}
+.uhubdoor b{font-family:var(--serif);font-size:var(--t-lead);font-weight:700;
+  color:var(--ink);line-height:1.15}
+.uhubdoor span{font-size:var(--t-fine);color:var(--muted)}
+a.uhubdoor:hover b{color:var(--accent)}
 
 /* ── card ─────────────────────────────────────────────────────────────── */
 .ucard{background:var(--surface);border:1px solid var(--line);
@@ -2539,7 +2554,7 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </head>
 <body>
 
-<a class="skiplink" href="#ahead">Skip to content</a>
+<a class="skiplink" href="#hub">Skip to content</a>
 
 <noscript><p style="margin:0;padding:14px 18px;background:#F7EFD9;color:#7A5A0F;font:600 14px/1.5 system-ui,sans-serif;text-align:center">
   This archive is built entirely in your browser &mdash; the seasons, drafts and record book need JavaScript turned on to render.
@@ -2557,7 +2572,11 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.9A8.7 8.7 0 1 1 9.1 3.8a7 7 0 0 0 11.1 11.1z"/></svg>
   </button>
   <button class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="navmenu"><span id="navtoggle-label">Sections</span><span class="navcaret" aria-hidden="true"></span></button>
-  <a href="#ahead">2026&nbsp;Season</a><a href="#people">Managers</a><a href="#history">Seasons</a><a href="#building">Draft,&nbsp;Rosters&nbsp;&amp;&nbsp;Trades</a><a href="#records">Record&nbsp;Book</a><a href="#rules">Rules</a>
+  <!-- Two registers, per the overhaul: the nav is functional and thumb-sized,
+       the section headings keep their editorial voice. "The 2026 Season" and
+       "The Seasons" sitting adjacent in a nav bar were genuinely ambiguous, and
+       "Draft, Rosters & Trades" does not fit a phone. -->
+  <a href="#ahead">Season</a><a href="#people">Managers</a><a href="#history">History</a><a href="#building">Drafts</a><a href="#records">Records</a><a href="#rules">Rules</a>
 <div class="navmenu" id="navmenu" hidden></div></div></nav>
 
 <div class="wrap">
@@ -2581,6 +2600,66 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   <div class="figures" id="figures"></div>
 </header>
 <div class="ticker" id="ticker" role="marquee" aria-label="Team names through league history"></div>
+
+<!-- ══ Hub (ADR 0007) ═══════════════════════════════════════════════════════
+     The front door. Eighteen surfaces survived the overhaul, and a leaguemate
+     arriving from a group-chat link on a phone cannot be handed eighteen
+     accordions and asked to explore — so every board is one tap from here,
+     grouped under the same six functional labels the nav uses.
+
+     Plain anchors on purpose. The document already routes every a[href^="#"]
+     through openFor(), which opens the target's ancestors as well as the target,
+     so these doors work today against the existing sections and keep working
+     when the sections become routed views. No URL changes, nothing to migrate.
+
+     Headed with an h2, not an h1: the masthead owns the document's only h1 and
+     one of the merge gates is that it stays that way. -->
+<section class="uhub" id="hub" aria-labelledby="hubtitle">
+  <div class="uhead uhero">
+    <p class="ueyebrow" id="hubphase">Twelve seasons &middot; 1,138 games</p>
+    <h2 id="hubtitle">The whole archive, one tap away</h2>
+    <p>Eighteen boards, six groups. Every number on them is worked out in your browser from the league&rsquo;s own record.</p>
+  </div>
+  <div class="uhubgroups">
+
+    <div class="uhubgroup"><h3>Season</h3><div class="ugrid">
+      <a class="ucard uhubdoor" href="#draft2026"><b>Draft Night</b><span>Monday, September 7</span></a>
+      <a class="ucard uhubdoor" href="#nflsched"><b>NFL Schedule</b><span>All eighteen weeks</span></a>
+    </div></div>
+
+    <div class="uhubgroup"><h3>Managers</h3><div class="ugrid">
+      <a class="ucard uhubdoor" href="#managers"><b>Manager Profiles</b><span>Everyone who has played</span></a>
+      <a class="ucard uhubdoor" href="#board"><b>Champions</b><span>The honor roll</span></a>
+      <a class="ucard uhubdoor" href="#awards"><b>Awards Wall</b><span>Every badge, everyone</span></a>
+      <a class="ucard uhubdoor" href="#owners"><b>The Ledger</b><span>All-time</span></a>
+    </div></div>
+
+    <div class="uhubgroup"><h3>History</h3><div class="ugrid">
+      <a class="ucard uhubdoor" href="#seasons"><b>Standings</b><span>Year by year</span></a>
+      <a class="ucard uhubdoor" href="#matchups"><b>Matchups</b><span>Every game</span></a>
+      <a class="ucard uhubdoor" href="#h2h"><b>Head-to-head</b><span>Rivalries</span></a>
+      <a class="ucard uhubdoor" href="#allplay"><b>All-Play</b><span>Schedule &amp; luck</span></a>
+    </div></div>
+
+    <div class="uhubgroup"><h3>Drafts</h3><div class="ugrid">
+      <a class="ucard uhubdoor" href="#drafts"><b>Drafts</b><span>The board</span></a>
+      <a class="ucard uhubdoor" href="#draftranks"><b>Draft Rankings</b><span>Every class, ranked</span></a>
+      <a class="ucard uhubdoor" href="#rosters"><b>Rosters</b><span>Week by week</span></a>
+      <a class="ucard uhubdoor" href="#trades"><b>Trades</b><span>Wheeling and dealing</span></a>
+      <a class="ucard uhubdoor" href="#startsit"><b>Start &amp; Sit</b><span>Lineup decisions</span></a>
+      <a class="ucard uhubdoor" href="#steals"><b>Steals &amp; Busts</b><span>Hindsight</span></a>
+    </div></div>
+
+    <div class="uhubgroup"><h3>Records</h3><div class="ugrid">
+      <a class="ucard uhubdoor" href="#records"><b>Record Book</b><span>Extremes &amp; oddities</span></a>
+    </div></div>
+
+    <div class="uhubgroup"><h3>Rules</h3><div class="ugrid">
+      <a class="ucard uhubdoor" href="#rules"><b>Rules</b><span>How the league changed</span></a>
+    </div></div>
+
+  </div>
+</section>
 
 <div class="allctl"><button data-all="1">Expand all</button><button data-all="0">Collapse all</button><button id="printBtn" type="button">Download as PDF</button></div>
 <section id="ahead"><details class="sect" open><summary class="sechead"><div><p class="eyebrow">Next up</p><h2 class="sec">The 2026 Season</h2>
@@ -9304,6 +9383,45 @@ drawDraft(DRAFT_YEARS[0]);
   if(rosteryears) rosteryears.addEventListener("click", () => {
     if(typeof rY !== "undefined" && rY !== null) setHash(`#go-rs-${rY}`);
   });
+})();
+</script>
+
+<script>
+/* ── Hub phase line (ADR 0007) ────────────────────────────────────────────
+   The hub is the same page for every visitor, so the only thing that moves is
+   where the league actually is: counting down to the draft, or under way with
+   last season's champion still holding the trophy.
+
+   Deliberately NOT a standings snapshot. Live 2026 results are in-season
+   backlog and this file has none, so a "current standings" hero would be
+   promising something the archive cannot show. Falls back silently to the
+   static eyebrow if either global is missing — the front door must never be
+   the thing that breaks the page. */
+(function(){
+  const el = document.getElementById("hubphase");
+  if(!el) return;
+  if(typeof DRAFT_2026 === "undefined" || typeof SEASONS === "undefined") return;
+  const when = DRAFT_2026.when;
+  if(!(when instanceof Date) || isNaN(when)) return;
+  const now = new Date();
+
+  if(now < when){
+    /* Whole days by calendar difference, not by dividing the raw gap: the gap
+       shrinks all day, so a plain divide flips "in 26 days" to "in 25 days"
+       partway through an afternoon for no reason a reader would recognise. */
+    const dayOf = d => Math.floor((d - d.getTimezoneOffset() * 60000) / 86400000);
+    const days = dayOf(when) - dayOf(now);
+    el.textContent = days <= 0 ? "Draft night is tonight"
+                   : days === 1 ? "Draft night is tomorrow"
+                   : "Draft night in " + days + " days";
+    return;
+  }
+
+  const last = SEASONS[0];
+  const team = last && last.t && last.t[0] ? last.t[0][0] : null;
+  if(!team) return;
+  const champ = (typeof OWNER_OF !== "undefined" && OWNER_OF[team]) || team;
+  el.textContent = (when.getFullYear()) + " under way · " + champ + " defends";
 })();
 </script>
 </body>
