@@ -552,6 +552,22 @@ targets — none of which can see a collapsed layout.**
   before fixing, too.
 - **Do the work on the branch.** One shell edit was written while still on `main` and had to be
   stashed across. On a repo where `main` is the live site that is the mistake worth not repeating.
+- **Get eyes on the page before doing any visual work — this is the big one.** The in-app browser
+  pane cannot composite screenshots in this environment (every `screenshot` call times out with
+  "the Browser pane is not displayed"), so it can only measure the DOM. The **Claude in Chrome**
+  tools drive the user's real Chrome and screenshot fine. Ask the user to open the site in Chrome,
+  then `ToolSearch` for `mcp__claude-in-chrome__tabs_context_mcp`, `navigate` and `computer`, and
+  screenshot after **every** visual change.
+  Why it matters: the hub shipped with a collapsed layout — titles running inline into their
+  sub-lines — and four shell steps were built on top of it, while structural checks (target
+  resolution, tap depth, heading order, overflow at two widths, touch targets) all passed the whole
+  time. **None of those can see a broken layout.** A single user screenshot found it instantly, and
+  in the same pass found stranded disclosure chevrons and the fact that a monochrome palette was
+  the wrong answer. Measuring properties is not looking at the page.
+- **Never build markdown containing backticks through a shell string.** An earlier version of the
+  visual-pass section above was written inside a double-quoted shell string; every backtick-quoted
+  CSS term was treated as command substitution and silently replaced with nothing, leaving notes
+  that read "The first fix () changed nothing". Use the editor for prose.
 
 ## Environment notes for a fresh Claude Code session
 - This repo still has no `.claude/settings.local.json` of its own. There is one a level up, in
