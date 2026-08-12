@@ -214,7 +214,7 @@ old raw per-player `SEASON_PTS_2014..2017` tables entirely — nothing else in t
 them, confirmed by grep before removing). `draftRankings()`'s static-year branch is now a direct
 lookup into that table instead of a runtime snapshot-based calculation.
 
-## Session 2 (PC): full data + visual audit, Draft Rankings metric rebuilt
+## Session 2 (PC): full data + visual audit, Draft Rankings and manager grade rebuilt
 
 ### Draft Rankings ranked hoarding, not drafting — rebuilt (ADR 0004)
 User's flag: Ermin's 2023 team went 5-9 and its draft still came out **2nd best all-time**. It
@@ -305,8 +305,46 @@ changes, in order of what each buys:
 Verified across all 12 seasons in three states — all closed, one open, all twelve open —
 overflow 0 in every case.
 
-## Still open (next round of the grilling session)
-These were queued but not yet asked/answered when the session paused to move machines:
+### Manager grade: every profile read "1st in points/game" — one-line bug, three fixes
+Reported from a profile screenshot; the cause was a single mis-indexed sum in the league-average
+points-per-game table:
+
+```js
+s.t.forEach(row => { if(row.length > 3){ pf += row[3]; g += row[0] + row[1]; } });
+```
+
+A season row is `[team, W, L, PF, PA, ...]`, so games is `row[1]+row[2]`. This added the team
+**name** to the wins — string concatenation — so `pf/g` was `NaN` for every season, and the
+`if(LG_PPG[s.y])` guard below treats `NaN` as falsy, so `relPf`/`relG` never accumulated for
+anybody. Two consequences, one visible and one not:
+- Every manager's era-relative points-per-game was identically **0**, and since ties share the
+  best rank, every profile reported **"1st/12"** for scoring.
+- SCORING is **19% of the manager grade**, so a fifth of every grade sat pinned at the 50th
+  percentile — fully weighted, carrying zero information.
+
+Fixed to `row[1]+row[2]`. League averages now compute and show the half-PPR step they exist to
+cancel: **95.9 pts/game in 2020 → 107.4 in 2021**. Points-per-game ranks 1-12 with real spread,
+and the era adjustment visibly works — a raw 103.8 ranks 5th, behind a 102.0, because those
+seasons skew to the higher-scoring years.
+
+**Two further defects found while auditing the grade, both fixed in the same commit:**
+- `pfAxesForRow` drew its percentiles from all **17** owners while the grade ranked itself
+  "Nth of **12**" and the bars beside it read `/12` — the same number reached against two
+  different fields. `pfRankScope`'s own comment already claimed the bars used the field "the
+  grade itself is drawn from"; they didn't. `pfAxesForRow(me)` now scopes through
+  `pfRankScope`, so a graded manager is measured against the graded twelve and only an ungraded
+  one falls back to the full roll. Worth up to 2.5 grade points; sharpest case sat at the 41st
+  percentile for longevity against everyone and the **17th** against his actual field.
+- `pfMetrics`' `rank()` used `indexOf` on a sorted array, returning `-1` (rank 0) for any value
+  not found by exact identity. Replaced with the count-how-many-beat-you form `pfRankScope`
+  already used, so the two agree by construction.
+
+Net: the grade board's top 8 is unchanged; 9-12 reorder (Ermin 9th→12th, Braxton 12th→10th,
+Alen 10th→9th). **Every** manager's rank bars change. Shipped as `dca48e1`.
+
+## Still open
+Carried forward across sessions — the first four were queued when the original session paused to
+move machines; the rest are from the PC session (2026-08-11/12):
 - The 2020 Round 16 / Pick 8 mystery pick is effectively closed as "slot known (Revenge Tour's
   traded-away/orphaned pick), player unrecoverable from ESPN data" — revisit only if the user
   turns up a memory or record of who was actually drafted there.
@@ -318,9 +356,37 @@ These were queued but not yet asked/answered when the session paused to move mac
 - The two corrupted end-of-season snapshots for 2014/2015 Beasts of the Middle East are worked
   around in `DRAFT_TOTALS_2014_2017` but not fixed in `ROSTERS.S` itself — if anything else ever
   reads those snapshots directly, the same bad data is still there.
+- **Awaiting a decision from the user: the two "context" axes in the manager grade.** Measured
+  across the 12 graded managers: `LONGEVITY` (weight 6) takes only **four distinct values**, six
+  of them tied at the 75th percentile, and correlates **0.07** with win rate — it measures tenure,
+  not managing, and costs an 8-season manager ~6% of his grade for joining later. `ACTIVITY`
+  (weight 4) correlates 0.39 with win rate but only **0.11** with titles. Dropping both leaves the
+  top five untouched; biggest move is Alen Huseinbegovic down 3. Recommendation put to the user:
+  drop `LONGEVITY`, move its 6 points to `SCORING`/`LINEUPS`. **Not applied** — it reorders real
+  people, so it's the user's call, not a correctness fix.
+- **Pre-draft refresh is not yet due.** Both scripts dry-run clean as of 2026-08-12:
+  `refresh-adp.py` (ESPN half-PPR id 8 re-verified at 0.5 pts/reception, 250/250 players, largest
+  move 0.8 picks) and `refresh-tiers.py` (FantasyPros updated 8/12, 125/125 in-scope matched, one
+  tier change: De'Von Achane 2→3). Nothing worth writing yet — re-run both within a few days of
+  **Sept 7** when the market and expert consensus have actually moved.
+- **`CHEAT` and `DEPTH_TEAMS` have no refresh script.** The two scripts refresh prices and
+  groupings for players already on the sheet; neither will ever notice a player changed teams,
+  got hurt, or should be added. That gap is what produced the stale A.J. Brown entry. Cross-
+  checking `CHEAT` against `DEPTH_TEAMS` is what caught it, and it is still a manual pass.
 
 ## Environment notes for a fresh Claude Code session
-- This repo has no `.claude/settings.local.json` yet — none of the Mac session's local
-  permissions carry over; expect normal permission prompts on the PC.
+- This repo still has no `.claude/settings.local.json` of its own. There is one a level up, in
+  the parent `South FFL Website/` folder, which is where the PC session's permissions actually
+  live — nothing carries over from the Mac session.
 - `index.html` is the single self-contained site file (~2.5MB). No build step, no backend.
 - Draft night countdown target: `new Date("2026-09-07T18:00:00-05:00")`.
+- **`main` is the deploy branch.** GitHub Pages serves `tslytle.github.io/south-ffl` straight off
+  it, so pushing `main` republishes the public site — there is no staging step. The user's
+  standing preference is to commit directly to `main` rather than work on feature branches.
+- **Useful trick for auditing this file:** the page's own JS can be loaded into a Node VM with a
+  stubbed DOM (`document.getElementById` returning a shared stub, `window` aliased to the
+  sandbox), which lets you re-run `draftRankings()`, `pfMetrics()`, `rosterAt()` etc. out of band
+  against the real data. `const`/`let` at script top level land in the context's global lexical
+  scope, so a later `vm.runInContext('DRAFTS')` can read them. That is how the points-per-game
+  bug, the draft-ranking correlations and the standings-overflow numbers were all measured rather
+  than guessed.
