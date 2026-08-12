@@ -2492,7 +2492,11 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
 .uhubgroup > h3{font-family:var(--sans);font-size:var(--t-micro);font-weight:700;
   letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
   margin:0 0 var(--sp-2)}
-.uhubdoor{display:flex;flex-direction:column;gap:2px}
+/* a.uhubdoor, not .uhubdoor: a.ucard above sets display:block and at 0-1-1
+   outranks a bare class, so the flex column silently never applied and every
+   door rendered its title and sub-line inline — "Draft NightMonday, September
+   7". Structural checks all passed; only looking at it caught this. */
+a.uhubdoor{display:flex;flex-direction:column;gap:2px}
 .uhubdoor b{font-family:var(--serif);font-size:var(--t-lead);font-weight:700;
   color:var(--ink);line-height:1.15}
 .uhubdoor span{font-size:var(--t-fine);color:var(--muted)}
