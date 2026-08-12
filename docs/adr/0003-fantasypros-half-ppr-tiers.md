@@ -16,3 +16,19 @@ Fetch `TIER_2026` from FantasyPros' embedded `ecrData` (extracted via regex + JS
 - Dependency on an undocumented internal page variable (`ecrData`), not a stable public API — the extraction script must fail loudly if the shape changes, not silently produce garbage.
 - Matches the site's existing analytical rigor (value/reach is already algorithmic; tiers were the one remaining hand-curated draft-prep input).
 - Not pursued: ESPN league-scoped ranks (no league ID in codebase, would need one supplied) and self-computed clustering (redundant with what FantasyPros already provides).
+
+## Correction (2026-08-11, during `refresh-tiers.py` implementation)
+The single "all positions" page named above (`half-point-ppr-cheatsheets.php`) does embed
+`ecrData` with a `tier` field, but that page's `position_id` is `"ALL"` and the tier is a
+**global cross-position tier** — RB/WR dominate the earliest tiers by positional scarcity, so
+e.g. the #1 overall-ranked QB was landing in "tier 3" purely because four RBs and four WRs
+ranked above him overall. Using it directly per-position, as originally planned, would have
+misrepresented the site's per-position groupings (QB tier 1 is supposed to mean "the best
+available QBs," not "players who happen to be QBs and are also globally elite").
+
+The actual fix: FantasyPros' *position-specific* draft cheatsheets compute `tier` within that
+position instead — `qb-cheatsheets.php` (QB has no PPR variant, since QB scoring doesn't depend
+on receptions) and `half-point-ppr-{rb,wr,te}-cheatsheets.php`. `refresh-tiers.py` pulls from
+those four URLs, not the single all-positions one. The rest of this ADR's reasoning (use
+FantasyPros' `tier` field directly, don't build separate clustering) still holds — only the
+specific URL(s) changed.
