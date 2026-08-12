@@ -396,6 +396,36 @@ on Sept 7 and it will never be rehearsed.
   masthead is hub-route decoration. Nothing moves in the DOM, so every URL ever pasted in the
   group chat still resolves.
 
+### The uniform shell — four steps, all merged and live
+The shell restyles the chrome all eighteen surfaces share rather than each surface's internals,
+which is what makes eighteen surfaces affordable before the freeze. All four steps are scoped to
+an *active routed view*, so with JS off the document is still the single scrolling page it was.
+
+1. **A view presents as a screen, not an accordion.** A view holds exactly one top-level section,
+   so that section's collapsible header is chrome with nothing to collapse into. The eyebrow,
+   title and note are untouched; the chevron, hover fill, rounded summary and 56px sibling break
+   go. Because the header can no longer be clicked, **the router forces the section open on
+   reveal**, and a `toggle` guard reopens it if a keypress on the still-focusable `<summary>`
+   shuts it. Also restored `.allctl` inside views — the routing commit had hidden Expand/Collapse
+   all from the only place they mean anything.
+2. **Each board reads as a titled panel** — `--raise`, `--r-md`, own hover and focus.
+3. **Nested boards** (under Steals & Busts, Draft Rankings) trade their 2px left rail for a
+   quieter panel: `--soft`, `--r-sm`. Indent 18px → 12px.
+4. **`.subnav` loses its container and becomes chips.** It had been using `--raise` at `--r-md` —
+   which step 2 had just given board panels — so content and navigation-to-content read at the
+   same weight.
+
+**Final weight ordering:** screen header (hairline) → board panel (`--raise`, 12px) → nested
+panel (`--soft`, 8px) → navigation (no fill). `.allctl` was left alone; it was already in the
+language.
+
+**The one rule that governed every step: no shell change may take width from content.** Session 2
+fixed standings overflow by returning ~48px to the OWNER column and those tables fit their
+scrollers exactly, so panels went on headers only and never on bodies, and where padding changed
+it changed *downward*. Verified each step: **twelve standings tables at 0px against their
+scrollers**, page overflow 0 across all six views at 1887px and 375px, and AA clear in both
+themes on every new surface pair (worst measured 5.23:1).
+
 **Three things worth keeping in mind if this gets touched:**
 1. **The router must run last.** Every draw function lays out and measures its tables while still
    visible; hide a section before layout and its tables measure zero and collapse on reveal.
@@ -445,10 +475,7 @@ move machines; the rest are from the PC session (2026-08-11/12):
 
 ### Overhaul, remaining — in the order it should be done
 The vocabulary, hub and router are merged and live. What's left, with the traps:
-1. **Apply the uniform shell to the eighteen surfaces.** The bulk of the work and the whole
-   reason ADR 0007 chose "uniform shell, tiered depth" — eighteen surfaces cost one design plus
-   eighteen applications, not eighteen designs. Resist bespoke work until every surface is at
-   least coherent.
+1. ~~Apply the uniform shell.~~ **Done — four steps, merged and live.** See the section above.
 2. **Bespoke depth, in this order and only if time allows:** hub, Manager Profiles, Standings.
    Draft Rankings is off the list (rebuilt in ADR 0004) and so is the cheat sheet (restyle only).
 3. **Dark-default theme polarity** (Q18: dark is the design's home, light stays supported). Not
@@ -469,6 +496,24 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
 **Open design questions, not yet put to the user:** whether landing deep inside a long routed view
 is acceptable (`#h2h` lands ~16,000px down the History view — correct, but a long scroll), and
 whether "← All boards" is the right label and placement for the way home.
+
+### Working notes for whoever picks this up
+- **`preview.html` is the review mechanism and it works.** Pages here is classic
+  deploy-from-branch on `main` with no `.github/workflows`, so a branch has no URL. Copy the
+  branch's `index.html` to `preview.html` on `main`, push, verify in a real browser, delete it in
+  the merge commit. Six of these ran cleanly across this session.
+- **Don't trust the Pages builds API.** For the last several deploys
+  `gh api repos/tslytle/south-ffl/pages/builds` reported the previous commit as latest for ten
+  minutes or more while the CDN was already serving the new file. Poll the served file instead —
+  `until curl -s <url> | grep -q "<marker>"; do sleep 15; done` backgrounded — and use a marker
+  string unique to the commit.
+- **Measure in a browser, not by reading.** Every visual defect this session was invisible in the
+  source: the back control at 75×16px, the `.subnav`/panel weight collision, and a fixed-width
+  merge gate that false-positived on a `@media` breakpoint. Conversely the `.subnav` chips *looked*
+  like a touch-target bug at 30px on desktop and were already fine at 44px on mobile — so measure
+  before fixing, too.
+- **Do the work on the branch.** One shell edit was written while still on `main` and had to be
+  stashed across. On a repo where `main` is the live site that is the mistake worth not repeating.
 
 ## Environment notes for a fresh Claude Code session
 - This repo still has no `.claude/settings.local.json` of its own. There is one a level up, in
