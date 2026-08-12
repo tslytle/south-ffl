@@ -2519,6 +2519,24 @@ a.ucard.uhubdoor{display:flex;flex-direction:column;gap:2px}
    the hub and the views agree about what a panel is. */
 a.uhubdoor{background:var(--raise);padding:var(--sp-3) var(--sp-4)}
 a.uhubdoor:hover b{color:var(--accent)}
+/* auto-FILL, not auto-fit, and scoped to the hub rather than changed at source.
+   `.ugrid` is general vocabulary — the hub is its only user today, but the next
+   thing to reach for it may well want a lone card to stretch rather than sit
+   beside a hole, which is exactly what auto-fit is for.
+
+   On the hub it made a door's size an accident of how many siblings its group
+   happened to have. auto-fit collapses
+   the empty tracks and hands their width to whatever is in the row, so Season's
+   two doors came out at 514px each, Managers' four at 251px, and Record Book —
+   one board of eighteen, no more important than Standings — ran the full 1040px,
+   4.1x the width of the door beside it in the next group up. Size was reading as
+   importance and saying nothing but "this group is short".
+
+   auto-fill keeps the empty tracks, so all eighteen doors are one 251px field
+   four across, groups are labels over that field rather than their own layouts,
+   and a short group ends in honest empty space. The phone is untouched: the
+   `min(240px,100%)` floor already collapses it to a single column. */
+.uhub .ugrid{grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr))}
 
 /* ── card ─────────────────────────────────────────────────────────────── */
 .ucard{background:var(--surface);border:1px solid var(--line);

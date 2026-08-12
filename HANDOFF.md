@@ -468,11 +468,31 @@ move machines; the rest are from the PC session (2026-08-11/12):
   move 0.8 picks) and `refresh-tiers.py` (FantasyPros updated 8/12, 125/125 in-scope matched, one
   tier change: De'Von Achane 2→3). Nothing worth writing yet — re-run both within a few days of
   **Sept 7** when the market and expert consensus have actually moved.
-- **Standings overflow 14px at a 900px viewport** — found 2026-08-12 while verifying the two-column
-  header, present on the live site too, so it predates that change. Sessions 2 and 3 measured
-  standings at 1887px and 375px and got 0 both times; the band between the phone overrides and the
-  desktop layout has never been checked. Worth a pass at 760-1100px, and worth doing the same sweep
-  for the other tables while in there.
+- **Standings scroll sideways on a tablet, and nothing is pinned when they do.** Found 2026-08-12
+  while verifying the two-column header; present on the live site, so it predates that change.
+  Sessions 2 and 3 measured standings at 1887px and 375px and got 0 both times — the band between
+  the phone card layout (≤760px) and a comfortable desktop was never checked. What is actually
+  there, measured across it:
+  - The division-era seasons (2019-2025) carry **13 columns** — `Div`, `Home`, `Away`, `Strk` on
+    top of the nine every season has. At their min-content widths that table is **825px** and
+    cannot shrink further. 2014-2018 have nine columns, fit, and are fine everywhere.
+  - It misses its scroller by **146px at 768px** (9 of 12 tables) and by **14px at 900px** (7 of
+    12). It fits from roughly **914px** up. `.tw` is `overflow-x:auto`, page overflow is 0 at every
+    width, and the table really does scroll — so nothing is unreachable, and the 14px is cosmetic.
+  - **The real defect is that neither `RK` nor `OWNER` is sticky**, so scrolling right to read
+    Moves or Strk scrolls the owner names off screen. The archive already has this pattern:
+    `.ledger th.l/td.l` pin left at `--sp` zero (line ~1007) and `.board td.rdc` pins the rank
+    gutter (~1117). Standings — the most-read table on the site — is the one that doesn't.
+  - **The phone override already assumes it.** Line ~2162 resets `.stand td.l` to
+    `position:static` alongside `.ledger`'s, which only makes sense if `.stand td.l` were sticky
+    above the breakpoint. It isn't. Someone expected this.
+  - **Not a padding fix.** Session 2 already spent that budget going 9px → 7px; 12 non-name columns
+    at 7px only hold 168px of padding total, and 146px of it cannot come back.
+  - **Two ways to close it, and it is a design call, not a correctness one:** pin the OWNER column
+    (watch the interaction — a sticky cell needs an opaque background, and `.stand tr.top1` is gold
+    and rows tint on hover, so a flat `--surface` fill like `.ledger`'s would knock the champion
+    row's first cell out of its own colour), or raise the card-layout breakpoint from 760px to
+    ~914px so tablets get the phone treatment instead of a squeezed table. Worth asking which.
 - **`CHEAT` and `DEPTH_TEAMS` have no refresh script.** The two scripts refresh prices and
   groupings for players already on the sheet; neither will ever notice a player changed teams,
   got hurt, or should be added. That gap is what produced the stale A.J. Brown entry. Cross-
@@ -583,6 +603,29 @@ standings table overflows its scroller by **14px** (15px at 899). Confirmed pres
 at the same width before this change, so it predates it. Sessions 2 and 3 verified standings at 1887
 and 375px, which is why it was never seen — the breakpoint band between the phone overrides and the
 desktop layout was never measured.
+
+### The hub: a door is a door (2026-08-12, same session)
+First pass at bespoke depth, and it turned out to be one defect rather than a redesign. `.ugrid`
+uses `repeat(auto-fit, …)`, which collapses the empty tracks in a short row and hands their width
+to whatever is in it. On the hub that made **a door's size an accident of how many siblings its
+group had**: Season's two doors came out **514px** each, Managers' and History's four at **251px**,
+and Record Book and Rules — one board of eighteen each — ran the **full 1040px**, 4.1x the width of
+the Standings door one group above. Size was reading as importance and encoding nothing but group
+population.
+
+`auto-fill` keeps the empty tracks. All eighteen doors are now one 251px field, four across, with
+groups as labels over that field and a short group ending in honest empty space. Scoped to
+`.uhub .ugrid` rather than changed at source — `.ugrid` is general vocabulary and the hub is its
+only user today, so the next thing to use it can still want auto-fit's stretch.
+
+Verified at 375 / 768 / 1265px: eighteen doors, **one width and one height at every viewport**
+(351x62 on phone and tablet, 251x62 on desktop), columns landing on 1 / 2 / 4 tracks, page overflow
+0, every door over the 44px touch minimum. No colour changed.
+
+**Not done, and deliberately not:** no live figures on the doors. That is the obvious next idea —
+Champions showing the current holder, Records showing the high score — and it would make the hub
+need `PSTAT`/`ARCH`, which is exactly the 1.33MB parse item 4 below wants to defer *because the hub
+needs none of it*. Decide the deferral first; the doors can be fed afterwards.
 
 ### Working notes for whoever picks this up
 - **A local HTTP server beats `preview.html` for reviewing an uncommitted change.**
