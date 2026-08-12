@@ -125,18 +125,42 @@ alone did not (his stale entry was self-consistent, just outdated). Corrected to
 isolated, not a systemic staleness problem, by re-running the same cross-check after the fix
 (zero remaining mismatches).
 
-**Not yet audited:** the value/reach delta threshold logic itself (`max(3, round(orank*0.10))`)
-hasn't been stress-tested for edge cases; `ADP_2026`/`TIER_2026` key coverage beyond the checks
-already run by their own refresh scripts; player-link resolution (`pLink`/`PID`/`ESPN_EXTRA`)
-hasn't been swept for broken/dead entries. Pick up here next.
+**Found and fixed:** player-link resolution had a real, if minor, gap. `dstTeam()` (used by
+`pLink()`/`cheatLink()` to route D/ST rows to the team's actual page instead of a name search)
+only ever handled short 2-3 letter abbreviations (the 2014-2015 archive's "Sea D/ST" style).
+`CHEAT.DST` names defences by mascot only ("Broncos D/ST"), longer than any real abbreviation,
+so the short-code path silently failed for all 22 team-defense rows on the current draft cheat
+sheet — every one fell through to a generic name search instead of linking to the team's real
+page. Fixed by adding `MASCOT_ABBR` (built once from `DEPTH_TEAMS`, which already has mascot →
+abbreviation pairs) as a second lookup path in `dstTeam()`. Verified live: all 6 sampled D/ST
+links now resolve to real team pages (e.g. `pro-football-reference.com/teams/den/2026.htm`)
+instead of a broken search. Doesn't touch the archive short-code behavior at all.
+
+**Also checked:** `LINK_TO` is hardcoded to `"pfr"` (not a runtime toggle) — all player links go
+to Pro-Football-Reference except where `ESPN_VERIFIED` explicitly overrides per-name (plausibly
+deliberate: PFR has no game-log page yet for players before their season starts, so
+`ESPN_VERIFIED` exists specifically to bypass that for current-year draft prep — not flagged as
+a bug). 285/309 `CHEAT` names resolve to a direct profile link; the remaining 24 (22 were the
+now-fixed D/ST rows, plus 2 real players — Treylon Burks, Jaylin Lane — with no `PFR`/`ESPN`
+entry yet) degrade gracefully to a name search, a reasonable fallback for genuinely uncovered
+players. No duplicate IDs found in `ESPN_VERIFIED` (would indicate two players sharing one
+profile page). `CHEAT` has zero null overall-rank values, so the value/reach threshold math
+(`max(3, round(orank*0.10))`) never hits its one real edge case (`orank` coercing to 0 in JS
+arithmetic if null) — confirmed via data, not just code-reading.
+
+**Audit is in a good stopping place, not fully exhaustive.** Two real bugs found and fixed
+(stale A.J. Brown team/bye, broken D/ST links) plus the earlier regex bug in the refresh
+scripts. Everything checked came back clean or got fixed — no more known open threads in this
+area, but this wasn't an exhaustive line-by-line review of the ~2.5MB file, just the data
+structures and code paths most directly tied to pre-draft correctness.
 
 ## Still open (next round of the grilling session)
 These were queued but not yet asked/answered when the session paused to move machines:
 - The 2020 Round 16 / Pick 8 mystery pick is effectively closed as "slot known (Revenge Tour's
   traded-away/orphaned pick), player unrecoverable from ESPN data" — revisit only if the user
   turns up a memory or record of who was actually drafted there.
-- Draft-prep tools audit is in progress (see section above) — value/reach logic, ADP/TIER key
-  coverage, and player-link resolution still need a pass.
+- Draft-prep tools audit (see section above) is at a good stopping point, not exhaustively
+  finished — everything checked so far is clean or fixed; revisit if something new surfaces.
 
 ## Environment notes for a fresh Claude Code session
 - This repo has no `.claude/settings.local.json` yet — none of the Mac session's local
