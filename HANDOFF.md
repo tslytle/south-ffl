@@ -38,10 +38,23 @@ from 578ms to 258ms.
 ### Nothing is blocked. What is actually left:
 
 1. **Due before draft night — the only dated work.** Re-run within a few days of **Sept 7**, then
-   review with `git diff` before committing (ADR 0001/0002 pattern):
+   review with `git diff` before committing (ADR 0001/0002 pattern).
+
+   **PowerShell — this is the PC this file hands off to:**
+   ```powershell
+   python refresh-adp.py --dry-run; if ($?) { python refresh-tiers.py --dry-run }; if ($?) { python check-cheat.py }
+   ```
+   `&&` is a **parser error** in Windows PowerShell 5.1 — not a failed command, a refusal to run
+   the line at all. This block used to carry the bash form below and nothing else, in a file whose
+   own title says "continue on PC". Running the three separately is just as good, and better if
+   you want to read each diff before going on.
+
+   **bash / Git Bash**, if you are on the Mac or in a POSIX shell:
    ```bash
    python refresh-adp.py --dry-run && python refresh-tiers.py --dry-run && python check-cheat.py
    ```
+   Only the two refresh scripts take `--dry-run`; `check-cheat.py` is read-only by design and
+   takes `--quiet` / `--strict` instead.
    `check-cheat.py` is new and read-only; it exits 1 on any ERROR. Neither refresh script will ever
    notice a player changed teams — that cross-check is what `check-cheat.py` automates, and it is
    still no substitute for a live source on a trade.
