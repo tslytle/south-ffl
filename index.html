@@ -116,7 +116,7 @@
   --r-sm:8px; --r-md:12px; --r-lg:16px; --r-pill:999px;
   /* height of the sticky masthead nav (mobile) — every sticky offset and
      scroll-margin below is derived from this, so the bars stay flush */
-  --navh:52px;
+  --navh:56px;   /* a touch taller now the bar carries tabs, not one button */
   /* The avatar plate. Every manager mark sits on the same ground, in the same
      ring, at the same optical size — the grid holds photographs, flat vector
      logos and two-letter fallbacks, and without a shared plate they were the
@@ -316,27 +316,84 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
 .navsub a:hover,.navsub a:focus-visible{background:rgba(255,255,255,.08);color:#fff}
 .navsub a.here{color:var(--on-chip);font-weight:700;background:var(--accent)}
 
-/* At every width, not just phones: thirteen tabs need 1100px of a 1040px
-   content column, so the bar scrolled sideways on desktop too. One menu is
-   also one fewer thing to break the next time a section is added. */
-.topnav .inner > a{display:none}
+/* The tabs are the nav again. They were display:none at EVERY width — a rule
+   written when there were thirteen of them and they needed 1100px of a 1040px
+   column, so the bar scrolled sideways even on desktop and the dropdown was
+   the only way through. ADR 0007 then folded those thirteen into six views and
+   nothing revisited this: the six fit in ~430px with room to spare, but the
+   reader still got a lone "Sections ▾" button next to a wordmark, which is not
+   what the top of a sports site looks like. Six tabs show from 980px up; below
+   that the dropdown takes over exactly as it always has.
+
+   980, measured rather than guessed: wordmark + rule (119) + six tabs (485) +
+   search, theme toggle and their gutter (297) + the column's own 20px gutters
+   is 941px of hard content. 900 was tried first and overflowed the bar by 18px
+   with the page scrolling 3px sideways behind it. */
 .topnav .inner{overflow:visible}
 .topnav::after{display:none}
+.topnav .inner > a:not(.brand){display:none}
 .navtoggle{display:inline-flex}
-.topnav .brand{font-family:var(--serif);font-size:var(--t-body);font-weight:600;color:#fff;margin-right:auto;white-space:nowrap;letter-spacing:-.01em}
-.topnav a{font-size:var(--t-small);font-weight:600;letter-spacing:.01em;color:rgba(255,255,255,.66);text-decoration:none;padding:8px 10px;
-  border-radius:var(--r-sm);white-space:nowrap;transition:background .15s,color .15s}
-.topnav a:hover,.topnav a:focus-visible{color:#fff;background:rgba(255,255,255,.11)}
-/* which section you're actually in — twelve tabs and a very long document
-   is a lot to hold in your head without a marker */
-.topnav a{position:relative}
-.topnav a.here{color:#fff}
-.topnav a.here::after{content:"";position:absolute;left:9px;right:9px;bottom:5px;
-  height:2px;border-radius:2px;background:var(--accent)}
-@media (prefers-reduced-motion:no-preference){
-  .topnav a.here::after{animation:navmark .22s ease}
+@media (min-width:980px){
+  .topnav .inner > a:not(.brand){display:inline-flex}
+  .navtoggle{display:none}
 }
-@keyframes navmark{from{transform:scaleX(.3);opacity:0}to{transform:scaleX(1);opacity:1}}
+
+/* Wordmark: the masthead's own treatment at nav scale — serif, with FFL in
+   gold italic — so the bar is branded rather than merely labelled. It is a
+   link home (#hub is a real route; viewFor() answers null for it and apply()
+   falls back to the hub), which is the one thing every reader tries on a
+   logo. */
+.topnav .brand{display:inline-flex;align-items:center;flex:none;
+  font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;
+  white-space:nowrap;letter-spacing:-.015em;text-decoration:none;
+  padding:0;margin-right:var(--sp-4);border-radius:var(--r-sm)}
+/* Literal #F2B84B, not var(--gold) — same reason the bar's text is #fff rather
+   than --ink. The nav is fixed dark chrome in BOTH themes, so a token that
+   re-keys for a light page lands on a dark ground: light theme's --gold
+   (#AD7A16) is drawn for white behind it and measured 4.46 here against ADR
+   0005's 4.5 floor. This is the dark palette's gold, pinned; it measures ~8.9
+   on the bar and cannot drift when the reader flips the theme. */
+.topnav .brand em{font-style:italic;font-weight:600;color:#F2B84B;margin-left:.28em}
+.topnav .brand:hover{background:none;color:#fff}
+.topnav .brand:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+/* Hairline between identity and navigation — the conventional divider, and
+   the thing that stops "South FFL" reading as the first tab. Same 980 as the
+   tabs themselves: below it there are no tabs to divide from, and the rule
+   would be a stroke drawn against empty space. */
+@media (min-width:980px){
+  .topnav .brand{margin-right:var(--sp-4);padding-right:var(--sp-4);
+    border-right:1px solid rgba(255,255,255,.14)}
+}
+
+/* Tools ride the right rail. This used to be margin-right:auto on the brand,
+   which worked only because everything else was a sibling of it; with the tabs
+   restored between them, the free space has to be claimed after the tabs
+   instead or it opens up in the middle of the nav. */
+/* flex:0 1 auto with min-width:0, not flex:none — the search field is the one
+   item here that can give ground, and letting it do so is what keeps the bar
+   from overflowing in the ~100px band just above the breakpoint. The toggles
+   keep their own flex:none, so all the shrink lands on the field. */
+.navtools{display:flex;align-items:center;margin-left:auto;flex:0 1 auto;min-width:0;padding-left:var(--sp-4)}
+.searchbox{min-width:0}
+#searchinput{min-width:0}
+
+.topnav .inner > a:not(.brand){font-size:var(--t-base);font-weight:650;letter-spacing:.005em;
+  color:rgba(255,255,255,.72);text-decoration:none;padding:0 13px;
+  align-items:center;align-self:stretch;white-space:nowrap;
+  transition:color .15s,box-shadow .15s}
+.topnav .inner > a:not(.brand):hover,.topnav .inner > a:not(.brand):focus-visible{color:#fff;background:none}
+/* which section you're actually in — eighteen boards behind six tabs is a lot
+   to hold in your head without a marker. The mark is a rule on the bar's own
+   bottom edge rather than a floating pill underline: it meets the border the
+   nav already draws, which is how a tab strip reads as tabs. */
+.topnav .inner > a:not(.brand).here{color:#fff;box-shadow:inset 0 -3px 0 var(--accent)}
+.topnav .inner > a:not(.brand):hover{box-shadow:inset 0 -3px 0 rgba(255,255,255,.22)}
+.topnav .inner > a:not(.brand).here:hover{box-shadow:inset 0 -3px 0 var(--accent)}
+.topnav .inner > a:not(.brand):focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:var(--r-sm)}
+@media (prefers-reduced-motion:no-preference){
+  .topnav .inner > a:not(.brand).here{animation:navmark .22s ease}
+}
+@keyframes navmark{from{box-shadow:inset 0 0 0 var(--accent)}to{box-shadow:inset 0 -3px 0 var(--accent)}}
 
 /* ── Search, once there's room for it ────────────────────────────────
    The nav stays a top bar at every width — no sidebar. Search is the
@@ -413,20 +470,30 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
    circles instead of a frame around each one — and doesn't fight the
    border-radius on a photo. */
 .masthead-avatars{display:flex;justify-content:center;flex-wrap:wrap;row-gap:8px;margin-top:28px}
+/* .mavatar is the button; .tlogo inside it is the mark. The overlap, the lift
+   and the stacking live on the button because it is the thing being pointed
+   at — putting margin-left on .tlogo would give every tile :first-child of its
+   own button and collapse the overlap entirely. */
+.masthead-avatars .mavatar{appearance:none;-webkit-appearance:none;background:none;border:0;padding:0;
+  display:block;cursor:pointer;border-radius:50%;margin-left:-10px;
+  transition:transform .15s ease;position:relative}
+.masthead-avatars .mavatar:first-child{margin-left:0}
+.masthead-avatars .mavatar:hover,.masthead-avatars .mavatar:focus-visible{transform:translateY(-4px);z-index:1}
+.masthead-avatars .mavatar:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .masthead-avatars .tlogo{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--plate);
   /* outer ring in the page ground separates the overlap; inner ring is the
      same plate edge every other avatar carries */
-  box-shadow:0 0 0 3px var(--bg),inset 0 0 0 1px var(--plate-ring);margin-left:-10px;transition:transform .15s ease;position:relative}
-.masthead-avatars .tlogo:first-child{margin-left:0}
-.masthead-avatars .tlogo:hover{transform:translateY(-4px);z-index:1}
+  box-shadow:0 0 0 3px var(--bg),inset 0 0 0 1px var(--plate-ring);display:block}
 .masthead-avatars .tlogo img{object-fit:cover}
 .masthead-avatars .tlogo.tmono{font-size:var(--t-fine)}
 .masthead-caption{margin:14px 0 0;font-size:var(--t-fine);font-weight:500;letter-spacing:.02em;color:var(--muted)}
 @media (max-width:560px){
-  .masthead-avatars .tlogo{width:34px;height:34px;margin-left:-9px}
+  .masthead-avatars .mavatar{margin-left:-9px}
+  .masthead-avatars .tlogo{width:34px;height:34px}
 }
 @media (max-width:400px){
-  .masthead-avatars .tlogo{width:29px;height:29px;margin-left:-7px;box-shadow:0 0 0 2px var(--bg)}
+  .masthead-avatars .mavatar{margin-left:-7px}
+  .masthead-avatars .tlogo{width:29px;height:29px;box-shadow:0 0 0 2px var(--bg)}
 }
 @media print{.masthead-avatars,.masthead-caption{display:none}}
 .years{font-size:var(--t-fine);font-weight:600;letter-spacing:.17em;color:var(--muted);margin-top:18px;text-transform:uppercase}
@@ -2312,7 +2379,9 @@ footer{margin-top:52px;padding:26px 2px 64px;border-top:1px solid var(--line);po
 footer::before{content:none}
 footer p{margin:0;max-width:none}
 footer .footeyebrow{font-family:var(--sans);font-size:var(--t-tiny);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 16px}
-footer .footnotes{display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:center;--cols:3}
+/* Left-aligned remainder, same rule as .ugrid: the seventh note starts the
+   next row on the spine rather than centring under the gap between two. */
+footer .footnotes{display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:flex-start;--cols:3}
 footer .footnotes > *{flex:0 0 calc((100% - (var(--cols) - 1) * 28px) / var(--cols))}
 @media (max-width:889px){footer .footnotes{--cols:2}}
 @media (max-width:569px){footer .footnotes{--cols:1}}
@@ -2363,7 +2432,9 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
   .fig span{font-size:var(--t-micro);letter-spacing:.04em}
   :root{--navh:48px}
   .topnav .inner{gap:0}
-  .topnav a{padding:8px 9px;font-size:var(--t-small)}
+  /* scoped to the tabs: as `.topnav a` this also re-padded the dropdown's own
+     links, which set their own 13px/12px and lost the tie on source order */
+  .topnav .inner > a:not(.brand){padding:0 9px;font-size:var(--t-small)}
   .topnav{--navfade:1}
   /* champion plates: let the name run full-width on its own row instead of
      squeezing next to the record, which caused long two-word names to wrap
@@ -2836,27 +2907,26 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .utable tbody tr:hover td{background:var(--soft)}
 
 /* ── responsive grid. Cards shrink rather than forcing a scrollbar. ────── */
-/* Centred remainder. An auto-fill/auto-fit grid fixes its tracks against the
-   CONTAINER, so a short last row is pinned to the first tracks and hangs
-   left — the doors end 2-of-4, the awards wall orphans one card, the notes
-   orphan one. Flex with each item sized as an exact fraction of the row
-   fixes it without stretching anything: a full row consumes 100%% and has no
-   free space, so justify-content:center is a no-op there and the left spine
-   is untouched; only a partial row has slack, and that slack centres.
-   --cols is explicit per breakpoint because the fraction has to know it. */
-.ugrid{display:flex;flex-wrap:wrap;gap:var(--sp-3);justify-content:center;--cols:4}
+/* Left-aligned remainder. An auto-fill/auto-fit grid fixes its tracks against
+   the CONTAINER, so a short last row is pinned to the first tracks — which is
+   what we want, but it also sizes every door by how many siblings its group
+   happens to have. Flex with each item sized as an exact fraction of the row
+   gives a fixed door width at a given breakpoint, and a partial row then
+   simply stops early: Drafts' fifth and sixth doors sit under the first and
+   second, not floating between them.
+   --cols is explicit per breakpoint because the fraction has to know it.
+
+   This used to centre the remainder (ADR 0014's "a remainder row may centre").
+   It was reverted 2026-08-13: with six doors under Drafts the centred pair
+   read as a misalignment rather than as a deliberate close, and it broke the
+   left spine mid-group. Every row now starts on the spine, so the ragged edge
+   is always on the right. Note the old rule needed a :has() exception for
+   groups that are ENTIRELY a remainder (Season, Records, Rules); left-aligning
+   is the same answer for both cases and needs no exception. */
+.ugrid{display:flex;flex-wrap:wrap;gap:var(--sp-3);justify-content:flex-start;--cols:4}
 .ugrid > *{flex:0 0 calc((100% - (var(--cols) - 1) * var(--sp-3)) / var(--cols))}
-/* ...but only where a full row above it establishes the spine. A group that is
-   ENTIRELY a remainder — Season has two doors, Records and Rules have one —
-   has nothing to be a remainder of, so centring detaches it from its own
-   left-aligned group label and reads as broken rather than deliberate. Those
-   keep the spine. The test is 'fewer items than columns', which :has can ask
-   directly, and the threshold moves with --cols. */
-.ugrid:not(:has(> :nth-child(4))){justify-content:flex-start}
-@media (max-width:1010px){.ugrid{--cols:3;justify-content:center}
-  .ugrid:not(:has(> :nth-child(3))){justify-content:flex-start}}
-@media (max-width:759px){.ugrid{--cols:2;justify-content:center}
-  .ugrid:not(:has(> :nth-child(2))){justify-content:flex-start}}
+@media (max-width:1010px){.ugrid{--cols:3}}
+@media (max-width:759px){.ugrid{--cols:2}}
 @media (max-width:479px){.ugrid{--cols:1}}
 
 /* ── disclosure ───────────────────────────────────────────────────────── */
@@ -3090,30 +3160,41 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   This archive is built entirely in your browser &mdash; the seasons, drafts and record book need JavaScript turned on to render.
 </p></noscript>
 
+<!-- Masthead order is the conventional one: wordmark hard left, section tabs
+     running left-to-right beside it, tools parked on the right. The tabs sat
+     after the tools in source until 2026-08-13 because they were display:none
+     at every width and only fed the dropdown; now that they are the nav, the
+     source order is the reading order. .brand is excluded by name from the two
+     queries that collect tabs (the scroll-spy and the dropdown builder) — it
+     is a link home, not a section. -->
 <nav class="topnav"><div class="inner">
-  <span class="brand">South FFL</span>
-  <div class="searchbox" id="searchbox" role="search">
-    <input type="text" id="searchinput" placeholder="Search managers, teams, seasons&hellip;" autocomplete="off" aria-label="Search the archive" aria-expanded="false" aria-controls="searchresults" role="combobox">
-    <kbd class="searchkey" aria-hidden="true">/</kbd>
-    <div class="searchresults" id="searchresults" role="listbox" hidden></div>
-  </div>
-  <button class="themetoggle" id="themetoggle" type="button" aria-label="Switch to dark theme">
-    <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.3"/><path stroke-linecap="round" d="M12 2.7v3M12 18.3v3M4.3 4.3l2.1 2.1M17.6 17.6l2.1 2.1M2.7 12h3M18.3 12h3M4.3 19.7l2.1-2.1M17.6 6.4l2.1-2.1"/></svg>
-    <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.9A8.7 8.7 0 1 1 9.1 3.8a7 7 0 0 0 11.1 11.1z"/></svg>
-  </button>
-  <button class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="navmenu"><span id="navtoggle-label">Sections</span><span class="navcaret" aria-hidden="true"></span></button>
+  <a class="brand" href="#hub">South <em>FFL</em></a>
   <!-- Two registers, per the overhaul: the nav is functional and thumb-sized,
        the section headings keep their editorial voice. "The 2026 Season" and
        "The Seasons" sitting adjacent in a nav bar were genuinely ambiguous, and
        "Draft, Rosters & Trades" does not fit a phone. -->
   <a href="#ahead">Season</a><a href="#people">Managers</a><a href="#history">History</a><a href="#building">Drafts</a><a href="#records">Records</a><a href="#rules">Rules</a>
+  <div class="navtools">
+    <div class="searchbox" id="searchbox" role="search">
+      <input type="text" id="searchinput" placeholder="Search managers, teams, seasons&hellip;" autocomplete="off" aria-label="Search the archive" aria-expanded="false" aria-controls="searchresults" role="combobox">
+      <kbd class="searchkey" aria-hidden="true">/</kbd>
+      <div class="searchresults" id="searchresults" role="listbox" hidden></div>
+    </div>
+    <button class="themetoggle" id="themetoggle" type="button" aria-label="Switch to dark theme">
+      <svg class="ic-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.3"/><path stroke-linecap="round" d="M12 2.7v3M12 18.3v3M4.3 4.3l2.1 2.1M17.6 17.6l2.1 2.1M2.7 12h3M18.3 12h3M4.3 19.7l2.1-2.1M17.6 6.4l2.1-2.1"/></svg>
+      <svg class="ic-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 14.9A8.7 8.7 0 1 1 9.1 3.8a7 7 0 0 0 11.1 11.1z"/></svg>
+    </button>
+    <button class="navtoggle" id="navtoggle" aria-expanded="false" aria-controls="navmenu"><span id="navtoggle-label">Sections</span><span class="navcaret" aria-hidden="true"></span></button>
+  </div>
 <div class="navmenu" id="navmenu" hidden></div></div></nav>
 
 <div class="wrap">
 
 <header class="gameBorder">
   <h1>South <em>FFL</em></h1>
-  <div class="masthead-avatars" id="mastheadAvatars" aria-hidden="true"></div>
+  <!-- Not aria-hidden: each mark is a named button that opens that manager's
+       profile, so the row is real navigation, not decoration. -->
+  <div class="masthead-avatars" id="mastheadAvatars"></div>
   <p class="masthead-caption" id="mastheadCaption"></p>
 
   <a class="card dnwhen herohook" href="#draft2026">
@@ -4036,24 +4117,32 @@ document.getElementById("figures").innerHTML = [
 ].map(([b,t]) => `<div class="fig"><b class="num">${b}</b><span>${t}</span></div>`).join("");
 
 /* ---- masthead avatar row ────────────────────────────────────────────
-   Only this season's twelve managers — not everyone who's ever fielded
-   a team here, since a departed manager's face under the wordmark reads
-   as "who's still around" to a new visitor, not "who's ever played."
-   Read straight off the most recent season rather than a hardcoded
-   list, so a roster change next year updates this automatically.
+   EVERY manager in league history, not just this season's twelve. It
+   showed only the current roster until 2026-08-13, on the reasoning that
+   a departed manager's face under the wordmark reads as "who's still
+   around" — but the caption counted what the row showed, so the masthead
+   said "12 managers" three inches above a figure reading 17 OWNERS
+   ALL-TIME. The page is a twelve-season archive; the honest number is the
+   all-time one, and the row now matches it. `owners` is already every
+   owner on record, sorted by titles, so no new data is needed here.
    Reuses logoImg() rather than a bespoke image tag, so a manager with a
    real photo, a captured ESPN graphic, or no logo at all (initials
    monogram) all render exactly as they do everywhere else on the page.
-   The row is aria-hidden and the caption carries the real text, since
-   a dozen unlabeled photos read as noise to a screen reader. */
+   Each mark is a real <button data-profile>, which is the same handle
+   the manager grid, awards wall and champion rows use — one delegated
+   listener already opens the profile overlay for all of them. That makes
+   the row interactive, so it can no longer be aria-hidden: every mark
+   carries the manager's name as its accessible label, and the row is a
+   list of seventeen named buttons rather than a wall of unlabeled
+   photos. */
 (() => {
   const row = document.getElementById("mastheadAvatars");
   const cap = document.getElementById("mastheadCaption");
   if(!row || !cap) return;
-  const latest = SEASONS[0];
-  const current = owners.filter(o => latest.t.some(([n]) => OWNER_OF[n] === o.n));
-  row.innerHTML = current.map(o => logoImg(o.n, "tlogo-hero")).join("");
-  cap.textContent = `${current.length} managers. ${SEASONS.length} seasons. One league.`;
+  row.innerHTML = owners.map(o =>
+    `<button type="button" class="mavatar" data-profile="${attr(o.n)}" title="${attr(o.n)}" aria-label="${attr(o.n)}">${logoImg(o.n, "tlogo-hero")}</button>`
+  ).join("");
+  cap.textContent = `${owners.length} managers. ${SEASONS.length} seasons. One league.`;
 })();
 
 /* ---- champions ---- */
@@ -9422,7 +9511,9 @@ lazyBoard("records", function(){
   const label = document.getElementById("navtoggle-label");
   if(!nav || !btn || !menu) return;
 
-  const tabs = [...nav.querySelectorAll(".inner > a[href^='#']")];
+  /* :not(.brand) — the wordmark is a link home, not a section, and would
+     otherwise head the dropdown as a seventh entry called "South FFL". */
+  const tabs = [...nav.querySelectorAll(".inner > a[href^='#']:not(.brand)")];
   menu.innerHTML = tabs.map(a =>
     `<a href="${a.getAttribute("href")}">${a.innerHTML}</a>`).join("");
   const items = [...menu.querySelectorAll("a")];
@@ -9465,13 +9556,49 @@ lazyBoard("records", function(){
    scroll, on resize and whenever a section is toggled. On a phone the nav
    scrolls sideways, so the active tab is nudged into view too. */
 (function(){
-  const links = [...document.querySelectorAll('.topnav a[href^="#"]')];
+  /* :not(.brand) again: #hub is not a section the reader can be "inside", and
+     letting it into this list would mark the wordmark as the current tab. */
+  const links = [...document.querySelectorAll('.topnav a[href^="#"]:not(.brand)')];
   if(!links.length) return;
   const inner = document.querySelector(".topnav .inner");
   let current = null, queued = false;
 
+  function set(a){
+    if(a === current) return;
+    if(current){ current.classList.remove("here"); current.removeAttribute("aria-current"); }
+    current = a || null;
+    if(window.__navMenuSync) window.__navMenuSync(a ? a.getAttribute("href") : null);
+    if(a){
+      a.classList.add("here");
+      a.setAttribute("aria-current", "location");
+      if(inner && inner.scrollWidth > inner.clientWidth){
+        const r = a.getBoundingClientRect(), ir = inner.getBoundingClientRect();
+        if(r.left < ir.left + 8 || r.right > ir.right - 8)
+          inner.scrollTo({ left: a.offsetLeft - inner.clientWidth / 2 + a.offsetWidth / 2,
+                           behavior: "smooth" });
+      }
+    }
+  }
+
   function pick(){
     queued = false;
+    /* Ask the router first. Under ADR 0007 exactly one view is on screen and
+       the other five are display:none, so all six measure top:0 and the
+       geometry below cannot tell them apart — ties go to the first link, so it
+       answered "Season" for every view AND for the hub, where the reader is
+       inside no section at all. That was invisible while the tabs were hidden,
+       but it also drove the dropdown's label, which is why the button read
+       "Season" on the front page. body.dataset.route is the exact answer and
+       only the router sets it; falling through to the geometry when it is
+       absent keeps the ADR's promise that routing is an enhancement, not a
+       prerequisite. */
+    const route = document.body.dataset.route;
+    if(route !== undefined){
+      set(route && route !== "hub"
+        ? links.find(l => l.getAttribute("href") === "#" + route)
+        : null);
+      return;
+    }
     const line = (window.pageYOffset || document.documentElement.scrollTop || 0) + 96;
     let best = null;
     links.forEach(a => {
@@ -9492,26 +9619,15 @@ lazyBoard("records", function(){
       });
       if(seen.length) best = { a: seen[seen.length - 1] };
     }
-    const a = best ? best.a : null;
-    if(a === current) return;
-    if(current){ current.classList.remove("here"); current.removeAttribute("aria-current"); }
-    current = a;
-    if(window.__navMenuSync) window.__navMenuSync(a ? a.getAttribute("href") : null);
-    if(a){
-      a.classList.add("here");
-      a.setAttribute("aria-current", "location");
-      if(inner && inner.scrollWidth > inner.clientWidth){
-        const r = a.getBoundingClientRect(), ir = inner.getBoundingClientRect();
-        if(r.left < ir.left + 8 || r.right > ir.right - 8)
-          inner.scrollTo({ left: a.offsetLeft - inner.clientWidth / 2 + a.offsetWidth / 2,
-                           behavior: "smooth" });
-      }
-    }
+    set(best ? best.a : null);
   }
 
   const schedule = () => { if(!queued){ queued = true; requestAnimationFrame(pick); } };
   addEventListener("scroll", schedule, { passive: true });
   addEventListener("resize", schedule);
+  /* Changing route fires neither scroll nor resize, and the router applies the
+     new one on hashchange too — so run after it, not with it. */
+  addEventListener("hashchange", () => setTimeout(schedule, 0));
   document.querySelectorAll("details.sect, details.sub").forEach(d =>
     d.addEventListener("toggle", () => setTimeout(schedule, 60)));
   schedule();
