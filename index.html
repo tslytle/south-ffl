@@ -212,9 +212,17 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
 
 /* Keyboard users get a way past the nav straight to the first section;
    invisible until it takes focus, then it drops in above everything. */
+/* One focus ring, declared once, so anything focusable has one — including the
+   five nav rules that previously signalled focus with a background swap and no
+   ring at all. Specific rules later in the file still win where they must:
+   .skiplink and .backpill are both MINT-BACKGROUNDED, so a mint ring on them
+   would be invisible, and they keep their own. Those are exceptions with a
+   reason, which is the only kind worth having. */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .skiplink{position:fixed;top:-48px;left:12px;z-index:60;padding:10px 16px;border-radius:0 0 var(--r-sm) var(--r-sm);
   background:#2FDA87;color:#071019;font-weight:700;font-size:var(--t-small);text-decoration:none;
   transition:top .12s ease}
+/* gold, not mint: this element's own background is #2FDA87 */
 .skiplink:focus-visible{top:0;outline:2px solid #F7CD73;outline-offset:2px}
 
 /* nav — fixed deep navy in both themes: the app chrome, not a themed
@@ -656,7 +664,7 @@ td.neg{color:var(--neg)}
    still reads on the gradient. */
 .herohook{text-decoration:none;color:inherit;margin:20px 0 4px;cursor:pointer}
 .herohook:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
-.herohook:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.herohook:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .herohook .dnlabel{display:flex;align-items:center;gap:6px}
 .herohook .dnlabel .herogo{font-size:var(--t-micro);transition:transform .15s ease}
 .herohook:hover .herogo{transform:translateX(3px)}
@@ -965,7 +973,7 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .plate:last-child{border-bottom:0}
 .plate::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;
   background:var(--gold);opacity:0;transition:opacity .15s}
-.plate:hover{background:var(--raise)}
+.plate:hover{background:var(--raise);box-shadow:inset 0 0 0 1px var(--accent)}
 .plate:hover::before{opacity:.65}
 /* A repeat champion earns a permanent marker, not just a hover state — the
    same signal .rec-card uses for its rarest entries, applied here to a
@@ -1442,6 +1450,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   opacity:0;transition:opacity .18s ease,transform .18s ease}
 .backpill.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .backpill:hover{background:var(--accent-lt)}
+/* ink, not mint: the pill itself is mint-filled */
 .backpill:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .backpill .bparrow{font-size:var(--t-base);line-height:1}
 .backpill b{font-weight:700}
@@ -1466,7 +1475,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px 14px 16px;
   cursor:pointer;font:inherit;font-family:var(--sans);box-shadow:var(--sh);
   transition:box-shadow .2s ease,transform .2s ease,border-color .15s}
-.mgrcard:hover{box-shadow:var(--sh-lg);transform:translateY(-1px);border-color:var(--accent)}
+.mgrcard:hover{background:var(--raise);box-shadow:var(--sh-lg);transform:translateY(-1px);border-color:var(--accent)}
 .mgrcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mgrcard .mgravatar{width:78px;height:78px;border-radius:50%;overflow:hidden;display:flex;align-items:center;
   justify-content:center;background:var(--plate);box-shadow:inset 0 0 0 1px var(--plate-ring),0 2px 8px rgba(0,0,0,.10)}
@@ -1562,7 +1571,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 @media (max-width:479px){.awardswall{--cols:1}}
 .awardcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;
   display:flex;flex-direction:column;gap:10px;box-shadow:var(--sh);transition:box-shadow .2s ease,transform .2s ease}
-.awardcard:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
+.awardcard:hover{background:var(--raise);box-shadow:var(--sh-lg);transform:translateY(-1px);border-color:var(--accent)}
 .awardcard-hd{display:flex;align-items:center;gap:10px;min-width:0}
 .awardcard-hd .tlogo{width:32px;height:32px}
 .awardcard-hd b{font-size:var(--t-small);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1878,10 +1887,12 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   color:var(--faint);font-weight:700}
 .rec-split::after{order:2}
 .rec-card.rare{box-shadow:inset 3px 0 0 var(--gold),var(--sh)}
-.rec-card.rare:hover{box-shadow:inset 3px 0 0 var(--gold),var(--sh-lg)}
+
 .rec-card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:18px;box-shadow:var(--sh);
   border-top:3px solid var(--gold);transition:box-shadow .2s ease,transform .2s ease}
-.rec-card:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
+/* .rec-card is a div with cursor:auto — it was lifting on hover and promising
+   an interaction that does not exist. Mint means you can touch it; so does
+   movement. Neither belongs here. */
 .rec-card .rc-logo{position:absolute;top:16px;right:16px}
 .rec-card .rc-logo .tlogo{width:26px;height:26px}
 .rec-card h3{font-size:var(--t-tiny);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 28px 10px 0}
@@ -2710,7 +2721,8 @@ a.ucard.uhubdoor{display:flex;flex-direction:column;gap:2px}
    rather than as objects. --raise is the same fill the board panels use, so
    the hub and the views agree about what a panel is. */
 a.uhubdoor{background:var(--raise);padding:var(--sp-3) var(--sp-4)}
-a.uhubdoor:hover b{color:var(--accent)}
+a.uhubdoor:hover{background:var(--raise);border-color:var(--accent)}
+.uhubdoor:hover b{color:var(--accent)}
 /* auto-FILL, not auto-fit, and scoped to the hub rather than changed at source.
    `.ugrid` is general vocabulary — the hub is its only user today, but the next
    thing to reach for it may well want a lone card to stretch rather than sit
@@ -2944,7 +2956,7 @@ body[data-route]:not([data-route="hub"]) .uactive .subnav{
   background:none;border:0;padding:0 var(--sp-2) 0 0;cursor:pointer;font-family:inherit}
 body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 .uback:hover{text-decoration:underline}
-.uback:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.uback:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Printing has to ignore routing entirely, or the PDF is one screen of doors. */
 @media print{
   body[data-route] section.uroute,
