@@ -18,7 +18,24 @@
    {375px, 1265px} x {dark, light}. Toggle with `document.getElementById('themetoggle').click()`
    and resize the actual viewport — not the zoom.
 
-   ── Four traps, each of which produced a wrong answer before it was fixed ────
+   If you cannot resize the viewport — an automated browser often reports success
+   while `window.innerWidth` stays put, which silently makes every "phone" run a
+   desktop one — use a same-origin iframe instead. Media queries inside an iframe
+   evaluate against the IFRAME's width, so this is a real 375px measurement:
+
+       const f = document.createElement('iframe');
+       f.src = '/index.html'; f.width = 375; f.height = 740;
+       document.body.appendChild(f);
+       // then inject this file into f.contentDocument and call
+       // f.contentWindow.__runAll()
+
+   Whichever route you take, WAIT FOR THE STATE TO SETTLE before believing a
+   number. Theme toggles, routing and lazy boards all land a beat after the click,
+   and reads taken mid-flight have produced confident nonsense more than once —
+   a "dark" page measured while still light, a 217,391px document that collapses
+   to 2,282px once routing applies.
+
+   ── Six traps, each of which produced a wrong answer before it was fixed ─────
 
    1. ASSERT THE VIEWPORT. Below 761px the standings and ledger become a card
       layout with transparent cells, which is a genuinely different set of
@@ -59,17 +76,27 @@
       Treat any implausible extreme on a positioned element as suspect and check
       it by hand before chasing it.
 
-   ── The baseline, 2026-08-12, after the day's six commits ───────────────────
-       1265px dark  59,753 checked   0 failures
-       1265px light 59,753 checked   0 failures
-        375px dark  59,501 checked   0 failures   (396 before the fix in this commit)
-        375px light 59,501 checked   0 failures
-   Treat any non-zero as a regression, and check `gradientSkipped` (~245 dark,
-   ~231 light) hasn't moved much either.
+   ── The baseline, end of 2026-08-12, after the visual polish pass ───────────
+   Two passes per combination, profile-modal included:
+       2048px dark  23,842 checked   0 failures
+       2048px light 62,048 checked   0 failures
+        375px dark  23,578 checked   0 failures
+        375px light 61,784 checked   0 failures
 
-   NOTE: those counts predate the profile-modal sweep (trap 5) and the
-   color(srgb …) parser fix, so they are not directly comparable to what you will
-   measure now. The current bar is simply: zero, in all four combinations.
+   The dark/light counts differ by design, not by accident: light was measured
+   second in each pair, so it inherits every disclosure the dark run opened —
+   that is trap 2 doing its job, not a discrepancy to chase.
+
+   The bar is zero, in all four. Treat any non-zero as a regression.
+
+   `gradientSkipped` sits at 325 (2048px dark). Watch it as well as the failure
+   count: it is the number of elements this tool declined to judge, so a jump
+   means something started painting a gradient and quietly left the sweep's
+   coverage — the same class of blind spot as trap 5, arriving by a different
+   door.
+
+   These supersede the earlier 59,753 / 59,501 figures, which predate both the
+   profile-modal sweep and the color(srgb …) parser fix and are not comparable.
    ───────────────────────────────────────────────────────────────────────────── */
 
 window.__sweep = (opts) => {
@@ -158,10 +185,17 @@ window.__runAll = () => {
 
   /* TRAP 5: the manager profile modal is not on any route. It only exists once a
      card is clicked, so for its whole life it sat outside this sweep — and it was
-     holding real failures the entire time: the hero band is fixed dark in both
-     themes while its text read theme tokens, so in light the manager's own name
-     measured 1.09 against a required 3. Sweeping the routes and calling the page
-     clean was true and useless. Open one profile and sweep it too. */
+     holding two real failures the entire time: the season list's champion row wore
+     a --gold-soft fill that pushed its PF figure to 4.34, and .pfclose floated over
+     the scrim with a white tint under a white glyph. Sweeping the routes and
+     calling the page clean was true and useless. Open one profile and sweep it too.
+
+     Do NOT take that as licence to trust every number this reports inside the
+     modal. A hand-rolled scanner run here claimed eleven further failures — the
+     manager's own name at 1.09 — and every one was fiction: .pfheromain paints a
+     THEME-DEPENDENT gradient, so an ancestor walk lands on .pfhero's dark colour
+     underneath it. That is trap 4, and this tool already handles it by counting
+     those elements as gradientSkipped. The scanner that did not was the problem. */
   const card = document.querySelector('.mgrcard');
   if (card) {
     const people = document.querySelector('a[href="#people"]'); if (people) people.click();
