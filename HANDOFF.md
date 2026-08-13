@@ -118,14 +118,20 @@ That is how commit 3 proved the cheat sheet was structurally untouched.
 Per the pass's own rule: anything found mid-pass gets written here rather than fixed, because an
 unplanned change to a live site three weeks from draft night is an unverified one.
 
-- **`contrast-sweep.js` never sweeps the manager profile modal — and there are 28 AA failures
-  inside it.** The sweep walks the seven routes; the modal only exists after a manager card is
-  clicked, so it has never been in the population. Open a profile first and the count goes from
-  21,567 elements to 61,231, carrying **21 failures in dark** (`em`, the season-list PF figure,
-  4.35 against a required 4.5) and **7 in light** (`button.pfclose`, the `×`, at **1.06** — very
-  nearly invisible). Verified pre-existing by measuring the unmodified file the same way. This is
-  ADR 0005's trap 1 again in a new place: *a population the sweep cannot see is not a population
-  that passes.* The fix is small; the sweep's own coverage is the real defect.
+- ~~**28 AA failures in the profile modal**~~ — **fixed, and the sweep now covers that surface**
+  (trap 5). Two real defects, both pre-existing: the season list's champion row wore the same gold
+  tint the Champions board wore, pushing the PF figure to 4.34 (fixed with an edge, as ADR 0011
+  prescribes), and `.pfclose` floated over the 55% black scrim with its own white tint lightening
+  the ground to mid-grey, ~3.9 in light (fixed with a solid dark ground).
+
+  **The lesson is about the measuring, not the fixing.** Chasing this, an ad-hoc scanner written
+  in the console reported ~11 further failures in the hero band — the manager's name at "1.09" —
+  and acting on them made the page genuinely worse before a screenshot caught it. `.pfheromain`
+  paints a **theme-dependent `radial-gradient`**, so `backgroundColor` is transparent there and an
+  ancestor walk lands on `.pfhero`'s dark colour underneath. Every one of those failures was
+  fiction. **`contrast-sweep.js` already guards against exactly this — trap 4, `gradientSkipped`
+  — which is why the real tool reported 28 and the throwaway one reported 39.** Do not
+  re-implement the sweep in the console; run the sweep.
 - **`contrast-sweep.js` was mis-parsing every `color(srgb …)` background — fixed in commit 2.**
   `parse()` scraped all numbers from the string and then skipped one for `color()` values, on the
   assumption that the colour-space keyword contributed a number. `srgb` contains no digit, so

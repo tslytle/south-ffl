@@ -44,6 +44,21 @@
       `gradientSkipped` and excluded, NOT failed. If that count moves a lot,
       something started or stopped using a gradient and wants eyes on it.
 
+   5. A POPULATION THIS CANNOT REACH IS NOT A POPULATION THAT PASSES. Twice now
+      the honest-looking zero was just an unswept surface: first the phone card
+      layout (396 failures), then the manager profile modal, which is not on any
+      route and only exists after a card is clicked. It held real failures for its
+      whole life. `__runAll` opens one profile now — but the lesson generalises to
+      anything reached only by interaction. If you add such a surface, add it here.
+
+   6. `bgOf` WALKS DOM ANCESTORS, WHICH IS NOT ALWAYS WHAT IS PAINTED BEHIND. For
+      an absolutely- or fixed-positioned element the visual backdrop can be a
+      SIBLING. `.pfclose` floats over `.pfmask`, a 55% black scrim, but its DOM
+      parent is the light card — so this reported 1.06 where the real ratio was
+      ~3.9. Still a failure, so the fix was real, but the NUMBER was fiction.
+      Treat any implausible extreme on a positioned element as suspect and check
+      it by hand before chasing it.
+
    ── The baseline, 2026-08-12, after the day's six commits ───────────────────
        1265px dark  59,753 checked   0 failures
        1265px light 59,753 checked   0 failures
@@ -51,6 +66,10 @@
         375px light 59,501 checked   0 failures
    Treat any non-zero as a regression, and check `gradientSkipped` (~245 dark,
    ~231 light) hasn't moved much either.
+
+   NOTE: those counts predate the profile-modal sweep (trap 5) and the
+   color(srgb …) parser fix, so they are not directly comparable to what you will
+   measure now. The current bar is simply: zero, in all four combinations.
    ───────────────────────────────────────────────────────────────────────────── */
 
 window.__sweep = (opts) => {
@@ -136,6 +155,23 @@ window.__runAll = () => {
     document.querySelectorAll('section.uroute.uactive details').forEach(d => d.open = true);
     res.push(window.__sweep({ view: id }));
   });
+
+  /* TRAP 5: the manager profile modal is not on any route. It only exists once a
+     card is clicked, so for its whole life it sat outside this sweep — and it was
+     holding real failures the entire time: the hero band is fixed dark in both
+     themes while its text read theme tokens, so in light the manager's own name
+     measured 1.09 against a required 3. Sweeping the routes and calling the page
+     clean was true and useless. Open one profile and sweep it too. */
+  const card = document.querySelector('.mgrcard');
+  if (card) {
+    const people = document.querySelector('a[href="#people"]'); if (people) people.click();
+    const first = document.querySelector('.mgrcard');
+    if (first) {
+      first.click();
+      res.push(window.__sweep({ view: 'profile-modal' }));
+      const x = document.querySelector('.pfclose'); if (x) x.click();
+    }
+  }
   return {
     theme, w: innerWidth,                                  /* trap 1: always read w */
     checked: res.reduce((n, r) => n + r.checked, 0),

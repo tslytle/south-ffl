@@ -1646,11 +1646,21 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   box-shadow:0 24px 60px rgba(0,0,0,.3);transform:translateY(8px);transition:transform .22s}
 .pfwrap.on .pfcard{transform:none}
 .pfclose{position:absolute;top:18px;right:18px;z-index:5;width:34px;height:34px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-size:var(--t-lead);
+  /* It floats over .pfmask — a 55% black scrim in BOTH themes — not over the
+     card. Its own white tint lightened that ground to mid-grey, dragging a
+     white glyph to ~3.9 in light. A solid dark ground is theme-independent
+     and measures 16.9. */
+  border:1px solid rgba(255,255,255,.28);background:#151C30;color:#fff;font-size:var(--t-lead);
   line-height:1;cursor:pointer;transition:background .15s}
-.pfclose:hover{background:rgba(255,255,255,.25)}
+.pfclose:hover{background:#243352}
 
 /* hero */
+/* .pfhero is a FIXED dark band in both themes, but everything inside it read
+   --ink / --muted / --faint, which flip with the theme — so in light the band
+   stayed #151C30 while its text turned dark ink and the whole hero became
+   unreadable: the manager's name measured 1.09 against a required 3. Scoping
+   the text tokens to their dark values here fixes every descendant at once,
+   including ones added later, instead of patching eight rules that will drift. */
 .pfhero{position:relative;padding:30px 30px 24px;color:#fff;
   background:#151C30}
 .pfhero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
@@ -1707,7 +1717,12 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   color:var(--faint);margin-top:2px;padding:0 4px}
 .pfyr{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:12px;
   padding:9px 10px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line)}
-.pfyr.champ{background:var(--gold-soft);border-color:color-mix(in srgb, var(--gold) 35%, transparent)}
+/* The season list's champion row wore the same gold tint the Champions board
+   wore until commit 7, and ADR 0011 measures that fill costing ~1.7 ratio
+   points. It is what pushed the PF figure to 4.34 against a required 4.5 —
+   the tint WAS the failure, so the edge fixes the contrast at its root rather
+   than repainting the text on top of it. */
+.pfyr.champ{border-left:3px solid var(--gold)}
 .pfyr .y{font-family:var(--serif);font-size:var(--t-body);font-weight:600;color:var(--ink)}
 .pfyr .mid{min-width:0}
 .pfyr .tm{font-size:var(--t-small);font-weight:600;color:var(--ink);line-height:1.25}
