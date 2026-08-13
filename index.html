@@ -254,7 +254,12 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
 :root[data-theme="dark"] .ic-sun{opacity:0;transform:rotate(40deg) scale(.6)}
 :root[data-theme="dark"] .ic-moon{opacity:1;transform:rotate(0) scale(1)}
 
-.navtoggle{display:none;align-items:center;gap:8px;margin-left:auto;
+/* margin-left:auto here fought .brand's margin-right:auto: two competing
+   autos split the free space between them, which parked the theme toggle at
+   the midpoint of the bar — visually centred, attached to nothing, and it
+   stayed centred at every width. The brand's auto alone pushes both controls
+   to the right edge, where they read as one group. */
+.navtoggle{display:none;align-items:center;gap:8px;margin-left:var(--sp-2);
   font-family:var(--sans);font-size:var(--t-small);font-weight:600;color:#fff;
   background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:var(--r-sm);
   padding:8px 12px;cursor:pointer;white-space:nowrap;transition:background .15s}
