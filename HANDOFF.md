@@ -4,6 +4,64 @@ This picks up a `/grilling` (+ domain-modeling) session about improving the Sout
 (looks/functionality/data/data-analysis) ahead of draft night, **Monday Sept 7, 2026, 6:00 PM CDT**.
 See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first.
 
+---
+
+## WHERE THIS STANDS — end of 2026-08-12
+*Read this first. Everything below it is the record of how it got here; the detail sections are
+worth reading only for the area you are about to touch.*
+
+**The overhaul is finished and live.** `main` is at `52ad573`, working tree clean, and the served
+file is byte-identical to it (verified: both hash `4602f7e1…`, 2,605,511 bytes). Twenty-one commits
+landed on 2026-08-12.
+
+**What shipped that day, in order:** the two-column board header · hub doors sized by a real grid
+rather than by group population · the Manager Profiles rail and sparklines · pinned rank/owner
+columns on the standings · the contrast bar re-measured and **396 phone AA failures fixed** ·
+**dark as the default** (ADR 0011) · `check-cheat.py` and the ADP name-join fix · the
+`Bridesmaid`/`Contender` badges · and **every board deferred to first reveal**, taking script time
+from 578ms to 258ms.
+
+### Nothing is blocked. What is actually left:
+
+1. **Due before draft night — the only dated work.** Re-run within a few days of **Sept 7**, then
+   review with `git diff` before committing (ADR 0001/0002 pattern):
+   ```bash
+   python refresh-adp.py --dry-run && python refresh-tiers.py --dry-run && python check-cheat.py
+   ```
+   `check-cheat.py` is new and read-only; it exits 1 on any ERROR. Neither refresh script will ever
+   notice a player changed teams — that cross-check is what `check-cheat.py` automates, and it is
+   still no substitute for a live source on a trade.
+2. **The last ~50ms of load**, if anyone cares: the draft cheat sheet, the hub hero and figures
+   strip, and the two layout-reading helpers are all still eager, **on purpose**. The cheat sheet in
+   particular is the one surface used under time pressure on Sept 7 and never rehearsed — do not
+   defer it for ~17ms.
+3. **Two design questions never put to Justin** (carried from before): whether landing deep inside a
+   long routed view is acceptable (`#h2h` lands ~16,000px down History — correct, but a long
+   scroll), and whether "← All boards" is the right label and placement for the way home.
+4. **Long-tail data gaps**, all disclosed in the UI and none of them blocking: the 2020 Round 16 /
+   Pick 8 slot (player unrecoverable from ESPN), 2014-2017 K/D-ST still on the coarse basis, the two
+   corrupted 2014/2015 *Beasts of the Middle East* snapshots worked around in `DRAFT_TOTALS_2014_2017`
+   but not fixed in `ROSTERS.S` itself.
+
+### Two tools now live in the repo — use them rather than rebuilding
+- **`check-cheat.py`** — the `CHEAT` vs `DEPTH_TEAMS` cross-check, written down. Before draft night
+  and after any hand-edit of the sheet.
+- **`contrast-sweep.js`** — the ADR 0005 floor, measured. Paste into the console on a served copy
+  and run `__runAll()`. **Both widths, twice per width** — its header explains why, and the current
+  zero-failure baseline is in there.
+
+### The three things that would have shipped broken without measuring
+Worth internalising, because all three were invisible in the source and two were already live:
+- **396 AA failures on the phone.** ADR 0005's original sweep only ever ran at desktop width, and
+  the phone card layout is a *different population*, not a narrower one.
+- **A receiver with no ADP.** ESPN writes `Tre' Harris`, NFL.com and PFR write `Tre Harris`, and the
+  runtime lookup is by exact name — so he silently had no price and no value/reach tag.
+- **2014 and 2015 missing their playoff column** for years, because `seasonRows()` read playoff
+  totals before they were summed. Deferring the draw fixed it by accident; the restored column was
+  then verified against the raw game log *and* against Justin's memory.
+
+---
+
 ## Resolved this session
 - **Repo consolidation** (ADR 0001): this git repo is now the sole working copy. The old Mac
   working folder, `deploy/` folder, and transfer-zip copies are stale/archived — don't edit them.
@@ -443,8 +501,10 @@ minimum, and nothing in the markup or CSS looked wrong. `preview.html` is the AD
 mechanism (Pages has no branch previews here) and is deleted in each merge commit.
 
 ## Still open
-Carried forward across sessions — the first four were queued when the original session paused to
-move machines; the rest are from the PC session (2026-08-11/12):
+*Superseded by "WHERE THIS STANDS" at the top of this file, which is the current state. This list
+is the longer history of each thread — kept for the detail, not as the to-do.* Carried forward
+across sessions — the first four were queued when the original session paused to move machines;
+the rest are from the PC session (2026-08-11/12):
 - The 2020 Round 16 / Pick 8 mystery pick is effectively closed as "slot known (Revenge Tour's
   traded-away/orphaned pick), player unrecoverable from ESPN data" — revisit only if the user
   turns up a memory or record of who was actually drafted there.
@@ -539,7 +599,13 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    route (the hub) that displays none of it. Numbers above are a 20-core desktop; a phone will be
    several times slower in absolute terms but the proportions are what matter.
 
-5. **Deferring the draw work — scoped 2026-08-12, deliberately not attempted. Read this first.**
+5. ~~**Deferring the draw work.**~~ **Done 2026-08-12 — all of it.** Scoped first, then shipped in
+   four commits: the trades/steals/records dependency chain, the rest of the IIFE boards, the bare
+   `drawX()` calls, and the multi-line `innerHTML` assignments. **29 board functions across 17
+   sections; 578ms → 258ms of script time**, ~55%. See the four sections below for the mechanism,
+   the three hazards it hit, and the latent 2014/2015 bug it turned up. The scoping notes that
+   follow are kept because they are still the right map of where the time was:
+
    The cost is real but it is *diffuse*, and the code is not shaped for a cheap fix. Per-span, from
    the same instrumented copy (marks at 25 top-level statement boundaries through the block):
    `~91ms` NFL schedule + draft rankings + scoring rulebook + **trades**, `~63ms` rosters/matchups
@@ -557,11 +623,11 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    every board in the chain, or the record book renders against `[]` and `null` and silently loses
    rows. That is the whole reason this looks cheaper than it is.
 
-   **The design that would work**, if someone takes it on: split each IIFE into `computeX()` (runs
-   eagerly, cheap, populates the shared globals) and `renderX()` (registered in a `Map` keyed by
-   section id); have the router call the renderers for the view it is revealing; add `beforeprint`
-   and the Expand-all/PDF buttons as force-draw-everything triggers, and a `requestIdleCallback`
-   drain as a backstop so a missed trigger means "a moment late", never "never".
+   **The design that would work** — and what was actually built, minus the idle drain, which turned
+   out to be unnecessary once the router, `beforeprint` and Expand-all covered every path: register
+   each board in a `Map` keyed by section id and let the router draw the view it is revealing. The
+   compute/render split proved unnecessary too; a board that hands globals downward simply pulls its
+   own dependencies in (`records` calls `drawBoard("trades")` and `drawBoard("steals")`).
 
    **Two constraints not to trip over.** ADR 0007's note that "the router must run last, because a
    draw measures its tables while visible" applies to a *specific* few: the only layout reads in
@@ -569,11 +635,14 @@ The vocabulary, hub and router are merged and live. What's left, with the traps:
    `scrollWidth`/`clientWidth` for the swipe hints and scroll-spy). None of them are inside the
    heavy spans, so the expensive boards are safe to defer — but those four must stay eager or move
    to reveal-time, never to an idle drain while their view is `display:none`, or they measure zero.
-   And **the payoff is still unproven at the thing the user feels**: neither browser available here
-   reports `paint` entries (`document.visibilityState` is `hidden` in both the in-app pane and the
-   CDP-driven Chrome tab), so First Contentful Paint could not be measured. What is measured is
-   ~320ms of main-thread work before the parser reaches the end of the document. Get an FCP number
-   from a real visible browser before spending the refactor.
+   **On the payoff, which could not be measured from here and had to be asked for.** Neither browser
+   available to a session reports `paint` entries — `document.visibilityState` is `hidden` in both
+   the in-app pane and the CDP-driven Chrome tab — so First Contentful Paint is unmeasurable without
+   help. Justin ran it in a normal window, and the answer **changed the recommendation**: FCP is
+   **312ms** unthrottled and **420ms at 6x CPU**, i.e. never blocked, so ADR 0007's framing (and the
+   first pass of this one) was aimed at the wrong metric. `domInteractive` is **697ms / 2,990ms** —
+   ~2.6 seconds on a mid-range phone where the page is painted but the main thread is locked. That
+   is what the refactor bought back. **If you need a paint number, ask for it; do not infer one.**
 6. ~~**Copy gap:** owners falling back to `Journeyman · Still writing the story` alone.~~
    **Closed 2026-08-12 — `Bridesmaid · Lost the Alma Bowl`.** The handoff said four owners; it was
    **eight**, and they split cleanly: five are one- or two-season careers, for whom "still writing
@@ -1169,3 +1238,20 @@ where a phone is painted but frozen.
   scope, so a later `vm.runInContext('DRAFTS')` can read them. That is how the points-per-game
   bug, the draft-ranking correlations and the standings-overflow numbers were all measured rather
   than guessed.
+- **Boards are lazy now, which changes how you inspect them from the console.** A board's DOM does
+  not exist until its view is revealed, so `document.getElementById("awardswall").innerHTML` is
+  empty on the hub route and any audit that walks board DOM must call `drawAllBoards()` — or
+  `drawBoard("<section id>")` — first. `LAZY_BOARDS` lists what is still pending. This caught me
+  once: a badge check returned zero chips and looked like a bug.
+- **Publishing is a two-part question.** `git push` updating `origin/main` is not the same as
+  readers seeing it. Pages serves with `Cache-Control: max-age=600`, so a returning visitor can
+  hold a stale copy for ten minutes — and because the site routes client-side, **anyone with the
+  tab already open keeps their copy for the whole session no matter how much they click**. Confirm
+  a deploy by comparing bytes, not by trusting the push:
+  ```bash
+  curl -s "https://tslytle.github.io/south-ffl/?n=$(date +%s)" -o /tmp/live.html
+  git hash-object index.html /tmp/live.html   # two identical hashes = live is exactly HEAD
+  ```
+- **Don't wait on the Pages builds API** (it lags by ten minutes or more). Poll the served file for
+  a string unique to the commit instead — a fragment of a comment you just wrote works well:
+  `until curl -s <url> | grep -q "<marker>"; do sleep 15; done`, backgrounded.
