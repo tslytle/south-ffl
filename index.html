@@ -1028,12 +1028,22 @@ a.nflgame:hover .nflside b{color:var(--accent)}
 .nfltime{font-weight:600;color:var(--body);white-space:nowrap}
 .nflkick{color:var(--faint);white-space:nowrap}
 /* The broadcaster as a chip rather than a whisper: it is the one thing on the
-   row a reader actually plans around. Prime-time windows take the gold —
-   ceremony, per the role table, which is what a night game is. */
+   row a reader actually plans around. Ground and ink are set inline per
+   network — see NET_COLOR — so the chip wears the broadcaster's own primary
+   and the ink is chosen by measured luminance rather than by eye. The
+   declarations here are the fallback for a network with no colour on file,
+   and everything that does not depend on which network it is.
+
+   This replaced a gold "prime time" variant: with every chip now carrying its
+   network's own colour there is no ground left to spend on a second signal,
+   and the four prime-time windows ARE the four distinctive brands, so the
+   colour already says it. */
 .nflnet{display:inline-block;padding:1px 6px;border-radius:var(--r-sm);
   font-size:var(--t-micro);font-weight:700;letter-spacing:.03em;white-space:nowrap;
   background:var(--soft);color:var(--muted)}
-.nflnet.prime{background:var(--gold-soft);color:var(--gold-ink)}
+/* one team's season: kickoff and broadcaster share a line, so following a team
+   through eighteen weeks stays two lines of meta rather than three */
+.nflmetarow{display:flex;align-items:center;gap:5px}
 
 /* one team's season */
 .nflrun{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
@@ -4065,6 +4075,30 @@ function logoImg(owner, cls){
    coerce; this brings the main one in line. */
 const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 const attr = s => esc(s).replace(/"/g,"&quot;");
+
+/* Ink for a brand-coloured chip. The obvious version -- weight the raw
+   0-255 channels and split at half -- is wrong, because sRGB is gamma
+   encoded: a mid-bright colour reads far darker to the eye than its
+   byte value suggests. It put white on Miami teal (3.95:1), Cincinnati
+   and Denver orange (3.37:1), Carolina and Chargers blue (4.03 and
+   4.28:1) -- five clubs under AA when the other ink would have passed
+   every time. This decodes to real relative luminance and simply takes
+   whichever of the two inks contrasts more, so the choice can't be
+   wrong by construction.
+
+   Top level rather than inside the depth-chart closure, where it lived
+   until the schedule's network chips needed exactly the same judgement.
+   Two call sites, one implementation: a second hand-picked set of inks
+   is how the first five failures got in. */
+function textOn(hex){
+  const chan = i => {
+    const v = parseInt(hex.slice(1 + i*2, 3 + i*2), 16) / 255;
+    return v <= 0.03928 ? v/12.92 : Math.pow((v + 0.055)/1.055, 2.4);
+  };
+  const bg = 0.2126*chan(0) + 0.7152*chan(1) + 0.0722*chan(2);
+  const ratio = ink => (Math.max(ink, bg) + 0.05) / (Math.min(ink, bg) + 0.05);
+  return ratio(1) >= ratio(0.00304) ? "#fff" : "#0B0E11";   /* 0.00304 = #0B0E11 */
+}
 
 /* ── Position color key ──────────────────────────────────────────────
    One fixed color per position — QB/RB/WR/TE/K/D-ST — applied only
@@ -8097,25 +8131,6 @@ const NFL_LOGO = {"ARI":"data:image/webp;base64,UklGRjQOAABXRUJQVlA4TCgOAAAvR8AR
     }));
   }
 
-  /* Ink for a club-coloured chip. The obvious version -- weight the raw
-     0-255 channels and split at half -- is wrong, because sRGB is gamma
-     encoded: a mid-bright colour reads far darker to the eye than its
-     byte value suggests. It put white on Miami teal (3.95:1), Cincinnati
-     and Denver orange (3.37:1), Carolina and Chargers blue (4.03 and
-     4.28:1) -- five clubs under AA when the other ink would have passed
-     every time. This decodes to real relative luminance and simply takes
-     whichever of the two inks contrasts more, so the choice can't be
-     wrong by construction. */
-  function textOn(hex){
-    const chan = i => {
-      const v = parseInt(hex.slice(1 + i*2, 3 + i*2), 16) / 255;
-      return v <= 0.03928 ? v/12.92 : Math.pow((v + 0.055)/1.055, 2.4);
-    };
-    const bg = 0.2126*chan(0) + 0.7152*chan(1) + 0.0722*chan(2);
-    const ratio = ink => (Math.max(ink, bg) + 0.05) / (Math.min(ink, bg) + 0.05);
-    return ratio(1) >= ratio(0.00304) ? "#fff" : "#0B0E11";   /* 0.00304 = #0B0E11 */
-  }
-
   /* ── The starter line ────────────────────────────────────────────────
      How many of each position a 12-team league actually starts every
      week, straight off this league's own settings (LINEUP, and the
@@ -8274,14 +8289,45 @@ lazyBoard("nflsched", function(){
   };
   const gameClose = g => gameHref(g) ? "</a>" : "</div>";
 
-  /* Prime-time windows get a mark. Broadcast partner is already in the data;
-     these four are the ones people plan a week around. */
-  const PRIME = new Set(["NBC", "ESPN/ABC", "Prime Video", "Netflix"]);
 
   /* "Prime Video" was widening the time column enough to squeeze the longest
      team names, so the couple of long broadcasters get short forms */
   const NET = { "Prime Video": "Prime", "NFL Net": "NFLN", "ESPN/ABC": "ESPN/ABC" };
   const net = n => n ? (NET[n] || n) : "";
+
+  /* ── Who is carrying it ──────────────────────────────────────────────
+     Each broadcaster's chip in that broadcaster's own primary. Eight of
+     them cover the 2026 slate: FOX (94 games), CBS (93), NBC (19), Prime
+     Video (16), ESPN/ABC (9), ESPN (8), NFL Net (5), Netflix (4); 24
+     games have no broadcaster on file yet and get no chip at all.
+
+     Two pairs sit close on purpose rather than by accident — FOX and NFL
+     Network are both blue, ESPN and Netflix are both red — because those
+     are the brands' actual colours and inventing a distinguishing hue
+     would make the chip wrong in order to make it legible. The chip
+     still carries the network's NAME, so the colour is reinforcement and
+     never the only signal; nothing is lost if two of them rhyme.
+
+     Ink comes from textOn(), not from a hand-picked list. Half of these
+     grounds are bright enough to need dark ink and half are not, and
+     that is exactly the judgement the club-crest pills got wrong five
+     times before textOn() existed. */
+  const NET_COLOR = {
+    "FOX":         "#003D7C",  /* FOX Sports blue */
+    "CBS":         "#0072CE",  /* CBS Sports blue */
+    "NBC":         "#FCB711",  /* the peacock's first feather */
+    "Prime Video": "#00A8E1",  /* Amazon Prime Video cyan */
+    "ESPN":        "#D50A0A",  /* ESPN red */
+    "ESPN/ABC":    "#D50A0A",  /* the ABC simulcast rides ESPN's */
+    "NFL Net":     "#013369",  /* the shield's navy */
+    "Netflix":     "#E50914"   /* Netflix red */
+  };
+  const netChip = n => {
+    if(!n) return "";
+    const c = NET_COLOR[n];
+    const style = c ? ` style="background:${c};color:${textOn(c)}"` : "";
+    return `<span class="nflnet"${style}>${esc(net(n))}</span>`;
+  };
 
   const DAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const when = iso => {
@@ -8315,8 +8361,7 @@ lazyBoard("nflsched", function(){
         const label = `${NFL.names[g[1]] || g[1]} at ${NFL.names[g[2]] || g[2]}`;
         return gameOpen(g, "", label) +
           `${side(g[1], "away")}<span class="nflat">at</span>${side(g[2], "home")}
-          <span class="nflmeta"><span class="nfltime">${w.time}</span>${g[3]
-            ? `<span class="nflnet${PRIME.has(g[3]) ? " prime" : ""}">${net(g[3])}</span>` : ""}</span>` +
+          <span class="nflmeta"><span class="nfltime">${w.time}</span>${netChip(g[3])}</span>` +
           gameClose(g);
       }).join("")}</div></div>`).join("") +
       (byes.length ? `<div class="byerow"><span class="byelabel">On bye</span>${byes.map(t =>
@@ -8334,7 +8379,8 @@ lazyBoard("nflsched", function(){
         `<span class="nflwk">${wk}</span>${crest(other)}
         <span class="nflside" style="flex:1"><span class="nflnm">
           <b><span class="nflvs">${home ? "vs" : "at"}</span>${NFL.names[other] || other}</b></span></span>
-        <span class="nflmeta"><span class="nfltime">${w.day} ${w.date}</span><span class="nflkick">${w.time}</span></span>` +
+        <span class="nflmeta"><span class="nfltime">${w.day} ${w.date}</span>
+          <span class="nflmetarow"><span class="nflkick">${w.time}</span>${netChip(g[3])}</span></span>` +
         gameClose(g);
     }).join("");
     panel.innerHTML = `<div class="nfldaycard"><div class="nflrun">${rows}</div></div>`;
