@@ -11,9 +11,15 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 worth reading only for the area you are about to touch.*
 
 **The overhaul is finished and live, and so is the visual polish pass on top of it.** `main` is at
-`2623976`. Twenty-one commits landed on 2026-08-12 for the overhaul; ten more (nine code, one
-dropped) landed the same day for the polish pass — see *The visual polish pass* below, and
-ADRs 0012 / 0013 / 0014 for what it decided.
+`af26187`, working tree clean, and **the served file is byte-identical to it** — 2,615,924 bytes,
+sha256 `d752e128a230c8b1`, checked against the live URL. Twenty-one commits landed on 2026-08-12
+for the overhaul; sixteen more the same day for the polish pass and its follow-on — see *The
+visual polish pass* below, and ADRs 0012 / 0013 / 0014 for what it decided.
+
+**The floor now measured on every commit:** `contrast-sweep.js` at **0 failures** in all four
+combinations — {375px, 2048px} × {dark, light} — *including the profile modal*, which the sweep
+reached for the first time this session. Load timing 151ms → 150ms against the pre-pass file.
+Total cost of the whole pass: **+10,413 bytes** against a +15KB ceiling.
 
 **What shipped that day, in order:** the two-column board header · hub doors sized by a real grid
 rather than by group population · the Manager Profiles rail and sparklines · pinned rank/owner
@@ -54,13 +60,41 @@ from 578ms to 258ms.
    Pick 8 slot (player unrecoverable from ESPN), 2014-2017 K/D-ST still on the coarse basis, the two
    corrupted 2014/2015 *Beasts of the Middle East* snapshots worked around in `DRAFT_TOTALS_2014_2017`
    but not fixed in `ROSTERS.S` itself.
+5. **Three things the visual pass left open on purpose**, none of them code the next session can
+   simply fix:
+   - **Leo Thaweechok's black "TK" logo.** Legible now — it has a plate and a ring where it had
+     neither — but still the weakest mark on the page, because a dark logo on a dark plate is a
+     losing hand. **Only a re-cut asset fixes it.** Drop a light version into `OWNER_LOGO` and
+     nothing else needs to change.
+   - **Rules table at 375px**: five cells overflow their content box by up to 6px. Text wraps,
+     nothing clips, no page-level scroll. Cosmetic, measured, left alone.
+   - **`--pos` and `--accent` are the same colour in both themes.** An accepted constraint, not an
+     oversight — see ADR 0012 for why shifting it is worse than living with it, and for the one
+     condition that would break it.
 
-### Two tools now live in the repo — use them rather than rebuilding
+### Two tools and one check — use them rather than rebuilding
 - **`check-cheat.py`** — the `CHEAT` vs `DEPTH_TEAMS` cross-check, written down. Before draft night
   and after any hand-edit of the sheet.
 - **`contrast-sweep.js`** — the ADR 0005 floor, measured. Paste into the console on a served copy
   and run `__runAll()`. **Both widths, twice per width** — its header explains why, and the current
-  zero-failure baseline is in there.
+  zero-failure baseline is in there. It now sweeps the profile modal too, and carries **six**
+  documented traps, two of which were walked into on 2026-08-12. Two limits it cannot cover on its
+  own: **`::placeholder`** (it reads element text nodes; an `<input>` has none) and **anything
+  reached only by interaction** that nobody has added to `__runAll`.
+
+**One check worth re-running after any large CSS edit** — it found two dead rules on 2026-08-12,
+one of them a whole feature. Scan for a declaration inside a media query that a *later*
+unconditional rule overrides at the same specificity; such a rule can never apply, and both
+versions read correctly in isolation, which is why it survives review:
+
+```
+for each rule: record (selector, property, source offset, inside-media?)
+flag where a media-query declaration is followed, later in the file,
+by an unconditional declaration of the same property on the same selector
+```
+
+Across the whole stylesheet there were exactly two hits: `.searchbox{display}` — the site search,
+invisible at every width since it was written — and `.rrow{grid-template-columns}`, deleted.
 
 ### The three things that would have shipped broken without measuring
 Worth internalising, because all three were invisible in the source and two were already live:
@@ -98,6 +132,19 @@ surface), **CSS-only, zero added JS, ~+15KB ceiling**. Decisions land in ADR 001
 | 9 | `fb02702` | Centred remainders — but only where a full row exists above them. |
 | 10 | `2623976` | One focus ring for everything; hover added where missing, removed where it lied. |
 
+**Then six more, after the pass, on the same day.** Five of them are bugs the pass surfaced but
+did not itself create — the pattern worth noticing is that each was found by pulling a thread
+rather than by audit:
+
+| commit | what it was |
+|---|---|
+| `5f73ab8` | The profile modal's two real AA failures, **and** `__runAll` extended to sweep it. |
+| `e976d66` | The awards wall: every badge was one gold pill, so gold announced the *absence* of a ring. |
+| `5be6b93` | "← All sections"; the deep-landing worry measured and retired as stale. |
+| `2a57e38` | `contrast-sweep.js`'s own trap 5 comment asserted a number this tool exists to disprove. |
+| `883743e` | **The site search was dead at every width** — a finished feature nobody could reach. |
+| `af26187` | The last media-query rule killed by a later unconditional one, found by scanning for the shape. |
+
 Every commit verified in all four combinations — {375px, 2048px} × {dark, light} — at **0
 contrast failures**, with the draft cheat sheet proved structurally identical each time.
 Load timing measured against the pre-pass file at three runs each: **151ms → 150ms**. Byte
@@ -124,10 +171,19 @@ Same trick does before/after comparison: point one iframe at `/index.html` and a
 of the previous commit (`git show HEAD:index.html > _head_tmp.html`), drive both, diff the results.
 That is how commit 3 proved the cheat sheet was structurally untouched.
 
-### Found while verifying, deliberately NOT fixed
+### Found while verifying — what it was, and what happened to it
 
-Per the pass's own rule: anything found mid-pass gets written here rather than fixed, because an
-unplanned change to a live site three weeks from draft night is an unverified one.
+The pass's rule was: anything found mid-pass gets written down rather than fixed, because an
+unplanned change to a live site three weeks from draft night is an unverified one. That held for
+the duration of the pass; several entries were fixed afterwards, each with its own verified
+commit.
+
+**These entries are a mix, so read the body of each rather than trusting the heading.** Three
+kinds are here: things fixed later (each says so, and several record a wrong diagnosis before the
+right one — usually the more useful half), accepted constraints that are decided rather than
+outstanding (`--pos`/`--accent`, the dark avatar plate, gold and rust keeping their encoding
+work), and genuinely open items. **For what is actually still open, use item 5 of *What is
+actually left* at the top of this file** — it is the short list, and it is maintained.
 
 - ~~**28 AA failures in the profile modal**~~ — **fixed, and the sweep now covers that surface**
   (trap 5). Two real defects, both pre-existing: the season list's champion row wore the same gold
@@ -192,7 +248,11 @@ unplanned change to a live site three weeks from draft night is an unverified on
   an `<input>` has none, so `::placeholder` is outside its population entirely — check
   placeholders by hand.
 - ~~**There is a hidden site-wide search in the top nav**~~ (`#searchbox`, `display:none`, holding
-  `#searchinput`). Anything done to the nav in commit 8 has to account for it.
+  `#searchinput`). Anything done to the nav in commit 8 has to account for it. — *This was the
+  original sighting, written in commit 1 and left as a curiosity for seven commits. It was noted,
+  worked around in the nav commit, and never asked the obvious follow-up question: why is a
+  finished feature set to `display:none`? Worth remembering as the cheapest kind of miss —
+  the evidence was in hand the whole time and only wanted one more question.*
 
 ---
 
