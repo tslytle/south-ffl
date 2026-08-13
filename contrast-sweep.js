@@ -35,7 +35,7 @@
    a "dark" page measured while still light, a 217,391px document that collapses
    to 2,282px once routing applies.
 
-   ── Six traps, each of which produced a wrong answer before it was fixed ─────
+   ── Seven traps, each of which produced a wrong answer before it was fixed ───
 
    1. ASSERT THE VIEWPORT. Below 761px the standings and ledger become a card
       layout with transparent cells, which is a genuinely different set of
@@ -75,6 +75,17 @@
       ~3.9. Still a failure, so the fix was real, but the NUMBER was fiction.
       Treat any implausible extreme on a positioned element as suspect and check
       it by hand before chasing it.
+
+   7. PSEUDO-ELEMENTS ARE NOT IN THIS POPULATION AT ALL, and two of them were
+      failing. The scan reads element TEXT NODES; `::before`, `::after` and
+      `::placeholder` have none, so nothing they render is ever measured. The
+      whole file contains exactly two that draw text and set a colour, and both
+      were below AA when finally checked by hand: `#searchinput::placeholder`
+      (4.17) and the standings/ledger card stat labels, `td[data-l]::before`
+      (3.93 in dark). Both fixed 2026-08-12. **If you add a pseudo-element that
+      renders text, measure it by hand — this tool will report zero either way.**
+      The enumerating query is: rules whose selector matches `::(before|after|
+      placeholder)` and whose body sets `color` with a non-empty `content`.
 
    ── The baseline, end of 2026-08-12, after the visual polish pass ───────────
    Two passes per combination, profile-modal included:

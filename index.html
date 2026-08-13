@@ -2437,8 +2437,12 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
      wrapping label ("Reg season") doesn't push its value below the ones
      beside it — every figure in the row sits on the same line. */
   .stand td[data-l]::before,.ledger tbody td[data-l]::before{content:attr(data-l);display:flex;align-items:flex-start;
-    min-height:2.4em;font-size:var(--t-micro);
-    font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:1px}
+    /* One step up the scale, 11px -> 12.5px. These are the only labels on the card
+     layout that name what a number IS, and the card has the room the desktop
+     table does not. min-height stays in em so the reserved space tracks the
+     size rather than needing its own adjustment. */
+    min-height:2.4em;font-size:var(--t-fine);
+    font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
   .stand td[data-l=""]::before,.ledger td[data-l=""]::before{content:none}
   /* identity block: logo left, name/team/tag/buttons stacked beside it */
   .stand td.l{display:block}
