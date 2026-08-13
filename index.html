@@ -3176,7 +3176,13 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <a href="#ahead">Season</a><a href="#people">Managers</a><a href="#history">History</a><a href="#building">Drafts</a><a href="#records">Records</a><a href="#rules">Rules</a>
   <div class="navtools">
     <div class="searchbox" id="searchbox" role="search">
-      <input type="text" id="searchinput" placeholder="Search managers, teams, seasons&hellip;" autocomplete="off" aria-label="Search the archive" aria-expanded="false" aria-controls="searchresults" role="combobox">
+      <!-- "Search", not "Search managers, teams, seasons…": the long form was
+           clipped mid-word at every width the field actually renders at, so it
+           read "Search managers, teams, se" — a truncation, not a hint. The
+           full scope still reaches a screen reader through aria-label, and a
+           sighted reader discovers it by typing, which is where the listbox
+           shows managers, team names and seasons by kind anyway. -->
+      <input type="text" id="searchinput" placeholder="Search" autocomplete="off" aria-label="Search managers, teams and seasons" aria-expanded="false" aria-controls="searchresults" role="combobox">
       <kbd class="searchkey" aria-hidden="true">/</kbd>
       <div class="searchresults" id="searchresults" role="listbox" hidden></div>
     </div>
