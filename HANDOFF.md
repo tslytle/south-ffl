@@ -36,9 +36,20 @@ from 578ms to 258ms.
    strip, and the two layout-reading helpers are all still eager, **on purpose**. The cheat sheet in
    particular is the one surface used under time pressure on Sept 7 and never rehearsed — do not
    defer it for ~17ms.
-3. **Two design questions never put to Justin** (carried from before): whether landing deep inside a
-   long routed view is acceptable (`#h2h` lands ~16,000px down History — correct, but a long
-   scroll), and whether "← All boards" is the right label and placement for the way home.
+3. ~~**Two design questions never put to Justin**~~ — **both answered and closed 2026-08-12.**
+   - *The way home* is now **"← All sections"**, matching the nav toggle's own word. ADR 0007 put
+     navigation in the functional register; "All boards" was the editorial voice leaking into a
+     nav control.
+   - *Deep landing* needed no change, and **the concern itself was stale**: it describes the
+     pre-ADR-0007 accordion, when every section shared one enormous document. Measured on the
+     routed app, `#h2h` lands with the board's own masthead at the top of the screen — viewport
+     y=66, just under the 53px nav — from a cold load *and* from an in-app click, in a document
+     **2,282px** tall with `scrollY 733`. There is no 16,000px scroll to be deep inside any more.
+     **Watch out for one measuring trap here:** read those numbers too early in the load and you
+     will see `scrollY 214,182` in a 217,391px document, because the anchor jump happens before
+     routing collapses the page to one view. That is a transient, not what a reader gets — the
+     same "wait for the state to settle" mistake as the mid-toggle theme reads elsewhere in this
+     file.
 4. **Long-tail data gaps**, all disclosed in the UI and none of them blocking: the 2020 Round 16 /
    Pick 8 slot (player unrecoverable from ESPN), 2014-2017 K/D-ST still on the coarse basis, the two
    corrupted 2014/2015 *Beasts of the Middle East* snapshots worked around in `DRAFT_TOTALS_2014_2017`
