@@ -88,10 +88,24 @@ unplanned change to a live site three weeks from draft night is an unverified on
   nearly invisible). Verified pre-existing by measuring the unmodified file the same way. This is
   ADR 0005's trap 1 again in a new place: *a population the sweep cannot see is not a population
   that passes.* The fix is small; the sweep's own coverage is the real defect.
-- **`--pos` and `--accent` are the same colour in dark** (`#2FDA87`). ADR 0012's rule that mint
-  means interaction and nothing else cannot fully hold while positive-delta green is
-  indistinguishable from it. Commit 2 has to either shift `--pos` or accept that sign colour and
-  interaction colour collide wherever they meet.
+- **`contrast-sweep.js` was mis-parsing every `color(srgb …)` background — fixed in commit 2.**
+  `parse()` scraped all numbers from the string and then skipped one for `color()` values, on the
+  assumption that the colour-space keyword contributed a number. `srgb` contains no digit, so
+  nothing was skipped: `r` took `g`'s value, `b` took the **alpha**, and alpha fell back to 1.
+  The `.recjump` bar — `color(srgb .07 .09 .157 / .92)`, and the very element trap 3 was written
+  for — measured as a saturated `rgb(24,40,235)`. Every ratio computed against it was fiction,
+  and it produced one phantom failure in commit 2 (`.rlab` at a claimed 2.90; the true ratio is
+  ~5.6). The fix removes the keyword instead of counting past it, which also handles a space
+  whose name *does* end in a digit (`display-p3`) — the case that probably motivated the original
+  offset. **Consequence: any zero-failure baseline recorded before 2026-08-12 was measured with
+  this bug and is only trustworthy for elements over plain `rgb()`/`rgba()` backgrounds.**
+- **`--pos` and `--accent` are the same colour in dark** (`#2FDA87`) — and in light
+  (`#0C6B4C` vs `#0B6B4E`). Commit 2 decided **not** to shift it: every light-theme green far
+  enough from the accent to be distinguishable has to leave green altogether (teal `#146B6B`,
+  olive `#3F6B22`), which costs more than it buys on a page whose complaint is clashing colour.
+  ADR 0012 records the shared value as an accepted constraint, disambiguated by shape: interaction
+  mint always sits on a control, and bare numeric text is never a control. The rule holds because
+  commit 2 removed mint from all 37 static-text rules — it would not have held before.
 - **Gold and rust are already doing encoding work.** The rules-change chips use blue for
   format, gold for scoring and rust for the draft — a three-family category encoding, documented
   in a comment near `lazyBoard("rules", …)`. So "gold = ceremony only" is not true of the file as

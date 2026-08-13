@@ -56,13 +56,21 @@
 window.__sweep = (opts) => {
   const parse = c => {
     if (!c) return null;
-    const m = c.match(/[\d.]+/g);
-    if (!m) return null;
     const isColorFn = /^color\(/i.test(c.trim());   /* color(srgb r g b / a) — 0..1 */
+    /* Drop the colour-space keyword before scraping numbers. Scraping the whole
+       string and then skipping one number is what the first version did, and it
+       was wrong twice over: `srgb` contains no digit, so nothing was there to
+       skip — r took g's value, b took the ALPHA, and alpha fell back to 1. The
+       .recjump bar, at color(srgb .07 .09 .157 / .92), measured as a saturated
+       rgb(24,40,235); every ratio computed against it was fiction. (Skipping one
+       would have been right only for a space whose name ends in a digit, e.g.
+       display-p3 — hence the trap. Removing the keyword handles both.) */
+    const body = isColorFn ? c.trim().replace(/^color\(\s*[\w-]+/i, '') : c;
+    const m = body.match(/[\d.]+/g);
+    if (!m || m.length < 3) return null;
     const k = isColorFn ? 255 : 1;
-    return { r: +m[isColorFn ? 1 : 0] * k, g: +m[isColorFn ? 2 : 1] * k,
-             b: +m[isColorFn ? 3 : 2] * k,
-             a: m.length > (isColorFn ? 4 : 3) ? +m[isColorFn ? 4 : 3] : 1 };
+    return { r: +m[0] * k, g: +m[1] * k, b: +m[2] * k,
+             a: m.length > 3 ? +m[3] : 1 };
   };
   const over = (f, b) => ({ r: f.r * f.a + b.r * (1 - f.a), g: f.g * f.a + b.g * (1 - f.a),
                             b: f.b * f.a + b.b * (1 - f.a), a: 1 });
