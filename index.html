@@ -965,9 +965,14 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 /* A repeat champion earns a permanent marker, not just a hover state — the
    same signal .rec-card uses for its rarest entries, applied here to a
    second (or third, or...) Alma. */
-.plate.repeat{background:var(--gold-tint)}
-.plate.repeat::before{opacity:.6}
-.plate.repeat:hover{background:var(--gold-soft)}
+/* A repeat title is marked with an edge, not a fill. ADR 0011 measured what a
+   gold tint costs on the dark ground — 467 desktop and 396 phone elements
+   below AA — and concluded: mark rows with an edge, a border or a chip. This
+   row was still wearing the fill. The edge carries it alone now, at full
+   strength rather than .6, so it reads as clearly as the tint did. */
+.plate.repeat::before{opacity:1}
+
+
 .plate .yr{font-family:var(--serif);font-size:var(--t-lead);font-weight:600;color:var(--gold-ink);
   letter-spacing:-.01em;font-variant-numeric:lining-nums tabular-nums}
 .plate .who{font-family:var(--serif);font-size:var(--t-h4);font-weight:600;color:var(--ink);letter-spacing:-.01em}
@@ -3151,7 +3156,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="mgrgrid" id="mgrgrid"></div>
 </div></details></section>
 <section id="board"><details class="sub"><summary class="subhead"><div><p class="eyebrow">The honor roll</p><h3 class="sec2">Champions</h3>
-  <p class="subnote">Every winner of The Alma.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every winner of The Alma. A gold edge marks a title that was not that manager&rsquo;s first.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div class="card" id="champboard"></div>
 </div></details></section>
 <section id="awards"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every badge, everyone</p><h3 class="sec2">Awards Wall</h3>
