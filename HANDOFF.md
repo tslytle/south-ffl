@@ -75,6 +75,27 @@ Order, each its own commit: 1 blue tokens → 2 colour role table → 3 type sca
 masthead → 5 avatar plates → 6 trophy SVG → 7 champion edge and striping → 8 nav grouping →
 9 centred orphan rows → 10 hover and focus states.
 
+### Sweeping at phone width without a resizable browser
+
+`contrast-sweep.js` needs a real 375px viewport, and neither the in-app browser pane nor Chrome's
+`resize_window` could give one in this session — `resize_window` reports success while
+`window.innerWidth` stays at the desktop value, so every "phone" measurement was silently a
+desktop one. **A same-origin iframe solves it: media queries inside an iframe evaluate against the
+iframe's own width.** Serve the file (`python -m http.server 8765`), open it, then from the
+console:
+
+```js
+const f = document.createElement('iframe');
+f.src = '/index.html'; f.width = 375; f.height = 740;
+document.body.appendChild(f);
+// f.contentWindow.innerWidth === 374, and (max-width:760px) matches inside it.
+// Inject contrast-sweep.js into f.contentDocument and call f.contentWindow.__runAll().
+```
+
+Same trick does before/after comparison: point one iframe at `/index.html` and another at a copy
+of the previous commit (`git show HEAD:index.html > _head_tmp.html`), drive both, diff the results.
+That is how commit 3 proved the cheat sheet was structurally untouched.
+
 ### Found while verifying, deliberately NOT fixed
 
 Per the pass's own rule: anything found mid-pass gets written here rather than fixed, because an

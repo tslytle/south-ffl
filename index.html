@@ -91,17 +91,25 @@
      restraint — headlines and big figures only, never body copy. */
   --serif:'Oswald',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
   --mono:ui-monospace,'SF Mono','JetBrains Mono',Menlo,Consolas,'Liberation Mono',monospace;
-    /* type scale — every size in the document comes from these ten steps */
-  --t-micro:9px;    /* eyebrows, pills, the smallest labels */
-  --t-tiny:10px;    /* table headings, badges */
-  --t-fine:11px;    /* captions, sub-values under a figure */
+    /* type scale. The old one put SIX steps inside six pixels — 9/10/11/12.5/
+     13.5/15 — which is a continuum, not a scale: nothing on a dense surface
+     could read as deliberately larger than its neighbour, only as slightly
+     off. Re-cut onto eight real values at a ~1.2 ratio (11 12.5 15 18 22 27
+     33 44). Names outnumber values on purpose: micro and tiny share 11, fine
+     and small share 12.5, base and body share 15, because the pairs were never
+     distinguishable and the names still carry different intent. 9px is gone —
+     it was below what a phone can comfortably read, which the old
+     max-width:760px override already conceded by nudging it to 10.5. */
+  --t-micro:11px;   /* eyebrows, pills, the smallest labels */
+  --t-tiny:11px;    /* table headings, badges */
+  --t-fine:12.5px;  /* captions, sub-values under a figure */
   --t-small:12.5px; /* secondary text, notes */
-  --t-base:13.5px;  /* table body, dense lists */
+  --t-base:15px;    /* table body, dense lists */
   --t-body:15px;    /* prose */
-  --t-lead:17px;    /* lead figures, small headings */
-  --t-h4:20px;      /* card headings */
-  --t-h3:25px;      /* panel headings */
-  --t-h2:30px;      /* section titles */
+  --t-lead:18px;    /* lead figures, small headings */
+  --t-h4:22px;      /* card headings */
+  --t-h3:27px;      /* panel headings */
+  --t-h2:33px;      /* section titles */
   /* radius scale — every rounded corner in the document comes from these
      four steps: sm for chips/inputs/small buttons, md for cards and rows,
      lg for feature panels, pill for anything fully round */
@@ -344,12 +352,12 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
 .searchresults .sr-group{font-size:var(--t-micro);font-weight:700;letter-spacing:.12em;text-transform:uppercase;
   color:rgba(255,255,255,.4);padding:9px 9px 4px}
 .searchresults .sr-item{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
-  width:100%;text-align:left;font:inherit;font-size:13.5px;color:rgba(255,255,255,.86);
+  width:100%;text-align:left;font:inherit;font-size:var(--t-base);color:rgba(255,255,255,.86);
   background:none;border:0;border-radius:var(--r-sm);padding:9px 9px;cursor:pointer}
 .searchresults .sr-item b{font-weight:600}
-.searchresults .sr-item span{flex:none;font-size:11px;color:rgba(255,255,255,.45)}
+.searchresults .sr-item span{flex:none;font-size:var(--t-micro);color:rgba(255,255,255,.45)}
 .searchresults .sr-item:hover,.searchresults .sr-item.active{background:rgba(255,255,255,.10);color:#fff}
-.searchresults .sr-empty{padding:10px 9px;font-size:12.5px;color:rgba(255,255,255,.5)}
+.searchresults .sr-empty{padding:10px 9px;font-size:var(--t-fine);color:rgba(255,255,255,.5)}
 
 /* cards + masthead */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;box-shadow:var(--sh);transition:box-shadow .2s ease,transform .2s ease}
@@ -631,7 +639,7 @@ td.neg{color:var(--neg)}
 .herohook:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
 .herohook:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .herohook .dnlabel{display:flex;align-items:center;gap:6px}
-.herohook .dnlabel .herogo{font-size:11px;transition:transform .15s ease}
+.herohook .dnlabel .herogo{font-size:var(--t-micro);transition:transform .15s ease}
 .herohook:hover .herogo{transform:translateX(3px)}
 
 /* Sub-headings and notes reuse .ssh and .ssnote from Start & Sit so the
@@ -711,9 +719,9 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .drrow .drname{flex:1;color:var(--ink);text-decoration:none}
 .drrow .drname:hover{text-decoration:underline}
 .drrow .drname.empty{color:var(--faint);pointer-events:none}
-.drrow .drteamabbr{color:var(--faint);font-size:10px}
+.drrow .drteamabbr{color:var(--faint);font-size:var(--t-micro)}
 .drrow .drrank{color:var(--muted);font-weight:700;font-size:var(--t-tiny);width:28px;text-align:right}
-.drrow .dradp{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+.drrow .dradp{flex:0 0 auto;display:inline-flex;align-items:center;gap:4px;font-size:var(--t-micro);font-weight:700;
   color:var(--muted);font-variant-numeric:tabular-nums}
 .drrow .dradelta{padding:1px 5px;border-radius:var(--r-sm);font-size:var(--t-micro);letter-spacing:.02em}
 .drrow .dradelta-value{color:var(--pos);background:var(--accent-soft)}
@@ -2545,7 +2553,6 @@ a,button,summary,select,.pick,.tbtn,.sslrow,.chip,.dpicks summary{touch-action:m
    phone held at arm's length. Nudged to 10.5px below the tablet breakpoint;
    every one of these sits in a flexible box, so nothing reflows. */
 @media (max-width:760px){
-  :root{--t-micro:10.5px}
   .tpos{width:34px}
 }
 
@@ -2595,7 +2602,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
                  no spacing scale, so padding was ad hoc per surface.
    --u-sh-*      elevation for a card-based app language. */
 :root{
-  --t-hero:40px;
+  --t-hero:44px;
   --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
   --u-sh-card:var(--sh);
   --u-sh-pop:var(--sh-lg);
