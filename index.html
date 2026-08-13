@@ -1555,7 +1555,11 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
    league's hardware in a glance rather than seventeen clicks. Badges
    here are pills, not tiles: a card can carry up to four of them and
    still stay compact next to sixteen others. */
-.awardswall{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.awardswall{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;--cols:4}
+.awardswall > *{flex:0 0 calc((100% - (var(--cols) - 1) * 14px) / var(--cols))}
+@media (max-width:1010px){.awardswall{--cols:3}}
+@media (max-width:759px){.awardswall{--cols:2}}
+@media (max-width:479px){.awardswall{--cols:1}}
 .awardcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;
   display:flex;flex-direction:column;gap:10px;box-shadow:var(--sh);transition:box-shadow .2s ease,transform .2s ease}
 .awardcard:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
@@ -2246,7 +2250,10 @@ footer{margin-top:52px;padding:26px 2px 64px;border-top:1px solid var(--line);po
 footer::before{content:none}
 footer p{margin:0;max-width:none}
 footer .footeyebrow{font-family:var(--sans);font-size:var(--t-tiny);font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:0 0 16px}
-footer .footnotes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px 28px}
+footer .footnotes{display:flex;flex-wrap:wrap;gap:16px 28px;justify-content:center;--cols:3}
+footer .footnotes > *{flex:0 0 calc((100% - (var(--cols) - 1) * 28px) / var(--cols))}
+@media (max-width:889px){footer .footnotes{--cols:2}}
+@media (max-width:569px){footer .footnotes{--cols:1}}
 footer .footnote{padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md)}
 footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:.05em;color:var(--muted);margin-bottom:5px}
 
@@ -2721,7 +2728,7 @@ a.uhubdoor:hover b{color:var(--accent)}
    four across, groups are labels over that field rather than their own layouts,
    and a short group ends in honest empty space. The phone is untouched: the
    `min(240px,100%)` floor already collapses it to a single column. */
-.uhub .ugrid{grid-template-columns:repeat(auto-fill,minmax(min(240px,100%),1fr))}
+
 
 /* ── card ─────────────────────────────────────────────────────────────── */
 .ucard{background:var(--surface);border:1px solid var(--line);
@@ -2762,7 +2769,28 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .utable tbody tr:hover td{background:var(--soft)}
 
 /* ── responsive grid. Cards shrink rather than forcing a scrollbar. ────── */
-.ugrid{display:grid;gap:var(--sp-3);grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
+/* Centred remainder. An auto-fill/auto-fit grid fixes its tracks against the
+   CONTAINER, so a short last row is pinned to the first tracks and hangs
+   left — the doors end 2-of-4, the awards wall orphans one card, the notes
+   orphan one. Flex with each item sized as an exact fraction of the row
+   fixes it without stretching anything: a full row consumes 100%% and has no
+   free space, so justify-content:center is a no-op there and the left spine
+   is untouched; only a partial row has slack, and that slack centres.
+   --cols is explicit per breakpoint because the fraction has to know it. */
+.ugrid{display:flex;flex-wrap:wrap;gap:var(--sp-3);justify-content:center;--cols:4}
+.ugrid > *{flex:0 0 calc((100% - (var(--cols) - 1) * var(--sp-3)) / var(--cols))}
+/* ...but only where a full row above it establishes the spine. A group that is
+   ENTIRELY a remainder — Season has two doors, Records and Rules have one —
+   has nothing to be a remainder of, so centring detaches it from its own
+   left-aligned group label and reads as broken rather than deliberate. Those
+   keep the spine. The test is 'fewer items than columns', which :has can ask
+   directly, and the threshold moves with --cols. */
+.ugrid:not(:has(> :nth-child(4))){justify-content:flex-start}
+@media (max-width:1010px){.ugrid{--cols:3;justify-content:center}
+  .ugrid:not(:has(> :nth-child(3))){justify-content:flex-start}}
+@media (max-width:759px){.ugrid{--cols:2;justify-content:center}
+  .ugrid:not(:has(> :nth-child(2))){justify-content:flex-start}}
+@media (max-width:479px){.ugrid{--cols:1}}
 
 /* ── disclosure ───────────────────────────────────────────────────────── */
 .udisc > summary{cursor:pointer;list-style:none;display:flex;align-items:center;
