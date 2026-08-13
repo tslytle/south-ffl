@@ -1576,9 +1576,21 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .awardcard-hd .tlogo{width:32px;height:32px}
 .awardcard-hd b{font-size:var(--t-small);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .awardbadges{display:flex;flex-wrap:wrap;gap:6px}
-.awardbadge{display:inline-flex;align-items:center;font-size:var(--t-fine);font-weight:600;color:var(--gold-ink);
-  background:var(--gold-soft);border:1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+/* Every badge used to be the same gold pill, so the wall could not be read at a
+   glance and — worse — gold was announcing the ABSENCE of hardware: a gold
+   chip reading "Bridesmaid, Alma Bowls, no rings". Under ADR 0012 gold is
+   ceremony, so only a ring earns it. The hardware chain in computeTraits() is
+   already mutually exclusive and already ordered, so it maps cleanly onto the
+   podium role the palette has had all along: gold for a title, silver for the
+   runner-up, bronze for the podium without one. Every other badge describes
+   rather than places, and describing is neutral. */
+.awardbadge{display:inline-flex;align-items:center;font-size:var(--t-fine);font-weight:600;
+  color:var(--body);background:var(--raise);border:1px solid var(--line);
   border-radius:999px;padding:4px 10px;white-space:nowrap}
+.awardbadge.is-gold{color:var(--gold-ink);background:var(--gold-soft);
+  border-color:color-mix(in srgb, var(--gold) 35%, transparent)}
+.awardbadge.is-silver{color:var(--silver-ink);background:var(--silver-soft);border-color:var(--silver-line)}
+.awardbadge.is-bronze{color:var(--bronze-ink);background:var(--bronze-soft);border-color:var(--bronze-line)}
 .pfbody{display:grid;grid-template-columns:300px 1fr;gap:0}
 .pfleft{padding:20px;border-right:1px solid var(--line);background:var(--raise)}
 .pfright{padding:20px}
@@ -6355,6 +6367,12 @@ function pfRankScope(name){
    owner happens to be graded. Adam Boggess was 3rd of the graded twelve
    and 4th of seventeen, and wore the badge on the strength of the
    narrower field. */
+/* Only the hardware chain places a manager; everything else describes one.
+   Keyed off the label because that is what the renderer receives, and the
+   chain's four outcomes are unique strings. A badge missing from here is
+   neutral by default, which is the right default for a new trait. */
+const BADGE_TONE = {Dynasty:" is-gold", Champion:" is-gold",
+                    Bridesmaid:" is-silver", Contender:" is-bronze"};
 function computeTraits(o){
   const M = pfMetrics(), me = M.by[o.n];
   const gp = o.w + o.l, pg = o.pw + o.pl;
@@ -6665,7 +6683,7 @@ lazyBoard("awards", function(){
   rows.sort((a,b) => b.traits.length - a.traits.length || (b.o.best <= a.o.best ? 1 : -1));
   el.innerHTML = rows.map(({o, traits}) => `<button type="button" class="awardcard pfopen" data-profile="${esc(o.n)}">
     <div class="awardcard-hd">${logoImg(o.n, "tlogo-md")}<b>${esc(o.n)}</b></div>
-    <div class="awardbadges">${traits.map(([t]) => `<span class="awardbadge">${esc(t)}</span>`).join("")}</div>
+    <div class="awardbadges">${traits.map(([t]) => `<span class="awardbadge${BADGE_TONE[t] || ""}">${esc(t)}</span>`).join("")}</div>
   </button>`).join("");
 });
 
