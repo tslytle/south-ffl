@@ -11,15 +11,22 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 worth reading only for the area you are about to touch.*
 
 **The overhaul is finished and live, and so is the visual polish pass on top of it.** `main` is at
-`af26187`, working tree clean, and **the served file is byte-identical to it** — 2,615,924 bytes,
-sha256 `d752e128a230c8b1`, checked against the live URL. Twenty-one commits landed on 2026-08-12
-for the overhaul; sixteen more the same day for the polish pass and its follow-on — see *The
+`e06062c`, working tree clean, and **the served file is byte-identical to it** — 2,616,721 bytes,
+sha256 `02fa621ee02bd956`, checked against the live URL. Twenty-one commits landed on 2026-08-12
+for the overhaul; nineteen more the same day for the polish pass and its follow-on — see *The
 visual polish pass* below, and ADRs 0012 / 0013 / 0014 for what it decided.
 
 **The floor now measured on every commit:** `contrast-sweep.js` at **0 failures** in all four
 combinations — {375px, 2048px} × {dark, light} — *including the profile modal*, which the sweep
 reached for the first time this session. Load timing 151ms → 150ms against the pre-pass file.
-Total cost of the whole pass: **+10,413 bytes** against a +15KB ceiling.
+Total cost of the whole pass: **+11,210 bytes** against a +15KB ceiling.
+
+**The floor is only as good as the population it covers, and that population had three holes.**
+Each produced an honest-looking zero: the phone card layout (396 failures, found before this
+session), the profile modal (2 failures, not on any route), and **pseudo-elements, which the sweep
+structurally cannot measure at all** (2 failures). All three are now closed — the first two by
+extending the sweep, the third by enumerating the class by hand, since no extension can fix it.
+See traps 5 and 7 in `contrast-sweep.js`.
 
 **What shipped that day, in order:** the two-column board header · hub doors sized by a real grid
 rather than by group population · the Manager Profiles rail and sparklines · pinned rank/owner
@@ -77,10 +84,11 @@ from 578ms to 258ms.
   and after any hand-edit of the sheet.
 - **`contrast-sweep.js`** — the ADR 0005 floor, measured. Paste into the console on a served copy
   and run `__runAll()`. **Both widths, twice per width** — its header explains why, and the current
-  zero-failure baseline is in there. It now sweeps the profile modal too, and carries **six**
-  documented traps, two of which were walked into on 2026-08-12. Two limits it cannot cover on its
-  own: **`::placeholder`** (it reads element text nodes; an `<input>` has none) and **anything
-  reached only by interaction** that nobody has added to `__runAll`.
+  zero-failure baseline is in there. It now sweeps the profile modal too, and carries **seven**
+  documented traps, three of which were walked into on 2026-08-12. Two limits it cannot cover on
+  its own: **every pseudo-element** — `::before`, `::after`, `::placeholder` — because it reads
+  element text nodes and those have none (trap 7, with the query that enumerates them), and
+  **anything reached only by interaction** that nobody has added to `__runAll` (trap 5).
 
 **One check worth re-running after any large CSS edit** — it found two dead rules on 2026-08-12,
 one of them a whole feature. Scan for a declaration inside a media query that a *later*
@@ -144,6 +152,9 @@ rather than by audit:
 | `2a57e38` | `contrast-sweep.js`'s own trap 5 comment asserted a number this tool exists to disprove. |
 | `883743e` | **The site search was dead at every width** — a finished feature nobody could reach. |
 | `af26187` | The last media-query rule killed by a later unconditional one, found by scanning for the shape. |
+| `5b17696` | This file's state of play, brought up to date. |
+| `48f27cb` | `.tag.best` was mint-on-mint-tint — a violation commit 2's audits could not see. |
+| `e06062c` | Card stat labels one step up **and** off the floor: `::before` had never been measured. |
 
 Every commit verified in all four combinations — {375px, 2048px} × {dark, light} — at **0
 contrast failures**, with the draft cheat sheet proved structurally identical each time.
@@ -234,6 +245,23 @@ actually left* at the top of this file** — it is the short list, and it is mai
   but it is the weakest mark on the page. **Only a re-cut asset fixes it properly**, which Q5 put
   out of scope. If a light version of that one logo ever turns up, drop it in and nothing else
   needs to change.
+- **Pseudo-elements are outside `contrast-sweep.js` entirely, and both of them were failing.**
+  The scan reads element *text nodes*; a `::before` or `::placeholder` has none, so nothing they
+  render has ever been measured. Found by accident — bumping the standings card stat labels one
+  size step prompted a hand-check, and `td[data-l]::before` came back at **3.93 in dark** against
+  4.5. The size was never the problem: they had been under the floor since they were written, at
+  11px and 12.5px alike. So the class was **enumerated rather than sampled** — exactly two
+  pseudo-elements in the file draw text and set a colour, and both were under:
+  `#searchinput::placeholder` (4.17) and `td[data-l]::before` (3.93). Both fixed. The query that
+  finds them is written into trap 7 so it can be re-run instead of rediscovered. **Any new
+  text-bearing pseudo-element must be measured by hand — the tool will report zero either way.**
+- **An audit keyed to token *names* misses aliases and tint variants.** `.tag.best` was
+  `color:var(--pos)` on `background:var(--accent-soft)` — mint text on a mint tint, on a chip
+  nobody can click. Commit 2 missed it **twice**: its text pass searched `var(--accent)` and this
+  says `var(--pos)`, which is the same value under a different name; its fill pass searched
+  `var(--accent)` and this says `var(--accent-soft)`. Both queries were reasonable and both were
+  blind. Fixed to the neutral chip. If a future pass repaints by role, search by *resolved value*
+  as well as by token name.
 - **The site-wide search was dead at every width, and is now live.** Two rules with the same
   specificity and near-identical comments, written at different times: an
   `@media (min-width:760px){.searchbox{display:block}}` sitting about ten lines *above* the
