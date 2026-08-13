@@ -1201,7 +1201,14 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
   border-radius:var(--r-pill);padding:2.5px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
 .tag.alma{color:var(--gold-ink);background:var(--gold-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent)}
 .tag.emily{color:var(--muted);background:var(--soft)}
-.tag.best{color:var(--pos);background:var(--accent-soft)}
+/* Was --pos text on --accent-soft: mint on a mint tint, on a chip nobody can
+   click. Commit 2 missed it twice — its text audit searched var(--accent) and
+   this says var(--pos) (the same value), and its fill audit searched
+   var(--accent) and this says var(--accent-soft). Best regular-season record
+   is a fact, not a ring and not a control, so it takes the neutral chip. That
+   leaves the three tags legible against each other: gold won the Alma,
+   neutral is a notable fact, muted is the Emily. */
+.tag.best{color:var(--body);background:var(--raise)}
 .stand tr.halfrow td{padding:0;border-bottom:0;background:none!important}
 .stand tr.halfrow td span{display:block;font-size:var(--t-tiny);font-weight:600;letter-spacing:.07em;text-transform:uppercase;
   color:var(--faint);padding:14px 0 6px;border-bottom:1px solid var(--line);margin-bottom:-1px}
