@@ -75,7 +75,7 @@
   --ink:#0E1420; --body:#3A4353; --muted:#58627C; --faint:#616B84;
   --line:#DFE4EE; --soft:#EAEEF5;
   --accent:#0B6B4E; --accent-dk:#073226; --accent-soft:#E2F4EB; --accent-lt:#159E6E;
-  --accent2:#1E7FB0; --accent2-dk:#0F4863; --accent2-soft:#E4F1F9; --accent2-ink:#0F4863;
+  --enc:#1E7FB0; --enc-soft:#E4F1F9; --enc-ink:#0F4863;
   --gold-text:#8A5A0C; --trophy:#C99A26; --rust:#B14225; --rust-soft:#FAE9E2;
   --gold:#AD7A16; --gold-lt:#D9AC42; --gold-soft:#F7EFDA; --silver:#9AA0A6; --bronze:#A2703F;
   --pos:#0C6B4C; --neg:#B23A22;
@@ -141,7 +141,7 @@
     --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
     --line:#232C42; --soft:#182034;
     --accent:#2FDA87; --accent-dk:#0A3A2C; --accent-soft:rgba(47,218,135,.14); --accent-lt:#63EBA3;
-    --accent2:#4FB4EA; --accent2-dk:#123449; --accent2-soft:rgba(79,180,234,.14); --accent2-ink:#4FB4EA;
+    --enc:#4FB4EA; --enc-soft:rgba(79,180,234,.14); --enc-ink:#4FB4EA;
     /* --gold stays bright for rules, edges and fills; small gold LABELS use
        --gold-text, which is the same hue carried far enough to read cleanly
        against dark surfaces. */
@@ -167,7 +167,7 @@
   --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
   --line:#232C42; --soft:#182034;
   --accent:#2FDA87; --accent-dk:#0A3A2C; --accent-soft:rgba(47,218,135,.14); --accent-lt:#63EBA3;
-  --accent2:#4FB4EA; --accent2-dk:#123449; --accent2-soft:rgba(79,180,234,.14); --accent2-ink:#4FB4EA;
+  --enc:#4FB4EA; --enc-soft:rgba(79,180,234,.14); --enc-ink:#4FB4EA;
   --gold-text:#F2BE5C; --trophy:#F2B84B;
   --rust:#FF6B4A; --rust-soft:rgba(255,107,74,.14);
   --gold:#F2B84B; --gold-lt:#F7CD73; --gold-soft:rgba(242,184,75,.14); --silver:#A8B0BC; --bronze:#C98F5A;
@@ -326,7 +326,7 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
   border-radius:var(--r-sm);padding:9px 30px 9px 11px;transition:background .15s,border-color .15s}
 #searchinput::placeholder{color:rgba(255,255,255,.45)}
 #searchinput:hover{background:rgba(255,255,255,.13)}
-#searchinput:focus{outline:none;background:rgba(255,255,255,.14);border-color:var(--accent2)}
+#searchinput:focus{outline:none;background:rgba(255,255,255,.14);border-color:var(--accent)}
 /* Mouse focus keeps the quiet border treatment above; keyboard focus gets
    the same 2px ring every other control on the page shows. */
 #searchinput:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -597,7 +597,7 @@ td.neg{color:var(--neg)}
    timeline above (blue for format/structure, gold for scoring) instead
    of just going dark — so the two views of the same history read as one
    system rather than two different conventions. */
-#ruletable td:not(.carried):not(.rdc){box-shadow:inset 3px 0 0 var(--accent2, var(--accent-dk))}
+#ruletable td:not(.carried):not(.rdc){box-shadow:inset 3px 0 0 var(--enc, var(--accent-dk))}
 #ruletable td:nth-child(6):not(.carried){box-shadow:inset 3px 0 0 var(--gold)}
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -685,7 +685,7 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .drlegend.on{display:flex}
 .drlegend span{display:inline-flex;align-items:center;gap:6px}
 .drlegend i{display:inline-block;width:10px;height:10px;border-radius:3px;flex:0 0 auto}
-.drlegend i.lg-tier{background:var(--accent2, var(--accent-dk))}
+.drlegend i.lg-tier{background:var(--enc, var(--accent-dk))}
 .drlegend i.lg-cliff{background:var(--gold)}
 .drlegend i.lg-value{background:var(--pos)}
 .drlegend i.lg-reach{background:var(--neg)}
@@ -728,7 +728,7 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
   text-transform:uppercase;color:var(--gold-ink);background:var(--gold-soft);
   border:1px dashed color-mix(in srgb, var(--gold) 45%, transparent);border-top:0}
 .drtier{margin:0;padding:4px 14px;font-size:var(--t-micro);font-weight:700;letter-spacing:.04em;
-  text-transform:uppercase;color:var(--accent2, var(--accent-dk));background:color-mix(in srgb, var(--accent2, var(--accent-dk)) 12%, transparent);
+  text-transform:uppercase;color:var(--enc, var(--accent-dk));background:color-mix(in srgb, var(--enc, var(--accent-dk)) 12%, transparent);
   border-top:1px solid var(--line)}
 .drsec .drtier:first-child{border-top:0}
 @media (max-width:640px){.drsecs{columns:1}}
@@ -2217,7 +2217,7 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
 .rulechg b{color:var(--ink);font-weight:600}
 .rulechg .chgrow{display:block;padding:3px 0}
 .rulechg .tag{margin:0 8px 0 0}
-.rulechg .tag.cat-format{color:var(--accent2-ink, var(--accent2, var(--accent-dk)));background:var(--accent2-soft, var(--accent-soft))}
+.rulechg .tag.cat-format{color:var(--enc-ink, var(--enc, var(--accent-dk)));background:var(--enc-soft, var(--accent-soft))}
 .rulechg .tag.cat-scoring{color:var(--gold-ink);background:var(--gold-soft)}
 .rulechg .tag.cat-draft{color:var(--rust);background:var(--rust-soft)}
 #ruletable .l{min-width:230px}
@@ -2448,7 +2448,7 @@ a,button,summary,.pick,.sslrow{-webkit-tap-highlight-color:color-mix(in srgb, va
     --ink:#0E1420; --body:#3A4353; --muted:#58627C; --faint:#616B84;
     --line:#DFE4EE; --soft:#EAEEF5;
     --accent:#0B6B4E; --accent-dk:#073226; --accent-soft:#E2F4EB; --accent-lt:#159E6E;
-    --accent2:#1E7FB0; --accent2-dk:#0F4863; --accent2-soft:#E4F1F9; --accent2-ink:#0F4863;
+    --enc:#1E7FB0; --enc-soft:#E4F1F9; --enc-ink:#0F4863;
     --gold-text:#8A5A0C; --trophy:#C99A26; --rust:#B14225; --rust-soft:#FAE9E2;
     --gold:#AD7A16; --gold-lt:#D9AC42; --gold-soft:#F7EFDA; --silver:#9AA0A6; --bronze:#A2703F;
     --pos:#0C6B4C; --neg:#B23A22;
@@ -7140,7 +7140,7 @@ lazyBoard("rules", function(){
                      : i===4 ? (v ? v + " per catch" : "none (standard)")
                      : i===0 ? v + " teams" : v;
   /* Every change belongs to one of three families, each with its own chip
-     color reused from elsewhere on the page (accent2 blue for format/
+     color reused from elsewhere on the page (--enc blue for format/
      structure, gold for scoring, rust for the draft) so this list reads
      as a diff at a glance instead of a wall of "old &rarr; new" prose. */
   const CAT = {Teams:"format","Regular season":"format","Playoff teams":"format",
@@ -9774,7 +9774,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
   /* pts: [{y, v}]. mid: reference-line value (must fall inside the
      rendered domain, so the line stays visible even on a run of
      seasons that never crosses it). fmt: value -> dot label. */
-  function sparkSVG(pts, {mid, midLabel, fmt, color, aria}){
+  function sparkSVG(pts, {mid, midLabel, fmt, color, endFill, aria}){
     const W = 260, H = 56, padX = 6, padY = 8;
     const vals = pts.map(p => p.v).concat([mid]);
     let lo = Math.min(...vals), hi = Math.max(...vals);
@@ -9788,7 +9788,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
     const midY = y(mid).toFixed(1);
     const dots = pts.map((p,i) => {
       const last = i === pts.length-1;
-      return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${last?3.2:2}" fill="${last?"var(--gold)":color}"><title>${p.y}: ${fmt(p.v)}</title></circle>`;
+      return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${last?3.2:2}" fill="${last?(endFill?endFill(p.v):"var(--gold)"):color}"><title>${p.y}: ${fmt(p.v)}</title></circle>`;
     }).join("");
     return `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img" aria-label="${esc(aria)}, ${pts[0].y} to ${pts[pts.length-1].y}">
       <line x1="${padX}" y1="${midY}" x2="${W-padX}" y2="${midY}" stroke="var(--line)" stroke-width="1" stroke-dasharray="2,3"/>
@@ -9801,7 +9801,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
 
   const CHARTS = [
     ["Win rate trend", winTrend, {mid:.5, midLabel:".500", fmt:v => (v*100).toFixed(1)+"%", color:"var(--accent)", aria:"Win percentage by season"}],
-    ["Luck trend", luckTrend, {mid:0, midLabel:"even", fmt:v => (v>=0?"+":"")+v.toFixed(1)+" wins", color:"var(--accent2)", aria:"Wins above or below all-play expectation, by season"}],
+    ["Luck trend", luckTrend, {mid:0, midLabel:"even", fmt:v => (v>=0?"+":"")+v.toFixed(1)+" wins", color:"var(--muted)", endFill:v => v>=0 ? "var(--pos)" : "var(--neg)", aria:"Wins above or below all-play expectation, by season"}],
     ["Scoring vs. league", pfTrend, {mid:1, midLabel:"avg", fmt:v => (v*100).toFixed(0)+"%", color:"var(--gold)", aria:"Points for as a percentage of that season's league average"}]
   ];
 

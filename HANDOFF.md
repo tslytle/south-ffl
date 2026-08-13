@@ -62,6 +62,47 @@ Worth internalising, because all three were invisible in the source and two were
 
 ---
 
+## The visual polish pass — begun 2026-08-12
+
+Ten commits, settled in a `/grill-with-docs` session and landing one at a time before the
+Sept 3 soft freeze. The frame: **polish inside the existing language** (no new palette, no new
+fonts), **desktop is the beauty bar and the phone stays the correctness bar**, an **explicit
+two-register split** (editorial voice owns hero and board headers, product-crisp owns every data
+surface), **CSS-only, zero added JS, ~+15KB ceiling**. Decisions land in ADR 0012 (colour roles),
+0013 (type scale) and 0014 (measure and masthead).
+
+Order, each its own commit: 1 blue tokens → 2 colour role table → 3 type scale → 4 measure and
+masthead → 5 avatar plates → 6 trophy SVG → 7 champion edge and striping → 8 nav grouping →
+9 centred orphan rows → 10 hover and focus states.
+
+### Found while verifying, deliberately NOT fixed
+
+Per the pass's own rule: anything found mid-pass gets written here rather than fixed, because an
+unplanned change to a live site three weeks from draft night is an unverified one.
+
+- **`contrast-sweep.js` never sweeps the manager profile modal — and there are 28 AA failures
+  inside it.** The sweep walks the seven routes; the modal only exists after a manager card is
+  clicked, so it has never been in the population. Open a profile first and the count goes from
+  21,567 elements to 61,231, carrying **21 failures in dark** (`em`, the season-list PF figure,
+  4.35 against a required 4.5) and **7 in light** (`button.pfclose`, the `×`, at **1.06** — very
+  nearly invisible). Verified pre-existing by measuring the unmodified file the same way. This is
+  ADR 0005's trap 1 again in a new place: *a population the sweep cannot see is not a population
+  that passes.* The fix is small; the sweep's own coverage is the real defect.
+- **`--pos` and `--accent` are the same colour in dark** (`#2FDA87`). ADR 0012's rule that mint
+  means interaction and nothing else cannot fully hold while positive-delta green is
+  indistinguishable from it. Commit 2 has to either shift `--pos` or accept that sign colour and
+  interaction colour collide wherever they meet.
+- **Gold and rust are already doing encoding work.** The rules-change chips use blue for
+  format, gold for scoring and rust for the draft — a three-family category encoding, documented
+  in a comment near `lazyBoard("rules", …)`. So "gold = ceremony only" is not true of the file as
+  it stands, and ADR 0012 has to say what happens to that chip set.
+- **The sparklines colour their newest point gold on all three charts** — emphasis, not ceremony,
+  and another pre-existing exception to the same rule.
+- **There is a hidden site-wide search in the top nav** (`#searchbox`, `display:none`, holding
+  `#searchinput`). Anything done to the nav in commit 8 has to account for it.
+
+---
+
 ## Resolved this session
 - **Repo consolidation** (ADR 0001): this git repo is now the sole working copy. The old Mac
   working folder, `deploy/` folder, and transfer-zip copies are stale/archived — don't edit them.
