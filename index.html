@@ -624,7 +624,7 @@ td.neg{color:var(--neg)}
 .dncount{display:flex;gap:8px;flex-wrap:wrap}
 .dnunit{min-width:64px;text-align:center;padding:9px 10px;border-radius:var(--r-sm);
   background:var(--accent-soft);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
-.dnunit b{display:block;font-family:var(--serif);font-size:var(--t-h4);font-weight:700;color:var(--pos);line-height:1;
+.dnunit b{display:block;font-family:var(--serif);font-size:var(--t-h4);font-weight:700;color:var(--accent);line-height:1;
   font-variant-numeric:tabular-nums}
 .dnunit span{display:block;font-size:var(--t-micro);font-weight:700;letter-spacing:.11em;text-transform:uppercase;
   color:var(--muted);margin-top:4px}
@@ -932,7 +932,14 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
    is capped and centred so the year, the name and the record read as one
    plaque line instead of drifting apart across a wide card, and the year is
    set in gold as the anchor the eye travels down. */
-#champboard{max-width:720px;margin:0 auto;padding:6px 10px}
+/* The measure rule: a header never spans wider than the thing it introduces.
+   Champions is the only board in the file whose panel is narrower than its
+   route, and the 720px lived on the panel — so the header ran 1040 and the list
+   720, centred inside it: three edges where there should be two. The constraint
+   moves up to the disclosure, so header and panel share both edges by
+   construction, and the block keeps the same left spine as every other board. */
+#board details.sub{max-width:720px}
+#champboard{padding:6px 10px}
 .plate{width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;cursor:pointer;
   display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:16px;padding:15px 10px;
   border-bottom:1px solid var(--soft);position:relative;border-radius:var(--r-sm);transition:background .15s}
@@ -2782,10 +2789,14 @@ body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect[o
 body[data-route]:not([data-route="hub"]) .uactive details.sub{border-top:0;margin-top:var(--sp-5)}
 body[data-route]:not([data-route="hub"]) .uactive details.sub:first-of-type{margin-top:0}
 body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead{
-  background:var(--raise);border:1px solid var(--line);border-radius:var(--r-md);
-  padding:var(--sp-3) var(--sp-4)}
+  /* A masthead, not a card. summary.sechead one level up already reads this
+     way — bare, with a hairline under it — and the board header simply never
+     inherited it. Two stacked filled boxes at different widths was the thing
+     that looked wrong; matching their widths alone would only half-fix it. */
+  background:none;border:0;border-radius:0;
+  padding:var(--sp-2) 0 var(--sp-3);border-bottom:1px solid var(--line)}
 body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:hover{
-  border-color:var(--accent)}
+  border-bottom-color:var(--accent)}
 /* The text block is flex:1, which shoved the chevron to the far edge of a
    full-width panel — around 500px from the heading it belongs to, reading as
    unrelated furniture. Letting the block size to its content puts the control
