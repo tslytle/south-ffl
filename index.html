@@ -1950,8 +1950,14 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .rline span{font-size:var(--t-fine);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
 .rline b{font-weight:700;color:var(--faint);font-size:var(--t-micro);letter-spacing:.04em;text-transform:uppercase;margin-right:3px}
 .rrow.new .rline span{color:var(--ink)}
+/* .rrow's 38px first column used to live here too, and had never once applied:
+   an unconditional .rrow{grid-template-columns:42px 1fr auto} sits later in the
+   file at the same specificity, so 42px wins even where this query matches
+   (verified at 375px and 520px). Deleted rather than moved below that rule —
+   the unconditional one was written later, so 42px is likely the current
+   intent, and promoting a rule that has never rendered would change the phone
+   layout on a guess. .rline below is unaffected and does apply. */
 @media (max-width:560px){
-  .rrow{grid-template-columns:38px 1fr auto}
   .rline{grid-column:1/-1}
 }
 
