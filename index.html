@@ -4123,14 +4123,25 @@ document.getElementById("figures").innerHTML = [
 ].map(([b,t]) => `<div class="fig"><b class="num">${b}</b><span>${t}</span></div>`).join("");
 
 /* ---- masthead avatar row ────────────────────────────────────────────
-   EVERY manager in league history, not just this season's twelve. It
-   showed only the current roster until 2026-08-13, on the reasoning that
-   a departed manager's face under the wordmark reads as "who's still
-   around" — but the caption counted what the row showed, so the masthead
-   said "12 managers" three inches above a figure reading 17 OWNERS
-   ALL-TIME. The page is a twelve-season archive; the honest number is the
-   all-time one, and the row now matches it. `owners` is already every
-   owner on record, sorted by titles, so no new data is needed here.
+   The row and the caption count different things ON PURPOSE, and this is
+   the one place on the page where that is true, so it is worth being
+   explicit about.
+
+   The ROW is this season's twelve, read straight off the most recent
+   season rather than a hardcoded list, so a manager change next year
+   updates it by itself. A departed manager's face under the wordmark
+   reads as "who's still around" to a new visitor, not "who's ever
+   played" — and briefly showing all seventeen on 2026-08-13 bore that
+   out: five of the extra faces are logo-less, so the row ended in a pale
+   run of AS / ND / RM monograms.
+
+   The CAPTION is the all-time figure, 17. It used to count the row,
+   which is how the masthead came to say "12 managers" three inches above
+   a figure reading 17 OWNERS ALL-TIME. The page is a twelve-season
+   archive and the honest headline number is the career one, so the
+   caption now reads off `owners` (every owner on record) while the row
+   reads off the latest season. Deliberately NOT `current.length`.
+
    Reuses logoImg() rather than a bespoke image tag, so a manager with a
    real photo, a captured ESPN graphic, or no logo at all (initials
    monogram) all render exactly as they do everywhere else on the page.
@@ -4139,16 +4150,17 @@ document.getElementById("figures").innerHTML = [
    listener already opens the profile overlay for all of them. That makes
    the row interactive, so it can no longer be aria-hidden: every mark
    carries the manager's name as its accessible label, and the row is a
-   list of seventeen named buttons rather than a wall of unlabeled
-   photos. */
+   list of named buttons rather than a wall of unlabeled photos. */
 (() => {
   const row = document.getElementById("mastheadAvatars");
   const cap = document.getElementById("mastheadCaption");
   if(!row || !cap) return;
-  row.innerHTML = owners.map(o =>
+  const latest = SEASONS[0];
+  const current = owners.filter(o => latest.t.some(([n]) => OWNER_OF[n] === o.n));
+  row.innerHTML = current.map(o =>
     `<button type="button" class="mavatar" data-profile="${attr(o.n)}" title="${attr(o.n)}" aria-label="${attr(o.n)}">${logoImg(o.n, "tlogo-hero")}</button>`
   ).join("");
-  cap.textContent = `${owners.length} managers. ${SEASONS.length} seasons. One league.`;
+  cap.textContent = `${owners.length} owners. ${SEASONS.length} seasons. One league.`;
 })();
 
 /* ---- champions ---- */
