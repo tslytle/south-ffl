@@ -133,6 +133,17 @@ unplanned change to a live site three weeks from draft night is an unverified on
   it stands, and ADR 0012 has to say what happens to that chip set.
 - **The sparklines colour their newest point gold on all three charts** — emphasis, not ceremony,
   and another pre-existing exception to the same rule.
+- **The avatar plate is dark in both themes, and that is forced, not chosen.** Commit 5 tried a
+  light plate first — it looked excellent in the manager grid and destroyed the Champions rows.
+  The two surfaces use different assets: the grid renders photographs with `object-fit:cover`
+  (their own background, fine on any plate), while rows render `OWNER_LOGO` vectors, which are
+  **white artwork on transparent PNGs** drawn for a dark ground. On a light plate they vanish
+  completely. So a dark plate covers vectors and photographs both, and a light plate covers
+  neither. The residual cost: genuinely dark artwork — Leo Thaweechok's black "TK" is the only
+  one — reads dimly. It is legible now (it has a plate and a ring where before it had neither)
+  but it is the weakest mark on the page. **Only a re-cut asset fixes it properly**, which Q5 put
+  out of scope. If a light version of that one logo ever turns up, drop it in and nothing else
+  needs to change.
 - **There is a hidden site-wide search in the top nav** (`#searchbox`, `display:none`, holding
   `#searchinput`). Anything done to the nav in commit 8 has to account for it.
 

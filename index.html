@@ -117,6 +117,18 @@
   /* height of the sticky masthead nav (mobile) — every sticky offset and
      scroll-margin below is derived from this, so the bars stay flush */
   --navh:52px;
+  /* The avatar plate. Every manager mark sits on the same ground, in the same
+     ring, at the same optical size — the grid holds photographs, flat vector
+     logos and two-letter fallbacks, and without a shared plate they were the
+     brightest and the darkest objects on the page at once.
+
+     DARK in both themes, and the value is not free choice. The logos that were
+     previously unplated are white artwork on transparent PNGs, drawn for a dark
+     ground: on a light plate they vanish completely. Photographs carry their own
+     background and read on either. So a dark plate covers both asset types and a
+     light one covers neither — tested, not assumed. The cost is that genuinely
+     dark artwork stays dim; see HANDOFF. */
+  --plate:#1B2338; --plate-ring:rgba(255,255,255,.16); --plate-ink:#F2F5FA;
   --on-chip:#fff; /* text for any chip/badge filled with a saturated brand color
                       (accent, neg) — those colors are dark in light mode (white
                       text) and bright in dark mode, where this token flips to
@@ -377,8 +389,10 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
    circles instead of a frame around each one — and doesn't fight the
    border-radius on a photo. */
 .masthead-avatars{display:flex;justify-content:center;flex-wrap:wrap;row-gap:8px;margin-top:28px}
-.masthead-avatars .tlogo{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--soft);
-  box-shadow:0 0 0 3px var(--bg);margin-left:-10px;transition:transform .15s ease;position:relative}
+.masthead-avatars .tlogo{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--plate);
+  /* outer ring in the page ground separates the overlap; inner ring is the
+     same plate edge every other avatar carries */
+  box-shadow:0 0 0 3px var(--bg),inset 0 0 0 1px var(--plate-ring);margin-left:-10px;transition:transform .15s ease;position:relative}
 .masthead-avatars .tlogo:first-child{margin-left:0}
 .masthead-avatars .tlogo:hover{transform:translateY(-4px);z-index:1}
 .masthead-avatars .tlogo img{object-fit:cover}
@@ -1445,11 +1459,11 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .mgrcard:hover{box-shadow:var(--sh-lg);transform:translateY(-1px);border-color:var(--accent)}
 .mgrcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mgrcard .mgravatar{width:78px;height:78px;border-radius:50%;overflow:hidden;display:flex;align-items:center;
-  justify-content:center;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line),0 2px 8px rgba(0,0,0,.10)}
+  justify-content:center;background:var(--plate);box-shadow:inset 0 0 0 1px var(--plate-ring),0 2px 8px rgba(0,0,0,.10)}
 .mgrcard .mgravatar .tlogo{width:100%;height:100%;border-radius:50%;background:none;box-shadow:none}
 .mgrcard .mgravatar .tlogo img{object-fit:cover}
 .mgrcard .mgravatar .tlogo.tmono{font-size:var(--t-h3);border-radius:50%;
-  background:var(--accent);color:var(--on-chip)}
+  background:var(--plate);color:var(--plate-ink)}
 .mgrname{font-family:var(--serif);font-size:var(--t-lead);font-weight:600;color:var(--ink);line-height:1.2;
   margin-top:12px;letter-spacing:-.01em}
 /* Alias lists run from one line to three, which left every card in a row
@@ -1490,7 +1504,7 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
    it rather than inside — otherwise the overflow would cut it in half */
 .pfavwrap{position:relative;display:inline-block;margin-bottom:12px;line-height:0}
 .pfavatar{width:96px;height:96px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;
-  background:var(--surface);box-shadow:inset 0 0 0 1px var(--line),0 2px 8px rgba(0,0,0,.10)}
+  background:var(--plate);box-shadow:inset 0 0 0 1px var(--plate-ring),0 2px 8px rgba(0,0,0,.10)}
 /* favourite NFL team — small enough to read as flair, distinct enough to spot */
 .pfteam{position:absolute;right:-3px;bottom:-1px;width:34px;height:34px;border-radius:50%;
   background:#fff;box-shadow:0 0 0 2.5px var(--surface),0 1px 5px rgba(0,0,0,.22);
@@ -1619,10 +1633,10 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .pfhero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
   background:var(--line)}
 .pfid{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.pfid .tlogo{width:72px;height:72px;border-radius:var(--r-md);background:rgba(255,255,255,.1);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
-.pfid .tlogo.tmono{background:rgba(255,255,255,.16);font-size:var(--t-h3);color:#fff}
-.pfid .tlogo.tlogo-bare{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.pfid .tlogo{width:72px;height:72px;border-radius:var(--r-md);background:var(--plate);
+  box-shadow:inset 0 0 0 1px var(--plate-ring)}
+.pfid .tlogo.tmono{background:var(--plate);font-size:var(--t-h3);color:var(--plate-ink)}
+.pfid .tlogo.tlogo-bare{background:var(--plate);box-shadow:inset 0 0 0 1px var(--plate-ring)}
 .pfnames{min-width:0}
 .pfname{font-family:var(--serif);font-size:clamp(28px,4.4vw,40px);font-weight:600;line-height:1.06;letter-spacing:-.015em}
 .pfsub{font-size:var(--t-small);color:rgba(255,255,255,.72);margin-top:7px;line-height:1.5}
@@ -1720,12 +1734,27 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 
 /* ---- owner logos ---- */
 .tlogo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
-  border-radius:var(--r-sm);overflow:hidden;background:var(--soft);vertical-align:middle;
-  box-shadow:inset 0 0 0 1px var(--line)}
+  /* One mask. The manager grid and the profile already used circles; rows and
+     the awards wall used rounded squares, and the unplated logos showed the
+     raw image, which is itself circular — so the same manager appeared as a
+     circle in one place and a square in another. Circle everywhere. */
+  border-radius:50%;overflow:hidden;background:var(--plate);vertical-align:middle;
+  box-shadow:inset 0 0 0 1px var(--plate-ring)}
 .tlogo img{width:100%;height:100%;object-fit:contain;display:block}
-.tlogo-bare{background:none;box-shadow:none;border-radius:0;overflow:visible}
-.tlogo.tmono{font-weight:800;color:var(--on-chip);background:var(--accent);
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);letter-spacing:.02em}
+/* Was: strip the plate from every non-photograph. Only three managers have a
+   photo, so fourteen of seventeen marks were floating with no ground and no
+   edge — which is why the white-backed shields glowed and Leo's black TK
+   disappeared. It keeps the plate now; what it still does is inset the mark,
+   because a vector drawn to its own bounding box reads larger than a
+   photograph that fills the circle. */
+/* The inset goes on the image, not the plate: percentage padding resolves
+   against the CONTAINING BLOCK's width, not the element's own box, so
+   padding:11% on a 34px avatar inside a 567px row resolved to 62px and blew
+   the plate to 125px. The image's containing block IS the plate, so a
+   percentage there scales correctly at every avatar size. */
+.tlogo-bare img{width:82%;height:82%}
+.tlogo.tmono{font-weight:800;color:var(--plate-ink);background:var(--plate);
+  box-shadow:inset 0 0 0 1px var(--plate-ring);letter-spacing:.02em}
 .tlogo-sm{width:22px;height:22px}
 .tlogo-sm.tmono{font-size:var(--t-micro)}
 .tlogo-md{width:28px;height:28px;border-radius:var(--r-sm)}
