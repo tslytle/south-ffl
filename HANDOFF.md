@@ -178,7 +178,20 @@ unplanned change to a live site three weeks from draft night is an unverified on
   but it is the weakest mark on the page. **Only a re-cut asset fixes it properly**, which Q5 put
   out of scope. If a light version of that one logo ever turns up, drop it in and nothing else
   needs to change.
-- **There is a hidden site-wide search in the top nav** (`#searchbox`, `display:none`, holding
+- **The site-wide search was dead at every width, and is now live.** Two rules with the same
+  specificity and near-identical comments, written at different times: an
+  `@media (min-width:760px){.searchbox{display:block}}` sitting about ten lines *above* the
+  unconditional `.searchbox{display:none}` it was meant to override. Later wins, so it never
+  did. Behind it: an index over every manager, every team name from any year, every season and
+  all 21 sections, a `/` shortcut, an ARIA listbox — built on every page load and reachable by
+  nobody. Both interaction paths were verified working before enabling it (a manager hit opens
+  the profile modal; a section hit routes correctly). It stays hidden below 760px on purpose —
+  the nested nav menu beats typing on a phone.
+  **Making it visible surfaced a failure the sweep cannot see:** the placeholder measured 4.17
+  against a required 4.5 (now `.52`, 5.05). `contrast-sweep.js` reads element *text nodes*, and
+  an `<input>` has none, so `::placeholder` is outside its population entirely — check
+  placeholders by hand.
+- ~~**There is a hidden site-wide search in the top nav**~~ (`#searchbox`, `display:none`, holding
   `#searchinput`). Anything done to the nav in commit 8 has to account for it.
 
 ---

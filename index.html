@@ -344,20 +344,31 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
    menu's nested tree covers the same ground in fewer taps than typing
    would on a phone, so there's no real loss in holding it back below
    tablet width. */
-@media (min-width:760px){
-  .searchbox{display:block}
-}
-
 /* ── Sidebar search ───────────────────────────────────────────────────
    Type a manager, a team name from any year, or a season, and jump
    straight there — no need to already know which group it lives under.
    Desktop-sidebar only for now: the mobile dropdown's nested tree
    covers the same ground in fewer taps than typing would on a phone. */
 .searchbox{display:none;position:relative}
+/* This reveal used to sit ~10 lines ABOVE the display:none above it. Same
+   specificity, earlier in the source, so it never won and the search was
+   invisible at every width — a complete feature (managers, every team name
+   from any year, seasons, all 21 sections, a / shortcut and an ARIA listbox)
+   built on every load and reachable by nobody. The two blocks were written at
+   different times and carry near-identical comments explaining the same
+   desktop-only intent, which is how the collision survived: both looked right
+   in isolation. Order matters here; keep this after the base rule. */
+@media (min-width:760px){
+  .searchbox{display:block}
+}
 #searchinput{width:100%;box-sizing:border-box;font-family:var(--sans);font-size:var(--t-base);
   color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);
   border-radius:var(--r-sm);padding:9px 30px 9px 11px;transition:background .15s,border-color .15s}
-#searchinput::placeholder{color:rgba(255,255,255,.45)}
+/* .45 measured 4.17 against a required 4.5 once the box was actually visible.
+   .52 measures 5.05. contrast-sweep.js cannot catch this — it reads element
+   text nodes and an <input> has none, so ::placeholder is outside its
+   population. Check placeholders by hand. */
+#searchinput::placeholder{color:rgba(255,255,255,.52)}
 #searchinput:hover{background:rgba(255,255,255,.13)}
 #searchinput:focus{outline:none;background:rgba(255,255,255,.14);border-color:var(--accent)}
 /* Mouse focus keeps the quiet border treatment above; keyboard focus gets
