@@ -10,9 +10,10 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 *Read this first. Everything below it is the record of how it got here; the detail sections are
 worth reading only for the area you are about to touch.*
 
-**The overhaul is finished and live.** `main` is at `52ad573`, working tree clean, and the served
-file is byte-identical to it (verified: both hash `4602f7e1…`, 2,605,511 bytes). Twenty-one commits
-landed on 2026-08-12.
+**The overhaul is finished and live, and so is the visual polish pass on top of it.** `main` is at
+`2623976`. Twenty-one commits landed on 2026-08-12 for the overhaul; ten more (nine code, one
+dropped) landed the same day for the polish pass — see *The visual polish pass* below, and
+ADRs 0012 / 0013 / 0014 for what it decided.
 
 **What shipped that day, in order:** the two-column board header · hub doors sized by a real grid
 rather than by group population · the Manager Profiles rail and sparklines · pinned rank/owner
@@ -71,9 +72,25 @@ two-register split** (editorial voice owns hero and board headers, product-crisp
 surface), **CSS-only, zero added JS, ~+15KB ceiling**. Decisions land in ADR 0012 (colour roles),
 0013 (type scale) and 0014 (measure and masthead).
 
-Order, each its own commit: 1 blue tokens → 2 colour role table → 3 type scale → 4 measure and
-masthead → 5 avatar plates → 6 trophy SVG → 7 champion edge and striping → 8 nav grouping →
-9 centred orphan rows → 10 hover and focus states.
+**The pass is complete. Nine commits landed; one was dropped as unnecessary.**
+
+| # | commit | what it turned out to be |
+|---|---|---|
+| 1 | `af32287` | `--accent2` → `--enc`. Not one dead token: **eight** live sites, five of them encoding. |
+| 2 | `adf2c4b` | The role table. 37 static-text rules + 13 fills/borders. Also fixed the sweep's parser. |
+| 3 | `1f3bf4d` | The type scale. Eight values, eleven names; 9px gone. |
+| 4 | `b0eb4bb` | Measure + masthead. The three-width stack was **one board**, not a pattern. |
+| 5 | `1aa3cd4` | Avatar plates. Root cause was one line stripping the plate from 14 of 17 marks. |
+| 6 | — | **Dropped.** There are no emoji; the trophy was already an SVG behind `const TROPHY`. |
+| 7 | `e22b43e` | Champion edge. There was no striping, and `.repeat` was a real undisclosed fact. |
+| 8 | `f9a0105` | Nav grouping. Two competing `auto` margins had stranded the toggle mid-bar. |
+| 9 | `fb02702` | Centred remainders — but only where a full row exists above them. |
+| 10 | `2623976` | One focus ring for everything; hover added where missing, removed where it lied. |
+
+Every commit verified in all four combinations — {375px, 2048px} × {dark, light} — at **0
+contrast failures**, with the draft cheat sheet proved structurally identical each time.
+Load timing measured against the pre-pass file at three runs each: **151ms → 150ms**. Byte
+cost of the whole pass: **well under the +15KB ceiling**.
 
 ### Sweeping at phone width without a resizable browser
 
