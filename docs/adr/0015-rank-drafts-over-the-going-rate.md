@@ -112,9 +112,23 @@ independent reason:
 | raw slot averages, or ±2 smoothing | a **fitted smooth curve** |
 | 8 seasons | **12** |
 
-Option D failed substantially *because* a per-slot expectation on raw points is dominated by
-whether a quarterback happened to be taken there. VOR removes that, and pooling across positions
-multiplies the data behind each slot roughly sixteenfold.
+**Measured 2026-08-14, and the obvious explanation is wrong.** The working assumption while this
+was being designed was that position-blind pooling on VOR would be what smoothed the curve — more
+data per slot, no quarterback distorting a slot's average. It is not. Fitted as a **rolling median
+over ±12 picks**, position-blind and on VOR, the curve still inverts **22-26% of adjacent slots in
+every season from 2018-2025** — barely better than ADR 0008's 25-35% per-position on raw points.
+ADR 0008's objection reproduces almost intact under the conditions that were supposed to dissolve
+it.
+
+What actually defeats it is the **fit family**. The same picks fitted as a smooth parametric
+curve (least squares on log slot) invert **0 times out of ~165 adjacent slots, in all eight
+seasons**. So "a fitted smooth curve" is not a refinement of ADR 0008's ±2 smoothing — it is the
+whole of the difference, and this ADR depends on it. A local-window fit is not an acceptable
+implementation of this decision.
+
+Pooling and VOR still earn their place: VOR is what makes a position-blind curve *coherent* (a
+board of raw points is a board of quarterbacks — in 2023, 9 of the top 12 scorers are QBs and by
+VOR it is 4), and twelve seasons beat eight. But they are not what makes the curve monotone.
 
 **Best available** was the other candidate for the baseline and was rejected structurally, not
 empirically: pick 1 can only tie or lose (the best man available *is* the best man), and pick 192
@@ -134,7 +148,23 @@ be measured on real data before the board ships:
 2. **The top 10 and bottom 10 are stable across three different fit families.** If the board moves
    with the curve, the board is measuring the curve.
 
-If either fails, ADR 0008 was right about this design and it does not ship on this basis.
+**Both measured 2026-08-14 on 2018-2025 skill picks, both pass** — with the caveat above that only
+a smooth parametric fit clears the first one.
+
+| fit | inversions per season | |
+|---|---|---|
+| rolling median ±12 | 22-26% | **fails** |
+| log-linear least squares | **0 of ~165, all 8 seasons** | passes |
+| isotonic | 0 (by construction) | passes |
+
+Stability between the two fits that clear precondition 1: **top 10 identical, bottom 10 identical,
+Spearman 0.975** across the whole board. ADR 0008's option D managed 7 of 12 shared names between
+its raw and smoothed versions; this is the measurement that says the objection has been answered
+rather than ignored.
+
+If either had failed, ADR 0008 was right about this design and it would not ship on this basis.
+The gate is re-run on the full board — all twelve seasons, K and D/ST included — before release,
+since these numbers are from a prototype covering skill picks from 2018 on.
 
 A third check is the gate under ADR 0016 and is not automatable: the top and bottom ten are put in
 front of the user, and they read right or the metric goes back. The Ermin-2023 absurdity passed
