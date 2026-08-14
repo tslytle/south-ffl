@@ -12,17 +12,29 @@ Analyst-driven ranking, distinct from ADP. South FFL's `TIER_2026` is sourced fr
 ## Value / Reach
 Existing derived tag on the draft cheat sheet: `delta = ADP − expertRank`, thresholded at `max(3, 10% of rank)`. "Value" = falls later than ranked (good value if still there); "Reach" = drafted earlier than ranked. Already algorithmic, not manual — noted here because tier-sourcing changes (see ADR 0003) feed this calculation's `expertRank` input.
 
-## Draft score / value over replacement (Draft Rankings)
-Two numbers, per ADR 0004. **Value** = for each drafted skill player (K and D/ST excluded, same as
-`SKILL` everywhere else), the points he scored *while on the drafting team's own roster* minus
-replacement level at his position, prorated by the weeks that team held him. Replacement level is
-`replacementAt()` cut at `STARTS_BAR` — the same line Steals & Busts uses, so the two boards can't
-drift. Negatives are kept: holding a below-replacement man all year cost a real roster spot.
-**Draft score** = that value z-scored within its own season, shown as `100 + 15z`, so 100 is an
-average draft for that year. The board sorts on score, not on points. 2014-2017 have no
-week-by-week bench data, so their value is the raw whole-class total from
-`DRAFT_TOTALS_2014_2017` (K/DST included) — z-scored the same way but labelled on every row as
-the coarser basis it is.
+## Going rate / over the going rate (Draft Rankings)
+The **going rate** is what a pick at that slot was worth in that season — a smooth curve fitted,
+within each season, over what all of that year's picks actually returned. Deliberately
+**position-blind**: one curve for slot N, never one per position, because a per-position curve
+would only ever compare a quarterback to other quarterbacks taken there and "took a QB too early"
+could never register as a loss. **Over the going rate** is a single pick's return minus its going
+rate; a class's figure is the plain sum across all sixteen picks, so trading up is charged the
+higher expectation it bought and forgoing a 16th-rounder forgoes about nothing.
+
+A pick's **return** is his *whole NFL season* (weeks 1-17) as value over positional replacement,
+**regardless of who ended up holding him** — the board judges the pick, not the season that
+followed it. Nothing about who was dropped, started, benched or traded enters, which is what
+makes it a ranking of drafts rather than of management. K and D/ST are in: a kicker taken in the
+ninth round is a real and gradeable decision, and a 16-pick draft graded on 11 picks isn't one.
+Replacement is `replacementAt()` cut at `STARTS_BAR`, extended to 12 K and 12 D/ST and drawn over
+every NFL player rather than only the rostered pool.
+
+Because replacement is recomputed under each season's own rulebook the figure is already
+era-comparable — measured, the half-PPR era runs about 5% hotter than 0-PPR against a 17% swing
+*inside* a single era — so "+340" means roughly the same thing in any year. The 100-centred score
+(`100 + 15z` within season) is what the all-time list sorts on, not a claim the headline number
+can't already make. Per ADR 0015, which supersedes ADR 0004. Distinct from **Value / Reach**
+above, which is a pre-draft ADP tag on the cheat sheet and unrelated.
 
 ## Scope tiers: pre-draft, archive, in-season
 Three-tier scope. **Pre-draft tier**: data-correctness and draft-prep-tool fixes (ADP refresh, tiers, cheat sheet, known data gaps) — the concrete deliverable ahead of draft night, Sept 7 2026. **Archive tier**: analytics and presentation over the settled 2014-2025 record (Draft Rankings, manager grade, Steals & Busts, the visual system) — correctness matters, urgency does not; needs no 2026 data. Named 2026-08-12, after two sessions' worth of work had landed here without the two-tier model having a bucket for it. **In-season backlog**: net-new features (live stats, weekly recaps) that need actual 2026 game data to mean anything — explicitly deferred.
@@ -31,7 +43,11 @@ Three-tier scope. **Pre-draft tier**: data-correctness and draft-prep-tool fixes
 The 55-99 figure on a manager's profile, formerly "manager grade". It measures **franchise achievement** — what this franchise won — not managerial skill: bracket outcomes and regular-season record dominate the weighting, and a title is acknowledged in the code's own comment as the noisiest thing on the record. Renamed per ADR 0006 because the old label invited an argument the weighting could not win ("I'm the better manager, I just lost a bracket") and which was correct. **Four axes, every one of them an achievement**: HARDWARE, POSTSEASON, SCORING, WINNING. `LONGEVITY` (tenure, not managing) went in ADR 0006; `LINEUPS` (measurably noise) and `ACTIVITY` (real, but process rather than achievement) went in ADR 0009. Only managers with at least `GRADE_MIN_SEASONS` (3) seasons are graded — a sample-size requirement, not a reward for tenure; short-tenure grades are marked as small samples. Distinct from a **trait badge**, which describes rather than ranks: a threshold over the **raw** career record, shared with the Awards Wall. Badges never test the regressed rates the grade ranks on — shrinkage is for comparing careers of different lengths, not for describing one — and every rate badge carries a minimum-seasons floor so a fact isn't asserted on two games (ADR 0010).
 
 ## Judged metric
-Any site number that ranks or grades people rather than reporting a fact — the manager grade and its axes, Draft Rankings' score, Steals & Busts, Start & Sit. Distinct from a **factual extreme** (Record Book highs and lows), which is just the archive sorted and needs no defence. Every judged metric must clear three bars: **defensible** (a manager who disputes it can be walked through the reasoning), **valid** (it measurably correlates with what it claims to measure), and **transparent** (the UI shows its work, weights included). Validity is the gate — an axis that cannot produce a correlation defending its own existence gets dropped or reweighted. ADR 0004's five-candidate comparison is the house method for meeting it.
+Any site number that ranks or grades people rather than reporting a fact — the manager grade and its axes, Draft Rankings' score, Steals & Busts, Start & Sit. Distinct from a **factual extreme** (Record Book highs and lows), which is just the archive sorted and needs no defence. Every judged metric owes **defensibility** (a manager who disputes it can be walked through the reasoning) and **transparency** (the UI shows its work, weights included). The third bar depends on which of two kinds it is, and they cannot be held to the same evidence (ADR 0016).
+
+An **estimating metric** claims to measure something outside itself — Franchise Grade claims to measure franchise achievement — so it can be checked against that thing, and must be: **valid**, meaning it measurably correlates with what it claims to measure. Validity is the gate for this kind; an axis that cannot produce a correlation defending its own existence gets dropped or reweighted, which is how ADR 0009 killed `LINEUPS`. ADR 0004's five-candidate comparison is the house method.
+
+A **defining metric** *is* the definition of the thing rather than an estimate of it — Draft Rankings' going rate defines what a good draft is, and deliberately excludes everything that happened after draft day. There is nothing external to correlate it against, and correlating it with team success would only reward it for measuring what it exists to ignore. It clears instead: **well-defined**, **robust** (the ranking does not move when an arbitrary modelling choice changes), and **face-valid** (it reads right to the people it judges). Face validity is the gate for this kind — the Ermin-2023 absurdity was caught by a human read that every correlation had passed.
 
 ## Role table
 The five jobs colour is allowed to do, per ADR 0012: **interaction** (`--accent`, mint — links, controls, focus, hover, and nothing else), **ceremony** (`--gold*`), **sign** (`--pos`/`--neg`, signed quantities only), **podium** (the metals, placement only) and **encoding** (`--enc*` — "this is category N": legends, category tags, chart series, row-state markers). Structural furniture is `--line`, which is the absence of a role rather than one of them. The table's load-bearing claim is that mint means *you can touch this*; it holds only because 42 static-text rules stopped being mint, and it would collapse the moment mint is put back on something inert. Distinct from a **judged metric**, which is about whether a number may be asserted; the role table is about whether a colour may be used.

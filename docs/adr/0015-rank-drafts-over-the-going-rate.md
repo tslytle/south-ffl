@@ -1,0 +1,167 @@
+# 0015 — Rank drafts on what each pick returned over the going rate for its slot
+
+## Status
+Accepted (2026-08-14). Supersedes ADR 0004 entirely and ADR 0008 for Steals & Busts.
+**Two preconditions in "The robustness gate" below must pass before the board ships.**
+
+## Context
+
+ADR 0004 ranked a draft on the value its picks produced *while on the drafting team's own
+roster*, over replacement, prorated by weeks held. Re-measured on 2026-08-14 against a harness
+that reproduces the shipped board exactly (138 rows, 0 mismatches), that metric has four defects,
+three of them mechanical and one structural.
+
+1. **It credits the draft for men the team let go and won back off the wire.** 3,661 points,
+   2.2% of everything credited. The current **#1 draft all-time** — 2021 The Asparagus' — includes
+   177.9 points from Carson Wentz, who was never on that team's week-1 roster. ADR 0004's own
+   comment states the principle ("the pick didn't earn that, the pickup did") and Steals & Busts
+   enforces it; Draft Rankings never did. 13 picks across 2018-2025 were cut before kickoff and
+   re-claimed later, including the Justin Jefferson 2020 case the comment is written about.
+2. **It charges IR weeks for a roster spot that does not exist.** Checked across every team-week:
+   the IR slot is a 17th place *on top of* the 16, so an injured man on IR costs nothing and the
+   metric bills him at full replacement anyway. Worth up to **140.9 value** on one row against
+   season standard deviations of 120-185. Worse, this league recorded **zero** IR usage before
+   2021 and 3.4% of roster-weeks in 2025 — an era artefact inside a metric whose stated purpose
+   is era-neutrality.
+3. **Where you picked never enters.** A class built from picks 1/24/25 is judged identically to
+   one built from 12/13/36.
+4. **The structural one: it does not rank drafts.** It ranks what a class *delivered to a roster*,
+   which is a joint measurement of drafting and of holding. Every mechanical defect above is a
+   symptom — each is a place where roster history leaked into a number about draft day. ADR 0004
+   spent its whole alternatives table trying to tune that leak down to zero (+0.13 against roster
+   moves) rather than removing its cause.
+
+The user's instruction, which decides this: *"Do not do any rankings based on how the draft
+directly contributed to the team's success. I just want to know how you'd rank their draft."*
+
+## Decision
+
+**A pick's return** is his whole NFL season, weeks 1-17, as **value over positional replacement**,
+regardless of who held him. Replacement is `replacementAt()` at `STARTS_BAR` — the measured
+flex-inclusive start counts, ~12 QB / 29 RB / 31 WR / 12 TE — extended with **12 K and 12 D/ST**,
+and drawn over **every NFL player who played** rather than only the ~300 who got rostered. (The
+old rostered-pool line carried a measured bias: the man at the bar was often rostered only 12 of
+17 weeks, understating the line by up to 1.42×.)
+
+VOR rather than points because points make every question's answer a quarterback: in 2023, **9 of
+the top 12 scorers were QBs; by VOR it is 4**, and McCaffrey goes 5th to 1st. Scarcity is the
+subtraction.
+
+**The going rate** for a pick is what that slot returned in that season — a smooth curve fitted
+within each season over all of its picks. **Position-blind on purpose.** A per-position curve
+would compare a quarterback only to quarterbacks taken at that slot, so "took a QB too early"
+could never register as a loss; position-blind is what makes it register, because you spent pick
+26 and pick 26 is graded against everything pick 26 could have bought.
+
+**Over the going rate** is return minus going rate, per pick. A class is the **plain sum** across
+its picks: trading up is charged the higher expectation it bought, and forgoing a 16th-rounder
+forgoes about nothing, which is the right answer for 2020 *All I Do Is Winn* and its 15 picks.
+
+**K and D/ST are in.** A 16-pick draft graded on 11 picks is not a graded draft, and spending pick
+100 on a kicker when picks around 100 returned a startable receiver is a real, gradeable mistake
+that the going rate prices correctly.
+
+**Presentation.** The headline is the surplus itself — `+340 over the going rate` — with the
+in-season standing beside it, because the number the old board led with was unintelligible and
+that was half of why this rebuild happened. Each row also carries the class's **best and worst
+single pick**, replacing the raw class total (which answered the roster question this ADR
+removes). **Games played** is printed on every pick: it covers injury, suspension, benching and a
+rookie who never dressed with one fact, and asserts no cause — ADR 0010's lesson that a badge
+should test the raw record. The 100-centred score (`100 + 15z` within season) survives only as
+what the all-time list sorts on.
+
+**Data.** Whole-season values for every player come from **nflverse**, which this project already
+trusts for schedules, weekly rosters and player ids, and against which all 1,361 archive names
+already resolve. `stats_player_week_YYYY.csv` and `stats_team_week_YYYY.csv` are public, need no
+authentication, cover 1999-2025, and carry **every category this league scores** including the
+kicker distance buckets and all defensive categories; yards-allowed falls out of joining a game to
+its opponent's offensive line. Fantasy points are computed from raw stats under **this league's
+own rulebook per season**, not taken from anyone else's arithmetic. This retires the authenticated
+ESPN browser pull that was scoped for the 2014-2017 gap, and it lands as a re-runnable
+`refresh-*.py` script reviewed via `git diff`, per ADR 0002.
+
+**Baked into `index.html`:** every drafted player plus the top 60 at each position each season —
+the smallest table from which the whole board can be rebuilt in the browser, which is the actual
+transparency requirement. The line never sits past 31, so 60 is provably sufficient; the refresh
+script computes the line over the full population and asserts the baked subset reproduces it, so
+the saving cannot silently change an answer.
+
+**Steals & Busts moves to the same basis**, and both its filters go. `cashed` (held from week one,
+for most of the weeks he was worth holding) is roster management wearing a draft badge. `usable`
+is not wrong but **obsolete**: it existed because `gain = posSlot − posFinDr` inflated meaningless
+climbs, and under going-rate there is no rank subtraction — a WR40 has low VOR by definition, so a
+worthless climb cannot produce a large surplus. A steal is simply the pick furthest above its
+going rate; a bust, furthest below. This is the class metric with the sum removed, which is why
+the two boards cannot drift.
+
+## Considered options, and the one that was already rejected
+
+**ADR 0008 already rejected this design and must be answered.** Its option D was
+`pts − expected at slot`, thrown out on evidence: the expectation did not fall monotonically even
+smoothed over ±2 slots (35% inversions at WR, 29% at RB, 25% at QB), raw and smoothed versions
+shared only 7 of 12 names, and "eight seasons is not enough data to estimate a per-slot
+expectation this way."
+
+Every one of those measurements was taken under conditions this ADR changes, each for an
+independent reason:
+
+| ADR 0008 option D | here |
+|---|---|
+| expectation fitted **per position** (~460 picks each) | **position-blind**, ~192 picks/season pooled |
+| currency was **raw points** | **VOR**, which is what makes position-blind pooling coherent |
+| raw slot averages, or ±2 smoothing | a **fitted smooth curve** |
+| 8 seasons | **12** |
+
+Option D failed substantially *because* a per-slot expectation on raw points is dominated by
+whether a quarterback happened to be taken there. VOR removes that, and pooling across positions
+multiplies the data behind each slot roughly sixteenfold.
+
+**Best available** was the other candidate for the baseline and was rejected structurally, not
+empirically: pick 1 can only tie or lose (the best man available *is* the best man), and pick 192
+can only tie or win. The board would fill with late-round lottery tickets.
+
+**ADP as the baseline** was rejected because it grades timing rather than outcome, and because
+this league's own draft board is its revealed ADP and is already in the file. No historical ADP
+exists here in any case — `ADP_2026` is a cheat-sheet input.
+
+## The robustness gate
+
+This is a **defining metric** (ADR 0016), so robustness replaces correlation as its evidence, and
+ADR 0008's rejection makes it load-bearing rather than ceremonial. Two hard preconditions, both to
+be measured on real data before the board ships:
+
+1. **The fitted going-rate curve is monotone decreasing** across the slot range, in every season.
+2. **The top 10 and bottom 10 are stable across three different fit families.** If the board moves
+   with the curve, the board is measuring the curve.
+
+If either fails, ADR 0008 was right about this design and it does not ship on this basis.
+
+A third check is the gate under ADR 0016 and is not automatable: the top and bottom ten are put in
+front of the user, and they read right or the metric goes back. The Ermin-2023 absurdity passed
+every correlation ADR 0004 ran and was caught by a human read.
+
+## Consequences
+
+- **The board grows to 140 rows.** The new metric reads no roster data at all, so the two
+  team-years excluded for corrupted roster records (2014 and 2015 *Beasts of the Middle East*)
+  come back, and the board stops having an exclusion to explain.
+- **The 2020 Round 16 / Pick 8 hole stops mattering.** A missing pick at slot 192 forgoes a going
+  rate of approximately nothing.
+- **Two long-disclosed data gaps close as a side effect**: 2-point conversions (uncounted for
+  2014-2017) and K/D-ST on the coarse whole-season basis. All twelve seasons land on one
+  measurement, which was the point of the 2014-2017 work that ADR 0004 could not finish.
+- **A team that drafted brilliantly and traded everyone away in October still has the best draft.**
+  This is the direct and intended consequence of judging the pick rather than the season.
+- **Correlation with wins will fall**, and that is the metric working. It deliberately ignores
+  everything after draft day. ADR 0004's +0.43 is not a bar this metric is held to, and re-running
+  the house method against it would fail the metric for doing what it was asked to do.
+- **Roster-move neutrality stops being evidence of anything.** It is now true by construction, not
+  by tuning, so it cannot defend the metric the way it defended ADR 0004's choice.
+- The year's draft board gains a going rate and a surplus on **every** pick, so "walk me through
+  it" has an answer for a disputed middle pick and not only for the two extremes. ADR 0005 already
+  found that grid too wide once, so it is held to the same 375px check.
+- **Era comparability is measured, not assumed** — for 2018-2025. The half-PPR era runs ~5% hotter
+  than 0-PPR on total drafted VOR, against a 17% swing inside a single era. **2014's whole-block
+  yardage scoring is a far larger rulebook difference and is not yet checked**; the same
+  measurement is re-run once all twelve seasons are in, and if 2014-2017 do not sit in the same
+  band this ADR needs an answer it does not currently have.

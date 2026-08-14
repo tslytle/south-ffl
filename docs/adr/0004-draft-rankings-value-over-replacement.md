@@ -1,7 +1,11 @@
 # 0004 — Rank Draft Rankings on season-relative value over replacement, not raw class points
 
 ## Status
-Accepted (2026-08-11)
+**Superseded by ADR 0015 (2026-08-14).** Kept for the record: its diagnosis of the *original*
+raw-class-total metric still stands, and its five-candidate table is still the house method for an
+*estimating* metric (ADR 0016). What it got wrong was the question, not the arithmetic — it ranked
+what a class delivered to a roster, which is drafting and holding measured together. Accepted
+2026-08-11.
 
 ## Context
 Draft Rankings shipped ranking every team-draft on one number: the sum of every point every

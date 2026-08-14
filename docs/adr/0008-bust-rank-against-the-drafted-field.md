@@ -1,7 +1,13 @@
 # 0008 — Rank a pick's finish against the field he was drafted in
 
 ## Status
-Accepted (2026-08-12)
+**Superseded by ADR 0015 (2026-08-14)**, which moves Steals & Busts onto going-rate and removes
+the rank subtraction this ADR exists to fix. Accepted 2026-08-12.
+
+Read the *Considered options* table below before rebuilding anything here: its **option D**
+(`pts − expected at slot`) is close to what ADR 0015 adopts, and it was rejected on evidence.
+ADR 0015 answers that rejection point by point and turns it into two hard preconditions — the
+objection is addressed, not overruled.
 
 ## Context
 Steals & Busts scores every pick as `gain = posSlot - posFin`, and the card
