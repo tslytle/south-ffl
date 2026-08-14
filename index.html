@@ -8590,7 +8590,10 @@ const SKILL = p => p.pos !== "K" && p.pos !== "D/ST";
    what the points figure on each card is measured against, and it's why
    the RB and WR bars sit past 24: the flex is in there too. */
 const LINEUP = { QB: 1, RB: 2, WR: 2, TE: 1 };
-const POS_ORDER = { QB: 1, RB: 2, WR: 3, TE: 4 };
+/* Reading order for the per-position sweeps on Steals & Busts. K is here
+   because ADR 0015 put kickers on that board; without an entry the sort key
+   is NaN and the kicker cards land wherever the sort happens to leave them. */
+const POS_ORDER = { QB: 1, RB: 2, WR: 3, TE: 4, K: 5 };
 
 /* ── Where the startable line actually sits ──────────────────────────
    The lineup card says 2 RB and 2 WR, but the flex means the real
@@ -8717,46 +8720,37 @@ function rankPicks(picks, tot, posOf, teams, basis, bar, held){
   return { steals, busts };
 }
 
+/* ── Steals & Busts: the board above, one pick wide ───────────────────
+   A steal is the pick furthest above the going rate for its slot; a bust is
+   the one furthest below. That is Draft Rankings with the sum taken off,
+   which is why these two boards cannot drift apart -- they are the same
+   arithmetic read at different widths.
+
+   Both of the old filters are gone (ADR 0015). "Cashed" -- held from week one
+   and for most of the weeks he was worth holding -- read roster history,
+   which is the one thing a judgment about draft day must not do. "Usable" was
+   not wrong, it is obsolete: it existed because the old `gain` subtracted two
+   ranks and could inflate a climb from WR70 to WR40 into a steal. There is no
+   rank subtraction here, and a WR40 has low value over replacement by
+   definition, so a worthless climb cannot produce a large surplus. Nothing is
+   left to filter.
+
+   Defences sit this one out; kickers do not. A kicker's season reproduces
+   exactly, a defence's only within about 12% -- under a point on a
+   sixteen-pick class, but a fifth to two fifths of the entire spread between
+   the best defence and the twelfth. So a defence can sink a draft class on
+   the board above and can never appear on this one.
+
+   All twelve seasons, where this board used to run 2018-2025 plus a
+   starters-only stand-in for 2017. */
 function draftValue(){
   const out = [];
-  Object.keys(ROSTERS.S).map(Number).filter(y => !ROSTERS.S[y].static && DRAFTS[y])
-    .sort((a, b) => b - a).forEach(y => {
-      const tot = {}, posOf = {}, counted = {}, held = {};
-      Object.keys(ROSTERS.S[y].teams).forEach(tn => {
-        for(let w = 1; w <= 17; w++){
-          const r = rosterAt(y, tn, w);
-          if(!r || !r.list) continue;
-          r.list.forEach(e => {
-            const p = ARCH.P[e.id]; if(!p) return;
-            (held[p[0]] = held[p[0]] || {})[w] = tn;   /* one roster per week */
-            const k = e.id + "|" + w; if(counted[k]) return; counted[k] = 1;
-            tot[p[0]] = (tot[p[0]] || 0) + (e.pts || 0);
-            posOf[p[0]] = p[1];
-          });
-        }
-      });
-      const picks = [];
-      Object.entries(DRAFTS[y].picks).forEach(([team, list]) =>
-        list.forEach(pk => picks.push({ overall: pk[0], name: pk[1], pos: pk[3],
-                                        team, y, pts: tot[pk[1]] || 0, pid: PID[pk[1]] })));
-      if(!picks.length) return;
-      const { steals, busts } = rankPicks(picks, tot, posOf,
-                                          RULES[y] ? RULES[y][0] : 12, "full", startsBar(y), held);
-      out.push({ y, steals, busts });
+  Object.keys(DRAFTS).map(Number).sort((a, b) => b - a).forEach(y => {
+    draftPicksPriced(y).forEach(p => {
+      if(p.pos === "D/ST") return;
+      out.push(Object.assign({ pid: PID[p.name] }, p));
     });
-
-  /* 2017, on the starter-only basis, bust only */
-  if(DRAFTS[2017]){
-    const posOf = {};
-    ARCH.P.forEach(p => { if(!(p[0] in posOf)) posOf[p[0]] = p[1]; });
-    const picks = [];
-    Object.entries(DRAFTS[2017].picks).forEach(([team, list]) =>
-      list.forEach(pk => { posOf[pk[1]] = pk[3];
-        picks.push({ overall: pk[0], name: pk[1], pos: pk[3], team, y: 2017,
-                     pts: STARTER_PTS_2017[pk[1]] || 0, pid: PID[pk[1]] }); }));
-    const { busts } = rankPicks(picks, STARTER_PTS_2017, posOf, 12, "starters", startsBar(2017), null);
-    out.push({ y: 2017, steals: [], busts, startersOnly: true });
-  }
+  });
   return out;
 }
 
@@ -8845,11 +8839,30 @@ function draftPicksPriced(y){
       if(!e) return;                       /* nothing on file: can't price it */
       const rep = season.rep[e.pos];
       if(rep == null) return;
+      /* A pick cannot cost more than the pick. Replacement is free by
+         definition, so a man who finished below it would simply not have been
+         used -- the pick bought an option nobody exercised, worth nothing, not
+         worth less than nothing. Flooring here also removes a position bias
+         that is otherwise impossible to defend: value is bounded below by
+         -replacement, and QB replacement runs ~290 against RB's ~130, so an
+         injured quarterback was charged about 160 more than an injured back
+         for the identical outcome of producing nothing. Unfloored, NINE of the
+         ten worst picks on this board were quarterbacks. Floored, none are,
+         and the board reads as wasted premium picks, which is what a bust is.
+
+         ADR 0004 refused this floor, and was right to for the metric it had:
+         there, flooring made cutting a bust free and erased the cost of
+         holding a below-replacement man in a roster spot all year. Neither
+         applies now -- nothing about holding enters this board at all. */
+      const vor = e.pts - rep;
       all.push({ y: y, team: team, overall: pk[0], name: pk[1], pos: e.pos,
-                 pts: e.pts, games: e.games, value: e.pts - rep });
+                 pts: e.pts, games: e.games, vor: vor, value: Math.max(0, vor) });
     });
   });
   if(all.length){
+    /* Fitted on the FLOORED values, which matters: fit it on raw ones and the
+       curve stays negative through the late rounds, so a pick that returned
+       nothing at 190 would score positive for beating a negative going rate. */
     const rate = goingRate(all);
     all.forEach(p => { p.rate = rate(p.overall); p.over = p.value - p.rate; });
   }
@@ -9542,10 +9555,12 @@ let HINDSIGHT = null;      /* handed to the record book further down */
    same lists sliced two different ways. */
 lazyBoard("steals", function(){
   if(typeof DRAFTS === "undefined") return;
-  const rows   = draftValue();
+  const picks  = draftValue();
   const wire   = waiverMoves();
-  const steals = rows.flatMap(r => r.startersOnly ? [] : (r.steals || []));
-  const busts  = rows.flatMap(r => r.busts || []);
+  /* One list, read from both ends: a steal and a bust are the same number
+     with opposite signs, which is the point of the going-rate basis. */
+  const steals = picks.slice().sort((a, b) => b.over - a.over);
+  const busts  = picks.slice().sort((a, b) => a.over - b.over);
   HINDSIGHT = { steals, busts, wire };      /* the record book wants these too */
   const who    = t => OWNER_OF[t] || t;
   const sgn    = (v, dec) => (v >= 0 ? "+" : "&minus;") + (dec ? num(Math.abs(v)) : Math.abs(v));
@@ -9555,16 +9570,14 @@ lazyBoard("steals", function(){
      The "kept" note only appears when it's the story — a pick held the
      whole way needs no comment. */
   const draftCard = (p, byTeam) => `
-    <div class="dv ${p.gain >= 0 ? "up" : "down"}">
+    <div class="dv ${p.over >= 0 ? "up" : "down"}">
       <span class="dvtag">${p.pos}</span>
       <span class="dvwho"><b>${pLink(p.name, p.y, null, p.pid)}</b>
         <span>${esc(byTeam ? p.team : who(p.team))} &middot; ${p.y}</span>
-        <span class="dvmove">Taken ${p.pos}${p.posSlot} of ${p.posDrafted}, finished ${p.pos}${p.posFinDr}${
-          p.rostered && p.kept < p.rostered
-            ? ` &middot; kept ${p.kept} of ${p.rostered} wk${p.rostered === 1 ? "" : "s"}` : ""}</span></span>
-      <span class="dvnum"><b>${sgn(p.gain)}</b>spots<em>${
-        p.basis === "starters" ? "starters only"
-                               : `${sgn(p.vor, 1)} extra pts`}</em></span>
+        <span class="dvmove">Taken ${p.overall} overall, where the going rate was
+          ${sgn(Math.round(p.rate))} &middot; ${p.games} game${p.games === 1 ? "" : "s"}</span></span>
+      <span class="dvnum"><b>${sgn(Math.round(p.over))}</b>over the going rate<em>${
+        sgn(Math.round(p.vor))} over replacement</em></span>
     </div>`;
 
   const wireCard = (x, added, byTeam) => `
@@ -9589,10 +9602,10 @@ lazyBoard("steals", function(){
   if(dv) dv.innerHTML =
     `<div class="dvgrid">
       <div class="dvcol"><h5>Biggest steals</h5>${
-        perPos(steals.slice().sort((a, b) => b.gain - a.gain), 3, "gain")
+        perPos(steals, 3, "over")
           .map(p => draftCard(p)).join("")}</div>
       <div class="dvcol"><h5>Biggest busts</h5>${
-        perPos(busts.slice().sort((a, b) => a.gain - b.gain), 3, "gain")
+        perPos(busts, 3, "over")
           .map(p => draftCard(p)).join("")}</div>
     </div>`;
 
@@ -9616,8 +9629,8 @@ lazyBoard("steals", function(){
      sign test the same name turned up under both "best" and "worst" —
      the good column running out of positives and the bad column reaching
      up to meet it. A thin column reads better than a contradiction. */
-  const won   = steals.filter(p => p.gain > 0);
-  const lost  = busts.filter(p => p.gain < 0);
+  const won   = steals.filter(p => p.over > 0);
+  const lost  = busts.filter(p => p.over < 0);
   const got   = wire.adds.filter(x => x.val > 0);
   const gone  = wire.drops.filter(x => x.val > 0);
 
@@ -9637,9 +9650,9 @@ lazyBoard("steals", function(){
            a QB can't climb fifteen), so a raw-spots sort handed this
            panel to RB/WR every time. The sign test above still uses
            spots, which is what makes a pick a steal or a bust at all. */
-        col("Best picks", mine(won, (a, b) => b.vor - a.vor),
+        col("Best picks", mine(won, (a, b) => b.over - a.over),
             p => draftCard(p, true), "Nothing he drafted beat where he took it.") +
-        col("Worst picks", mine(lost, (a, b) => a.vor - b.vor),
+        col("Worst picks", mine(lost, (a, b) => a.over - b.over),
             p => draftCard(p, true), "No starter he drafted flopped.")}</div>
        <p class="wvh">Waiver wire</p>
        <div class="dvgrid">${
@@ -9751,18 +9764,22 @@ lazyBoard("records", function(){
 
   /* ---- the wire and the draft ---- */
   if(HINDSIGHT){
-    const st = HINDSIGHT.steals.slice().sort((a, b) => b.gain - a.gain)[0];
-    if(st) add("The last-round steal", 35.05, st.name,
+    const st = HINDSIGHT.steals[0];
+    if(st) add("The steal of the draft", 35.05, st.name,
       `${OWNER_OF[st.team] || st.team} &middot; ${st.y}`,
-      `Taken ${stat(st.pos + st.posSlot)} at his position and finished ${stat(st.pos + st.posFin)} &mdash;
-       ${stat("+" + st.gain)} places, the biggest jump anybody has drafted, and worth
-       ${stat("+" + num(st.vor))} extra points.`);
+      `Taken ${stat(st.overall + " overall")}, where a pick was worth about
+       ${stat(num(Math.round(st.rate)))} that year. He returned
+       ${stat("+" + num(Math.round(st.vor)))} over replacement &mdash;
+       ${stat("+" + num(Math.round(st.over)))} more than the slot was worth, the best
+       return anybody has had on a pick.`);
 
-    const bu = HINDSIGHT.busts.slice().sort((a, b) => a.gain - b.gain)[0];
+    const bu = HINDSIGHT.busts[0];
     if(bu) add("The pick that sank a season", 35.06, bu.name,
       `${OWNER_OF[bu.team] || bu.team} &middot; ${bu.y}`,
-      `Drafted ${stat(bu.pos + bu.posSlot)} and finished ${stat(bu.pos + bu.posFin)},
-       ${stat(bu.gain)} places, ${stat(num(bu.vor))} extra points. No pick has ever fallen further.`);
+      `Taken ${stat(bu.overall + " overall")} and worth ${stat(num(Math.round(bu.vor)))}
+       over replacement across ${stat(bu.games + (bu.games === 1 ? " game" : " games"))} &mdash;
+       ${stat(num(Math.round(bu.over)))} against what that slot was worth. No pick has ever
+       come up shorter.`);
 
     const pu = HINDSIGHT.wire.adds[0];
     if(pu) add("Best pickup ever", 37.5, pu.name,
