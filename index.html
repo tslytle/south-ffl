@@ -670,11 +670,19 @@ table.board.drtable{table-layout:auto;min-width:440px;width:100%}
 .drtable td b{font-size:var(--t-small)}
 .drtable td.drval{white-space:nowrap}
 .drtable .drunit{font-size:var(--t-tiny);color:var(--muted)}
+/* games played, set apart from the pick it qualifies without competing with
+   the surplus beside it -- it is context, not a second verdict */
+.drtable .drgm{margin-left:6px;color:var(--faint)}
+.drtable .drgm::before{content:"\00b7\00a0"}
 /* on a phone the unit label drops under its number rather than forcing
    another 90px of sideways scroll */
 @media (max-width:760px){
   .drtable td.drval{white-space:normal}
   .drtable .drunit{display:block}
+  /* games goes under its pick rather than widening the table past the phone;
+     the pick line is the longest run in the row and it sets the column */
+  .drtable .drgm{display:block;margin-left:0}
+  .drtable .drgm::before{content:none}
   table.board.drtable{min-width:330px}
 }
 .drtable td b.pos{color:var(--pos)}
@@ -8752,141 +8760,120 @@ function draftValue(){
   return out;
 }
 
-/* ── Every draft, every team, ranked ─────────────────────────────────
-   This board used to add up every point every drafted player scored while
-   he sat on the drafting team's roster, and rank on that raw sum. It read
-   like a draft grade and wasn't one. Three things were wrong with it, and
-   the numbers say so out loud:
+/* ── Draft Rankings: what each pick returned over the going rate ──────
+   THE QUESTION. How good was this draft, as a draft -- not what the class
+   went on to do for the team that made it. Nothing below reads a roster, a
+   lineup or a transaction, so a manager who drafted brilliantly and traded
+   the lot away in October still has the best draft on this board. That is
+   deliberate (ADR 0015): the metric this replaced measured what a class
+   delivered to a roster, which is drafting and holding measured together,
+   and every one of its defects was a place where roster history leaked into
+   a number about draft day.
 
-   1. It paid for hoarding, not for drafting. Across 2018-2025 the raw
-      total correlated -0.41 with a manager's roster moves that season:
-      the surest way up the board was to draft sixteen men and never touch
-      the waiver wire again. The 2023 board's runner-up all-time was a
-      5-9 team that made exactly one move all year and kept both of its
-      kickers and both of its defences from week one to week seventeen --
-      467 points of streaming positions nobody in this league even
-      remembers drafting, plus a backup quarterback who scored 283 while
-      starting three times.
-   2. It rewarded bulk over usefulness. A quarterback outscores any back
-      alive, so a bench QB banked more "draft value" than a starting RB2.
-      Steals & Busts already solved this for single picks by judging every
-      man at his own position against replacement level. A whole draft
-      deserves the same measure.
-   3. It could not compare eras. 2014's whole-number scoring and 2021's
-      half-PPR don't produce the same size of number, so the old board's
-      bottom twenty was seventeen-parts 2014-2017 -- an artefact of the
-      rulebook, not a run of bad drafting.
+   RETURN. What a pick was worth is the player's whole NFL season, weeks 1
+   to 17, against the man at his own position you could have had for nothing.
+   Whole season, and not the part of it he spent on the drafting roster --
+   the board judges the pick, not the holding. Value over replacement rather
+   than points, because points make the answer to every question a
+   quarterback: in 2023 nine of the top twelve scorers were QBs, and by value
+   over replacement it is four. PLAYER_VALUE holds both, baked by
+   refresh-players.py from nflverse's public weekly stats under this league's
+   own rulebook for that year.
 
-   So the ranking is now built in two steps.
+   THE GOING RATE. What a pick at that slot was worth that season: a smooth
+   curve fitted through all of the year's picks, value against the log of the
+   overall pick number. Position-blind on purpose. A curve drawn per position
+   would only ever compare a quarterback to the other quarterbacks taken
+   around there, so "took a QB too early" could never register as a loss.
+   Position-blind is what makes it register -- you spent pick 26, and pick 26
+   is graded against everything pick 26 could have bought.
 
-   VALUE. For 2018+, each pick is worth what he scored FOR THE TEAM THAT
-   DREW HIM, minus what the wire was handing out free at his position over
-   the same stretch -- replacementAt()'s line, the same one Steals & Busts
-   measures single picks against, prorated by the weeks that team actually
-   held him. Sum that over the class. Kickers and defences are left out,
-   exactly as SKILL leaves them out of the hindsight boards above, and for
-   the same reason. A man held all year who never beat the wire subtracts,
-   because the roster spot he ate was real; a man cut in week two costs
-   almost nothing, because the spot came back. Measured this way the metric
-   is flat against roster moves (+0.13) and tracks wins better than the old
-   raw sum did (+0.43 against +0.29), across the 96 team-drafts from 2018 on.
+   The smoothness is load-bearing, not cosmetic. ADR 0008 rejected a per-slot
+   expectation because it would not fall monotonically as the slot got later,
+   and it was right about that for a local window: fitted as a rolling median
+   over +/-12 picks this same data still inverts 22-26% of adjacent slots in
+   every season. Fitted as a smooth curve it inverts none, in any season.
+   **Do not replace this with a rolling average or a per-round table.**
 
-   SCORE. Value is then read against the rest of that season's league --
-   100 is an average draft for its own year, and every 15 points is one
-   standard deviation. That, not the raw figure, is what the board sorts
-   on, so a 2014 class and a 2023 class are asked the same question:
-   how far ahead of the other eleven men in the room were you?
+   THE CLASS. The plain sum of its picks' surpluses, so trading up is charged
+   the higher expectation it bought and forgoing a sixteenth-rounder forgoes
+   about nothing. Read against its own season as 100 + 15z, which is what the
+   all-time list sorts on -- the headline figure is already era-comparable by
+   construction, since replacement is recomputed under each year's rulebook
+   (measured: the half-PPR era runs ~5% hotter than 0-PPR, against a 17%
+   swing inside a single era).
 
-   2014-2017 keep the coarser basis they were computed on out-of-band
-   (whole-class totals, kickers and defences included -- see the comment
-   above DRAFT_TOTALS_2014_2017), because this file has no week-by-week
-   roster history that far back to measure replacement against. Their
-   scores are honest within their own season and are marked as the
-   different basis they are; they are not pretending to be the same
-   measurement. */
+   Kickers and defences are in, because a sixteen-pick draft graded on eleven
+   picks is not a graded draft. Defences are in *here* and out of Steals &
+   Busts: their season totals land within about 12% rather than exactly, which
+   moves a class score by under one point but would be the whole story on a
+   board about single picks. ADR 0015 has the numbers. */
+
+/* Least squares of value on log(slot). Two passes' worth of sums, no fitting
+   library, and it is the only curve shape this board is allowed -- see above. */
+function goingRate(picks){
+  let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+  picks.forEach(p => {
+    const x = Math.log(p.overall);
+    n++; sx += x; sy += p.value; sxx += x * x; sxy += x * p.value;
+  });
+  const d = n * sxx - sx * sx;
+  const b = d ? (n * sxy - sx * sy) / d : 0;
+  const a = (sy - b * sx) / (n || 1);
+  return x => a + b * Math.log(x);
+}
+
+/* Every priced pick of a season, with its going rate and its surplus. Shared
+   with the draft board, which prints the same three numbers per pick. */
+const DR_CACHE = {};
+function draftPicksPriced(y){
+  if(DR_CACHE[y]) return DR_CACHE[y];
+  const season = typeof PLAYER_VALUE !== "undefined" && PLAYER_VALUE[y];
+  if(!season || !DRAFTS[y]) return (DR_CACHE[y] = []);
+  /* one index over every man whose season that year is on file. A drafted man
+     is always in here -- one who never played is baked at 0 points and 0
+     games rather than left out, so the board can tell "returned nothing" from
+     "we don't know". */
+  const idx = {};
+  Object.keys(season.p).forEach(pos =>
+    season.p[pos].forEach(r => { if(!(r[0] in idx)) idx[r[0]] = { pos: pos, pts: r[1], games: r[2] }; }));
+
+  const all = [];
+  Object.entries(DRAFTS[y].picks).forEach(([team, list]) => {
+    list.forEach(pk => {
+      const e = idx[pk[1]];
+      if(!e) return;                       /* nothing on file: can't price it */
+      const rep = season.rep[e.pos];
+      if(rep == null) return;
+      all.push({ y: y, team: team, overall: pk[0], name: pk[1], pos: e.pos,
+                 pts: e.pts, games: e.games, value: e.pts - rep });
+    });
+  });
+  if(all.length){
+    const rate = goingRate(all);
+    all.forEach(p => { p.rate = rate(p.overall); p.over = p.value - p.rate; });
+  }
+  return (DR_CACHE[y] = all);
+}
+
 function draftRankings(){
   const out = [];
   Object.keys(DRAFTS).map(Number).sort((a, b) => a - b).forEach(y => {
-    if(!ROSTERS.S[y]) return;
-    if(ROSTERS.S[y].static){
-      /* 2014-2017: no week-by-week roster history here, so the per-team
-         class totals computed out-of-band are looked up directly. Two
-         team-years are missing from that table on purpose (corrupted
-         source data, not a bug) and are excluded rather than shown as a
-         misleading 0. */
-      const totals = DRAFT_TOTALS_2014_2017[y];
-      if(!totals) return;
-      Object.entries(DRAFTS[y].picks).forEach(([team, list]) => {
-        const pts = totals[team];
-        if(pts == null) return;
-        out.push({ y, team, basis: "total", value: pts, pts, picks: list.length });
-      });
-      return;
-    }
-    /* Where the wire sat that season: every player's points pooled once
-       across the whole league (the same tot[] draftValue() builds, so the
-       two boards can't drift), sorted by position, cut at the startable
-       line. */
-    const tot = {}, posOf = {}, counted = {};
-    const teams = Object.keys(ROSTERS.S[y].teams);
-    let weeks = 0;
-    teams.forEach(tn => {
-      for(let w = 1; w <= 17; w++){
-        const r = rosterAt(y, tn, w);
-        if(!r || !r.list) continue;
-        if(w > weeks) weeks = w;
-        r.list.forEach(e => {
-          const p = ARCH.P[e.id]; if(!p) return;
-          const k = e.id + "|" + w; if(counted[k]) return; counted[k] = 1;
-          tot[p[0]] = (tot[p[0]] || 0) + (e.pts || 0);
-          posOf[p[0]] = p[1];
-        });
-      }
-    });
-    const byPos = {};
-    Object.keys(tot).forEach(n => {
-      const p = posOf[n];
-      if(!p || !LINEUP[p]) return;
-      (byPos[p] = byPos[p] || []).push(tot[n]);
-    });
-    Object.keys(byPos).forEach(p => byPos[p].sort((a, b) => b - a));
-    const { rep } = replacementAt(byPos, startsBar(y));
-
-    /* Then each team's own class, scanned on its own roster only -- a
-       player taken, dropped week 2 and later a star for somebody else
-       earns the drafting team nothing here (that swing is Steals &
-       Busts' job, not this one). */
-    teams.forEach(tn => {
-      const held = {}, wk = {};
-      for(let w = 1; w <= 17; w++){
-        const r = rosterAt(y, tn, w);
-        if(!r || !r.list) continue;
-        r.list.forEach(e => {
-          const p = ARCH.P[e.id]; if(!p) return;
-          held[p[0]] = (held[p[0]] || 0) + (e.pts || 0);
-          wk[p[0]]   = (wk[p[0]] || 0) + 1;
-        });
-      }
-      const list = (DRAFTS[y].picks[tn]) || [];
-      let por = 0, raw = 0;
-      list.forEach(pk => {
-        const v = held[pk[1]];
-        if(v != null) raw += v;
-        /* the man's real position, not the slot he was drafted into */
-        const pos = posOf[pk[1]] || pk[3];
-        if(!LINEUP[pos]) return;      /* kickers and defences sit this out */
-        if(v == null) return;         /* never rostered: no gain, no cost  */
-        por += v - (rep[pos] || 0) * ((wk[pk[1]] || 0) / (weeks || 1));
-      });
-      out.push({ y, team: tn, basis: "por", value: Math.round(por * 10) / 10,
-                 pts: Math.round(raw * 10) / 10, picks: list.length });
+    const all = draftPicksPriced(y);
+    if(!all.length) return;
+    const byTeam = {};
+    all.forEach(p => (byTeam[p.team] = byTeam[p.team] || []).push(p));
+    Object.keys(byTeam).forEach(team => {
+      const mine = byTeam[team], ranked = mine.slice().sort((a, b) => b.over - a.over);
+      out.push({ y: y, team: team, picks: mine.length,
+                 value: Math.round(mine.reduce((a, p) => a + p.over, 0) * 10) / 10,
+                 best: ranked[0], worst: ranked[ranked.length - 1] });
     });
   });
 
   /* Read every class against its own season: 100 is that year's average
-     draft, 15 points is one standard deviation. Population sd, not
-     sample -- these twelve teams are the whole league, not a draw from
-     a bigger one. */
+     draft, 15 points is one standard deviation. Population sd, not sample --
+     these twelve teams are the whole league, not a draw from a bigger one. */
   const byYear = {};
   out.forEach(r => (byYear[r.y] = byYear[r.y] || []).push(r));
   Object.keys(byYear).forEach(y => {
@@ -8919,13 +8906,19 @@ lazyBoard("draftranks", function(){
   const rows = draftRankings();
   if(!rows.length) return;
   const era = y => (y >= 2021 ? "&frac12;-PPR" : "0-PPR");
-  /* The value cell says which measurement it is, on every row, so the two
-     bases can never be mistaken for one another at a glance. */
-  const drVal = r => r.basis === "por"
-    ? `<b class="${r.value < 0 ? "neg" : "pos"}">${sgn(r.value)}</b> <span class="drunit">over replacement</span>
-       <i>${NUM(r.pts)} class pts</i>`
-    : `<b>${NUM(r.pts)}</b> <span class="drunit">class points</span>
-       <i>older basis &mdash; see below</i>`;
+  /* The best and the worst pick of the class, each with the games he played.
+     Games is a fact and not a diagnosis: it covers an August knee, a
+     suspension, a holdout and a rookie who never dressed with one number, and
+     it leaves the reader to decide what it excuses (ADR 0015). The worst pick
+     on this board is very often a man who played none. */
+  const drPick = p => p
+    ? `${esc(p.name)} at ${p.overall} <b class="${p.over < 0 ? "neg" : "pos"}">` +
+      `${p.over < 0 ? "&minus;" : "+"}${Math.round(Math.abs(p.over))}</b>` +
+      `<span class="drgm">${p.games} game${p.games === 1 ? "" : "s"}</span>`
+    : "&mdash;";
+  const drVal = r => `<b class="${r.value < 0 ? "neg" : "pos"}">${sgn(r.value)}</b>
+       <span class="drunit">over the going rate</span>
+       <i>best ${drPick(r.best)}</i><i>worst ${drPick(r.worst)}</i>`;
   const drRow = r => `<tr>
       <td class="rdc">${r.rank}</td>
       <td><button class="drjump" data-y="${r.y}" title="Open the ${r.y} draft board">
@@ -8936,7 +8929,7 @@ lazyBoard("draftranks", function(){
     </tr>`;
   const head = `<thead><tr><th class="rdc">Rank</th><th>Team</th><th>Year</th>` +
     `<th>Draft score<em>100 = average for that year</em></th>` +
-    `<th>Value<em>what the class was worth</em></th></tr></thead>`;
+    `<th>Over the going rate<em>what the picks beat their slots by</em></th></tr></thead>`;
   const draw = (el, list) => { if(el) el.innerHTML = head + `<tbody>${list.map(drRow).join("")}</tbody>`; };
   draw(topEl, rows.slice(0, 10));
   draw(botEl, rows.slice(-10).reverse());
