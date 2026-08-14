@@ -61,6 +61,27 @@ forgoes about nothing, which is the right answer for 2020 *All I Do Is Winn* and
 100 on a kicker when picks around 100 returned a startable receiver is a real, gradeable mistake
 that the going rate prices correctly.
 
+**Except that a defence cannot be a bust.** Skill players and kickers reproduce ESPN's own points
+exactly (100.0% of 23,668 player-weeks). Defences do not, and it is not fixable from this source:
+the categories are all correct — regression puts defensive TDs at 5.997, return TDs at 5.991, and
+every category *not* in this rulebook at ~0.03 — and the yards-allowed ladder reproduces exactly,
+but nflverse's play-by-play build carries ~11% more sacks and ~23% more fumble recoveries than
+ESPN's feed. Summing player rows instead is identical to the team file (11.8% either way);
+excluding opponent defensive scores from points-allowed only reaches 10.3%. **Median season error
+11.8%, 90th percentile 21%.**
+
+What that error reaches decides where defences are allowed:
+
+| board | what one D/ST error moves |
+|---|---|
+| Draft Rankings — 16 picks, season sd **230** class points | **0.65 score points** (median), **1.11** (90th pct), against scores spanning 61-136 |
+| Steals & Busts — one pick, D/ST VOR spread only 40-60 points | **20-40% of the spread** |
+
+So **defences are graded in Draft Rankings and excluded from Steals & Busts**; kickers are in
+both. This is not the old `SKILL` convention returning — it is a scope drawn where the data can
+carry the claim and stopped where it cannot. The cost is an asymmetry that "How this works" has to
+state plainly: a defence can sink your draft class but can never appear as a bust.
+
 **Presentation.** The headline is the surplus itself — `+340 over the going rate` — with the
 in-season standing beside it, because the number the old board led with was unintelligible and
 that was half of why this rebuild happened. Each row also carries the class's **best and worst
