@@ -30,6 +30,19 @@ residuals of that check:
     Matt Prater threw a touchdown off a fake in 2018;
   * a missed PAT costs nothing.
 
+2014's DEFENSIVE rulebook is not known and does not need to be. The change
+log records that 2015 "added extra defensive and return scoring categories"
+without saying which, so 2014 is the modern set minus some subset. Measured
+rather than guessed: strip every category whose 2014 status is in question --
+blocked kicks, 2-pt returns and return touchdowns, the most aggressive reading
+-- and no 2014 class score moves by more than a point, with the only order
+change falling between two teams the board already has tied. A missing category
+subtracts from every defence, so the replacement line drops with it and most of
+the difference cancels before it reaches a class; what survives is one pick in
+sixteen. Those categories are worth a median of 6 points and at most 28 to any
+drafted 2014 defence, against a season averaging 90. 2014's YARDAGE rule is a
+different matter and is known -- see yardage_points().
+
 Defences are a known and bounded exception. Their categories and the
 yards-allowed ladder reproduce exactly, but nflverse's play-by-play build
 carries ~11% more sacks and ~23% more fumble recoveries than ESPN's feed, so a

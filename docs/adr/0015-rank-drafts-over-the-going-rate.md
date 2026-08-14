@@ -234,6 +234,16 @@ every correlation ADR 0004 ran and was caught by a human read.
 - The year's draft board gains a going rate and a surplus on **every** pick, so "walk me through
   it" has an answer for a disputed middle pick and not only for the two extremes. ADR 0005 already
   found that grid too wide once, so it is held to the same 375px check.
+- **2014's defensive scoring is unknown and immaterial — closed 2026-08-14.** The change log says
+  2015 "added extra defensive and return scoring categories" without naming them, so 2014 is the
+  modern set minus some subset and nobody has the settings page. It was closed by measurement rather
+  than by discovery, which is the stronger result: stripping *every* uncertain category moves no 2014
+  class score by more than **1 point**, and the only order change is between two teams the board
+  already ties at 108. A missing category subtracts from every defence at once, so the replacement
+  line drops with it and most of the difference cancels before reaching a class; what survives is one
+  pick in sixteen. Measured magnitude: those categories are worth a median of 6 and at most 28 points
+  to any drafted 2014 defence, against a season averaging 90. The board only becomes sensitive to
+  per-club differences of ~10 points a season, which a category change cannot produce.
 - **Era comparability is measured, not assumed** — for 2018-2025. The half-PPR era runs ~5% hotter
   than 0-PPR on total drafted VOR, against a 17% swing inside a single era. **2014's whole-block
   yardage scoring is a far larger rulebook difference and is not yet checked**; the same

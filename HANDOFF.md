@@ -63,10 +63,14 @@ one move. The 2020 Round 16 / Pick 8 hole stops mattering. 13KB of dead code wen
 (`rankPicks`, `STARTER_PTS_2017`, `DRAFT_TOTALS_2014_2017`).
 
 **Open, and honest about it:**
-- **2014-2017 cannot be validated.** The 100.0% check needs the archive's own weekly points, which
-  only exist from 2018. Those four seasons rest on the rulebook being right — 2014's whole-block
-  yardage was reverse-engineered in an earlier session and reproduces known totals exactly, but
-  2014's *defensive* scoring predates the 2015 category expansion and is assumed, not checked.
+- **2014-2017 cannot be validated directly.** The 100.0% check needs the archive's own weekly
+  points, which only exist from 2018. Those four seasons rest on the rulebook being right. 2014's
+  whole-block yardage was reverse-engineered in an earlier session and reproduces known totals
+  exactly. **2014's defensive scoring was the last thing resting on inference and is now closed** —
+  not by finding the settings page but by showing it cannot matter: strip every category whose 2014
+  status is in question and no class score moves more than a point (see ADR 0015). What remains
+  unvalidated is the *offensive* rulebook for 2015-2017, which is the modern one and is assumed
+  unchanged.
 - **The era check is 2018-2025 only.** The half-PPR era runs ~5% hotter than 0-PPR on total drafted
   VOR, against a 17% swing inside a single era — which is why the headline figure is comparable
   across years. 2014's rulebook is a far larger difference and that check has **not** been re-run
