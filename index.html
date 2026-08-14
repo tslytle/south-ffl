@@ -3153,11 +3153,23 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead{
   /* A masthead, not a card. summary.sechead one level up already reads this
      way — bare, with a hairline under it — and the board header simply never
      inherited it. Two stacked filled boxes at different widths was the thing
-     that looked wrong; matching their widths alone would only half-fix it. */
+     that looked wrong; matching their widths alone would only half-fix it.
+
+     The hairline that used to run under this header is gone. It was doing the
+     job of showing where the board began, and the frame now does that job
+     properly — a rule under the title as well only boxed the header off inside
+     a box, which is one line too many. On a collapsed board it was the worse
+     kind of redundant: a lid drawn across an empty container. */
   background:none;border:0;border-radius:0;
-  padding:var(--sp-2) 0 var(--sp-3);border-bottom:1px solid var(--line)}
-body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:hover{
-  border-bottom-color:var(--accent)}
+  padding:var(--sp-2) 0 var(--sp-3)}
+/* Hover moves to the frame, because the hairline it used to tint is gone and a
+   header you can open still has to say so. Tinting the whole outline says it
+   better than the old rule did: the thing that lights up is the thing that
+   opens. :has() rather than a class, so no JS is involved in a hover state. */
+body[data-route]:not([data-route="hub"]) .uactive details.sub:has(> summary.subhead:hover){
+  outline-color:var(--accent)}
+body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead:hover h3.sec2{
+  color:var(--accent)}
 /* The text block is flex:1, which shoved the chevron to the far edge of a
    full-width panel — around 500px from the heading it belongs to, reading as
    unrelated furniture. Letting the block size to its content puts the control
