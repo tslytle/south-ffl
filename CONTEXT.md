@@ -22,8 +22,11 @@ rate; a class's figure is the plain sum across all sixteen picks, so trading up 
 higher expectation it bought and forgoing a 16th-rounder forgoes about nothing.
 
 A pick's **return** is his *whole NFL season* (weeks 1-17) as value over positional replacement,
-**regardless of who ended up holding him** — the board judges the pick, not the season that
-followed it. Nothing about who was dropped, started, benched or traded enters, which is what
+**floored at zero** and **regardless of who ended up holding him** — the board judges the pick, not
+the season that followed it. The floor is what stops a pick costing more than the pick: replacement
+is free, so a man who finished below it would simply not have been used. It also removes an
+indefensible position bias — value is bounded below by −replacement, and QB replacement runs ~290
+against a back's ~130, which put nine quarterbacks in the ten worst picks of all time. Nothing about who was dropped, started, benched or traded enters, which is what
 makes it a ranking of drafts rather than of management. K and D/ST are in: a kicker taken in the
 ninth round is a real and gradeable decision, and a 16-pick draft graded on 11 picks isn't one.
 Replacement is `replacementAt()` cut at `STARTS_BAR`, extended to 12 K and 12 D/ST and drawn over

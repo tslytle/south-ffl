@@ -6,6 +6,79 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
+## WHERE THIS STANDS — 2026-08-14: the draft-ranking overhaul
+*Read this first. The 2026-08-12 section below it is the previous state of play and is still
+accurate for everything it covers.*
+
+**Draft Rankings and Steals & Busts were rebuilt from the question down**, in a `/grill-with-docs`
+session. The old metric ranked what a class *delivered to a roster*, which is drafting and roster
+management measured together. The new one ranks the draft: **what each pick returned over the going
+rate for its slot**, and nothing about what happened afterwards counts. Decisions in **ADR 0015**
+(the basis) and **ADR 0016** (a split in the judged-metric standard); vocabulary in `CONTEXT.md`
+under *going rate* and *judged metric*.
+
+**Eight commits, all on `main` and live.** `refresh-players.py` is new and is the data layer.
+
+### The four things worth knowing before touching any of it
+
+1. **The fit family is load-bearing.** ADR 0008 rejected a per-slot expectation because it would
+   not fall monotonically, and it was right for a local window: fitted as a rolling median over
+   ±12 picks, this same data still inverts 22-26% of adjacent slots in every season. Fitted as a
+   smooth curve it inverts **none, in any season**. The comment above `goingRate()` forbids a
+   rolling average in as many words. **Do not "improve" it into one.**
+2. **The floor is not cosmetic.** A pick's return is floored at zero. Unfloored, nine of the ten
+   worst picks in league history were quarterbacks — because value is bounded below by
+   −replacement and QB replacement runs ~290 against a back's ~130. See ADR 0015; note it directly
+   contradicts ADR 0004, which was right for the metric *it* had.
+3. **Defences are on Draft Rankings and off Steals & Busts.** Not squeamishness: a D/ST season only
+   reconstructs to within ~12%, which is under one score point on a sixteen-pick class and a fifth
+   to two fifths of the whole spread on a board about single picks.
+4. **`refresh-players.py` is re-runnable and self-checking.** It asserts the baked subset reproduces
+   the replacement line drawn over the full population — that check caught a real defect the first
+   time it ran. Cache lives in `.nflverse-cache/` and is gitignored.
+
+### Measured, not assumed
+
+- **Scoring**: the league's rulebook computed from nflverse raw stats reproduces the archive's own
+  points for **23,668 player-weeks at 100.0%** in every season 2018-2025. Four rules had to be
+  recovered from the residuals rather than read off the scoring page — a blocked field goal is a
+  miss, return and own-fumble-recovery touchdowns pay 6, a kicker scores whatever he does with the
+  ball in his hands, a missed PAT costs nothing.
+- **ADR 0015's gate**, on the full 140-row board: log-linear **0 inversions** in all twelve seasons,
+  isotonic 0, rolling median fails at 149. Top 10 stable at 9-10 of 10 across fit families,
+  Spearman 0.965-0.980. Bottom 10 is 6-7 of 10 — weaker than before the floor, and recorded.
+- **Contrast**: 0 failures in every combination — desktop dark 23,502 then 63,166 elements, 375px
+  dark 23,190 then 24,648, light 62,854. New elements hand-checked because one is a pseudo-element
+  the sweep structurally cannot see: `.pv.pos` 8.56, `.pv.neg` 5.16, `.drgm` 4.58,
+  `.drgm::before` 5.32.
+- **The draft grid did not move**: 1478px before and after, measured in side-by-side iframes.
+  `col.tmcol` is a fixed 120px, so the per-pick surplus rides inside the column.
+
+### What this closed, and what it opened
+
+**Closed:** the board is 140 rows, not 138 — it reads no roster data, so the two team-years excluded
+for corrupted roster records are back. All twelve seasons are on **one** measurement, which retires
+the 2014-2017 coarse basis, the uncounted two-point conversions, and the coarse K/D-ST treatment in
+one move. The 2020 Round 16 / Pick 8 hole stops mattering. 13KB of dead code went with it
+(`rankPicks`, `STARTER_PTS_2017`, `DRAFT_TOTALS_2014_2017`).
+
+**Open, and honest about it:**
+- **2014-2017 cannot be validated.** The 100.0% check needs the archive's own weekly points, which
+  only exist from 2018. Those four seasons rest on the rulebook being right — 2014's whole-block
+  yardage was reverse-engineered in an earlier session and reproduces known totals exactly, but
+  2014's *defensive* scoring predates the 2015 category expansion and is assumed, not checked.
+- **The era check is 2018-2025 only.** The half-PPR era runs ~5% hotter than 0-PPR on total drafted
+  VOR, against a 17% swing inside a single era — which is why the headline figure is comparable
+  across years. 2014's rulebook is a far larger difference and that check has **not** been re-run
+  across all twelve seasons.
+- **A defence's weekly line differs from ESPN's** by ~12% on a season. Bounded, disclosed, and the
+  reason defences are off Steals & Busts.
+- **One drafted man in 2,239 joins by name rather than by id** (Charles Johnson 2015; nflverse
+  writes "Charles D. Johnson"). The fallback is restricted to his drafted position because his
+  namesake is a defensive end.
+
+---
+
 ## WHERE THIS STANDS — end of 2026-08-12
 *Read this first. Everything below it is the record of how it got here; the detail sections are
 worth reading only for the area you are about to touch.*

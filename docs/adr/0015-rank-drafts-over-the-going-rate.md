@@ -47,6 +47,29 @@ VOR rather than points because points make every question's answer a quarterback
 the top 12 scorers were QBs; by VOR it is 4**, and McCaffrey goes 5th to 1st. Scarcity is the
 subtraction.
 
+**A pick can never cost more than the pick**, so a return is floored at zero.
+*Added 2026-08-14, after the first board was built and its bust list looked wrong.* Replacement is
+free by definition, so a man who finished below it would simply not have been used: the pick bought
+an option nobody exercised, worth nothing rather than less than nothing.
+
+The evidence was a bias no one could defend. Unfloored, value is bounded below by −replacement, and
+QB replacement runs ~290 against a running back's ~130 — so an injured quarterback was charged about
+160 points more than an injured back for the identical outcome of producing nothing. **Nine of the
+ten worst picks in league history were quarterbacks.** Floored, none are, and the list reads as
+wasted premium picks: Jonathan Taylor at 1, McCaffrey at 1 twice, Adrian Peterson at 1, Justin
+Jefferson at 1. That is what a bust is.
+
+ADR 0004 refused this floor and was right to *for the metric it had*: there, flooring made cutting a
+bust free and erased the cost of holding a below-replacement man in a roster spot all year. Neither
+survives into a board that reads no rosters. The curve is fitted on **floored** values — fit it on
+raw ones and it stays negative through the late rounds, so a pick that returned nothing at 190 would
+score *positive* for beating a negative going rate.
+
+The cost is real and is not hidden: a man who finished a shade under replacement and a man who never
+played are now the same number, separable only by the games printed beside them. And the bottom of
+the class board is measurably less stable across fit families than it was (6-7 of 10 shared, against
+9-10) because flooring compresses the downside.
+
 **The going rate** for a pick is what that slot returned in that season — a smooth curve fitted
 within each season over all of its picks. **Position-blind on purpose.** A per-position curve
 would compare a quarterback only to quarterbacks taken at that slot, so "took a QB too early"
