@@ -3110,8 +3110,45 @@ body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect[o
 
    Colours are existing tokens only — --raise is one of the backgrounds ADR 0005
    measured --muted and --faint against, so contrast is inherited, not guessed. */
-body[data-route]:not([data-route="hub"]) .uactive details.sub{border-top:0;margin-top:var(--sp-5)}
+/* ── The board is a framed panel ────────────────────────────────────────────
+   A border around the whole board, header and body together, rather than a
+   hairline under the header only.
+
+   It is an OUTLINE, not a border, and that is the whole trick. The note above
+   is not decorative: nineteen tables on this site are measured to fit their
+   scrollers at exactly zero slack — Standings, Matchups, Head-to-head, All-Play
+   and the Ledger all report need 1006 against avail 1006 — so a border and
+   padding, which take their width from the content box, would push every one of
+   them into a horizontal scroll. An outline is painted outside the box and
+   costs the layout nothing at all, so every board's content stays byte-for-byte
+   the width it was; outline-offset supplies the air between content and frame.
+
+   A padding-plus-negative-margin bleed was tried first and gets the full-width
+   boards right, but Champions is capped at max-width:720px — it is measured to
+   its own rows, per ADR 0014 — and a capped box cannot be widened by a negative
+   margin, so the padding ate 30px of it. The outline has no such failure mode:
+   it frames whatever width the board already decided on, which means it also
+   traces the measure on the boards that have one instead of fighting it.
+
+   --bbleed is capped by .wrap's own padding, not chosen by eye: 20px on desktop
+   and 12px on a phone. An outline does NOT create a scrollbar, so an offset
+   wider than that gutter would be silently clipped by the window rather than
+   scrolling into view — which is why this stays under it at both sizes.
+
+   Ground stays transparent. --surface would be the obvious fill, but the cards
+   inside these boards ARE --surface, and a panel the same colour as its
+   contents erases them. */
+body[data-route]:not([data-route="hub"]) .uactive details.sub{
+  --bbleed:14px;
+  outline:1px solid var(--line);outline-offset:var(--bbleed);
+  border:0;border-radius:var(--r-lg);
+  /* the frames stand --bbleed proud on each side, so the gap between two boards
+     has to clear twice that before they touch */
+  margin-top:calc(var(--sp-6) + var(--bbleed))}
 body[data-route]:not([data-route="hub"]) .uactive details.sub:first-of-type{margin-top:0}
+@media (max-width:760px){
+  body[data-route]:not([data-route="hub"]) .uactive details.sub{--bbleed:7px}
+}
 body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead{
   /* A masthead, not a card. summary.sechead one level up already reads this
      way — bare, with a hairline under it — and the board header simply never
@@ -3149,7 +3186,11 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub > .subbody{padding
    The indent goes 18px -> 12px, deliberately in that direction: nested content
    gains six pixels of width. Same reasoning as step 2 — a nested board holds
    real tables, and no shell step is allowed to take width away from them. */
+/* A nested board sits INSIDE a frame already, so it takes none of its own — a
+   second outline 14px proud of an inner board would cross its parent's. It
+   keeps the quieter summary treatment below, which is what marks the nesting. */
 body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub{
+  outline:0;
   border-left:0;padding-left:var(--sp-3);margin-top:var(--sp-4)}
 body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub:first-of-type{
   margin-top:var(--sp-2)}
