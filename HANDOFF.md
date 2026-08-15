@@ -6,8 +6,77 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15: the sheet checked against the NFL, and three edges straightened
-*Read this first. The 2026-08-14 section below it is the previous state of play and is still
+## WHERE THIS STANDS — 2026-08-15 (later): every pulled number checked, and the defences were wrong
+*Read this first. The sections below are the previous states of play and remain accurate for
+everything they cover, **except** every "about 12%" said of defences — that number is now ~2%.*
+
+Prompted by "I want to make sure all of the data pulled is accurate", which is five separate
+pulls. Four were clean on the day. The fifth had never actually been checked.
+
+| surface | source | verdict |
+|---|---|---|
+| ADP | ESPN half-PPR draft room | 250/250, mean abs move **0.4 picks**, 1 add / 1 drop at the tail |
+| Tiers | FantasyPros half-PPR | 125/125 matched, **9 tier changes**, 0 added, 0 dropped |
+| Cheat sheet | ESPN, `--live` | **309/309** clubs and byes agree, 0 errors, the same 11 notes |
+| Schedule game ids | ESPN scoreboard | 272/272 already correct, nothing to write |
+| Player values | nflverse | **`--verify` was a no-op.** Below. |
+
+Still nothing to write for the first two — the tier moves are churn three weeks out and both
+scripts have to be re-run near Sept 7 anyway. That remains the only dated work on this file.
+
+### `--verify` did not verify (`97e9838`, live)
+
+The docstring said it re-scored 2018-2025 against the archive and reported the agreement, "100.0%
+when this was written". It was a no-op — byte-identical to `--dry-run` — and the 100.0% over
+23,668 player-weeks was a one-off measurement from authoring time that nothing in the repo could
+reproduce. **The load-bearing claim of the whole Draft Rankings board was unreproducible.**
+
+Written for real it walks all **24,857 roster-weeks** the league export recorded, re-scores each
+man from raw nflverse stats and compares. It found two defects on its first run.
+
+**The defences were missing two scoring rules.** Yards allowed are NET of sack yardage and
+nflverse keeps sack yards out of `passing_yards`; and a fumble returned for a touchdown is a
+defensive score that nflverse files outside `def_tds`. The old header blamed the gap on a noisier
+feed — "~11% more sacks and ~23% more fumble recoveries than ESPN" — and **that diagnosis was
+wrong**. The tell was in the residual and nobody had ever looked at it: it was **one-sided**, with
+computed never meaningfully high, which is the shape of a missing category and not of noise.
+Measured per club-season, mean absolute error **12.8% → 1.9%**; 63% → **91.5%** of club-weeks now
+exact. The old "about 12%" was itself accurate, which is why it survived so long.
+
+**Travis Hunter was scored as a man who never played.** nflverse files a two-way player at his
+defensive position — he is a **CB** there — so the position filter dropped all seven games of his
+2025 and the board baked him at 0 points, 0 games. He played seven and was bad. That is precisely
+the distinction the games column exists to draw ("a pick that returned nothing because he never
+played is a different story from one that played and was bad"). His *score* does not move — 49.8
+is under WR replacement (138) either way and the floor takes it to zero — but the *fact* the board
+states about him does. He was the only such man in twelve seasons; checked, not assumed.
+
+**What moved on the board.** Every class total shifted because every defence rescored. **No score
+moved by more than 2 points**, the top eight all-time held their order (#9/#10 swapped), 16 of 140
+in-season ranks moved. Measured by running the board's own `draftRankings()` in node against the
+old and new `PLAYER_VALUE`, then confirmed against the live page. Skill agreement is **99.99%**
+(22,417 of 22,419); the two stragglers are Caleb Williams 2025 wk6 and Tony Pollard 2020 wk17,
+both columns the two sources file differently rather than scoring, both named in
+`KNOWN_SKILL_DIFFS`.
+
+**Proved by fault injection, not by passing**, to the standard `check-cheat.py --live` set. Five
+faults: full-PPR, gross yards allowed, no fumble-return TDs, no two-way rescue, unscored PATs.
+**The first design caught only three.** A rate floor cannot see a small defect — Hunter is seven
+weeks out of 22,419 and clears 99.9% comfortably, which is exactly how he sat wrong for a season —
+and dropping the fumble-return TD costs only 3.7 points of the D/ST rate. So the check also gates
+on **one-sided D/ST bias** (the instrument that found both rules) and on **any skill disagreement
+not already named**. All five now exit 1; the shipped rulebook exits 0.
+
+**One thing this hands forward.** ADR 0015 keeps defences off Steals & Busts because a defensive
+season could only be rebuilt to within 12% — a quarter of the whole spread between the best
+defence in a year and the twelfth. That error is now ~2%, about a twenty-fifth of that spread, so
+**the exclusion is inherited from an era that no longer exists and is due a revisit**. Not done
+here, and there is a real reason for caution: ~8% of club-weeks are still one yards-allowed ladder
+step out, for a cause nobody has isolated. The page now says this in the margin rather than
+asserting the old number.
+
+## WHERE THIS STANDS — 2026-08-15 (earlier): the sheet checked against the NFL, and three edges straightened
+*The 2026-08-14 section below it is the previous state of play and is still
 accurate for everything it covers.*
 
 **Seven commits, all on `main` and live**, plus this file's own updates. The first two came from the
