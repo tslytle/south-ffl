@@ -6,8 +6,71 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15 (latest): defences on the wire too, kickers measurably not (`ef77193`, live)
-*Read this first. The section below it is the draft-side half of the same decision.*
+## WHERE THIS STANDS — 2026-08-15 (latest): one replacement line for both boards (`0003ae6`, live)
+*Read this first. The sections below are the same day's earlier steps, and the one directly below
+is **partly superseded** — read its ADR 0019 annotation before trusting its numbers.*
+
+Asked to "add kickers to Steals & Busts too". **They were already there** — ADR 0015 put them on
+the draft board and nothing ever filtered them; six kicker cards were showing (Jason Myers 2025 at
+pick 184, +54, the top one). The only place kickers were missing was the **waiver half**, so this
+was checked before acting rather than after.
+
+### The thing worth carrying forward
+
+**ADR 0018 that morning read a shallow rostered pool as a *kicker* problem. It wasn't.** The board
+asks what a pickup gave you *above what was sitting there for free*, and the rostered pool is **by
+construction the set of men who were not free**. It is also wrong in one direction only: a
+subset's (bar+1)th man is never better than the league's, so replacement came out low and **every
+wire value on the board was too generous** — not just kickers'.
+
+Measured over all 136 weeks, true replacement minus rostered-pool replacement:
+
+| | RB | WR | QB | TE |
+|---|---|---|---|---|
+| mean per week | +1.67 | +3.01 | +3.29 | **+3.97** |
+| weeks the true line is higher | 96% | 100% | 98% | 100% |
+
+On a pickup held sixteen weeks that is **27 points of over-credit at RB and 64 at TE**.
+
+So `refresh-players.py` now bakes **`PLAYER_VALUE[y].wrep`** — the man just past the startable bar
+among every player who took the field that week, the same definition `replacement_from()` already
+used for the season, at the same bar. **The two hindsight boards now agree on what replacement
+means; they never did, and the page had not noticed.** The positional constraint went with the
+pool, so `WIRE_POS` carries all six and kickers are on the wire because the question finally has
+an answer that doesn't depend on whether this league bothered to roster a thirteenth one.
+
+### The headline card moved twice in one day and landed where it started
+
+ADR 0018 had just given "Best pickup ever" to the **2018 Bears D/ST at +139.0**. On a true
+replacement line that defence is **+78.0**, and **Kyren Williams 2023 takes it back at +102.5** —
+itself down from the +123.7 the old basis gave him. **The D/ST pool was the shallowest of all, so
+ADR 0018 shipped a headline that was an artefact of the very flaw it documented and confined to
+kickers.** Defences fall to 2 of the top 10 pickups from 4. That is what removing an artefact
+looks like, and it is the sharpest argument in the whole sequence for not stopping at the first
+measurement that answers the immediate question.
+
+### Retired
+
+`BAR_POS`, introduced hours earlier purely to give the rostered pool a D/ST bar and unread the
+moment the pool went; the unread `bar` field on each wire row; and the last of `SKILL`'s
+descendants. A season with no `wrep` is **skipped, not scored against zero** — falling back would
+silently turn every value into raw points, which is the failure this change exists to remove.
+
+Verified: both boards carry all six positions; kickers enter with 227 pickups topping out at Jason
+Myers 2025, +40.0 over nine weeks — present, plausible, nowhere near the top; kickers and defences
+both reach the manager panels; **Start & Sit untouched**, since it prices what you should have
+started from what you *held*, where the rostered pool is the right pool; `--verify` still exits 0;
+no console errors. `PLAYER_VALUE` grew 8.7KB, and the 2.7MB file is worth watching.
+
+**Second trap for the next session**, on top of the cache one below: `innerText` of a **closed
+`<details>` is empty**, so a check that reads a collapsed panel reports "not rendered" and looks
+like a bug. Open the ancestors first — it cost a false alarm on the manager panel here, twice.
+
+---
+
+## WHERE THIS STANDS — 2026-08-15: defences on the wire too, kickers measurably not (`ef77193`)
+*Superseded in scope by ADR 0019 above — the kicker exclusion and the +139.0 Bears figure below
+did not survive the day. The reasoning about pool depth was sound; it was aimed too narrowly.*
 
 Asked for straight after the section below. **ADR 0018** records it. It is **not the same change
 and not the same reason**, and that is the point worth carrying forward.
