@@ -619,6 +619,45 @@ details.sub details.sub > summary{padding:12px 2px 12px}
 details.sub details.sub .ssh{font-size:var(--t-h4)}
 details.sub details.sub > .subbody{padding-bottom:20px}
 
+/* ── The method note is an aside, not a board ────────────────────────
+   Three panels explain how a board was computed rather than showing
+   what it computed — Draft Rankings, Trades, Steals & Busts. They were
+   built as ordinary nested panels and left open, which cost 2,964px
+   measured: on Draft Rankings the reader met 1,389px of methodology
+   before the first ranked draft, and every return visit met it again.
+   Prose you have already read is the one thing on the page that gains
+   nothing from being open by default, so these three close, and only
+   these three — a board that opens to a table still opens to a table.
+
+   Closed, the summary is doing the persuading, so it has to look like
+   something worth opening rather than a board someone collapsed. It
+   keeps the nested panel's shape, which is what holds the header stack
+   tidy, and drops one step of weight out of it: the --soft fill goes
+   and the hairline stays. That lands it exactly where step 4's weight
+   ordering left a gap — panel filled --raise, board filled --soft,
+   aside outlined, navigation bare — without inventing a fourth fill to
+   compete with the two above it. The mark carries the rest. It is a
+   glyph rather than another word because the title already says "how
+   this works" and a second label saying the same thing in caps is not
+   a design, and it is aria-hidden because a screen reader that reads
+   the heading has already been told. */
+/* 1.25 rather than the inherited 1.55: a one-line title needs no leading, and
+   the tighter line box is also what stops the raised badge below from growing
+   the heading by 6px on a phone. */
+details.how > summary .ssh{color:var(--body);line-height:1.25}
+details.how > summary:hover .ssh{color:var(--accent)}
+.howmark{display:inline-flex;align-items:center;justify-content:center;flex:none;
+  /* The badge centres on the heading's cap band, not on its baseline. Oswald
+     sets a tall cap on a 1.55 line, so a baseline-aligned circle hangs ~4px
+     below the word it marks; .28em of its own size is what measured level. */
+  width:1.45em;height:1.45em;margin-right:.5em;vertical-align:.28em;
+  border:1px solid var(--line);border-radius:50%;background:var(--surface);
+  font-family:var(--sans);font-size:.6em;font-weight:700;line-height:1;
+  color:var(--muted);transition:color .15s,border-color .15s}
+details.how > summary:hover .howmark{color:var(--accent);border-color:var(--accent)}
+/* the list is the whole body, so its trailing margin doubles the panel's */
+details.how .sshow{margin-bottom:0}
+
 /* the group's own table of contents */
 .subnav{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 2px 20px;
   padding:10px 11px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--raise)}
@@ -2798,7 +2837,7 @@ a,button,summary,.pick,.sslrow{-webkit-tap-highlight-color:color-mix(in srgb, va
   /* Screen-only furniture: navigation, pickers, overlays, swipe hints. */
   .topnav,.yearnav,.mwkbar,.spotbar,.yearpick,.rpick,.recjump,.wkbar,.mgrsort,.allctl,
   .chev,.chev-s,.subnav,.backpill,.pfmask,.pfwrap,.swipe,.slink,.season-links,.clear,
-  .draftempty{display:none!important}
+  .draftempty,.howmark{display:none!important}
   details.sub > .subbody{display:block!important}
   details.sub > summary{cursor:auto}
   details.sub{border-top:1px solid #C9D0DE}
@@ -3227,6 +3266,12 @@ body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summ
   border-color:var(--accent)}
 body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary:focus-visible{
   outline:2px solid var(--accent);outline-offset:2px}
+/* The aside keeps the board's shape and gives up its fill — see "The method
+   note is an aside" above for why that is the step down rather than a new
+   colour. Written at the same specificity as the rule it answers, so it wins
+   on order rather than on a stack of extra selectors. */
+body[data-route]:not([data-route="hub"]) .uactive details.sub details.how > summary{
+  background:none}
 
 /* ── Uniform shell, step 4: the board index is chips, not a panel ───────────
    .subnav — each view's index of the boards inside it — was designed against
@@ -3603,7 +3648,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 <section id="draftranks"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every class, ranked</p><h3 class="sec2">Draft Rankings</h3>
   <p class="subnote">Every team&rsquo;s draft, every year, best to worst &mdash; graded on one question: did each pick beat what a pick at that spot was worth? Nothing about what happened to the class afterwards counts. Drop the man in October and the pick still stands.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
 
-  <details class="sub" open><summary><div><h4 class="ssh">How this works</h4>
+  <details class="sub how"><summary><div><h4 class="ssh"><span class="howmark" aria-hidden="true">?</span>How this works</h4>
     <p class="subnote">One question, asked of every pick, and the honest limits of the answer.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <ul class="sshow">
     <li><b>It ranks the draft, not the season that followed it.</b> Nothing here reads a roster, a lineup or a trade. A pick is judged on what that player did all year, whoever ended up holding him &mdash; so a manager who drafted brilliantly and traded the lot away in October still has the better draft. That is a deliberate change. The version of this board that ran until 2026 measured what a class delivered to its own roster, which is drafting and roster management measured together, and it graded the second one badly: it ran at &minus;0.41 against a manager&rsquo;s moves, so the fastest route up it was to draft sixteen men and never touch the wire again. Its runner-up of all time was a 5&ndash;9 team that made one move all season.</li>
@@ -3648,7 +3693,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <p class="subnote">Every deal the league has made &mdash; both sides of it, what each haul was worth, and who came out ahead. In-season player trades and draft-day pick swaps both. How the scoring works is spelled out just below.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <div class="trsum" id="trsum"></div>
 
-  <details class="sub" open><summary><div><h4 class="ssh">How trades are judged</h4>
+  <details class="sub how"><summary><div><h4 class="ssh"><span class="howmark" aria-hidden="true">?</span>How trades are judged</h4>
     <p class="subnote">One idea, one example. Thirty seconds.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <ul class="sshow">
     <li><b>Every side is scored in extra lineup points.</b> Each week he held the players, take the best lineup his roster could field &mdash; then take it again without them. The gap is what the trade earned him that week. Add the weeks up and that&rsquo;s his number.
@@ -3685,7 +3730,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 <section id="steals"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Hindsight</p><h3 class="sec2">Steals &amp; Busts</h3>
   <p class="subnote">Who won and lost their season at the draft table and on the waiver wire.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
 
-  <details class="sub" open><summary><div><h4 class="ssh">How this works</h4>
+  <details class="sub how"><summary><div><h4 class="ssh"><span class="howmark" aria-hidden="true">?</span>How this works</h4>
     <p class="subnote">One idea, one example. Thirty seconds.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <ul class="sshow">
     <li><b>The big number is what the pick beat its price by.</b> A pick at 3 is expected to return a great deal and a pick at 180 almost nothing, so each one is measured against the <b>going rate</b> for its slot that year &mdash; the same curve Draft Rankings sums across a whole class. Beneath it sits the raw figure it is built from: extra points, meaning points beyond what a free agent at the same position would have given you.
