@@ -10,15 +10,25 @@ had him right; `CHEAT` did not; and nothing compared the two.
 
 Cross-checking them was a manual pass. This is that pass, written down.
 
-Nothing here fetches anything and nothing writes anything: it reads index.html
-and reports. It cannot tell you a player was traded -- only that the file
-disagrees with itself, which is what caught A.J. Brown. Checking the sheet
-against the actual NFL is still a human job, best done with a live search
-against real sources rather than from memory (training data predates the
+Nothing here writes anything, and by default nothing here fetches anything: it
+reads index.html and reports. That default can only tell you the file disagrees
+with itself, which is what caught A.J. Brown -- but note what it could not have
+caught. `DEPTH_TEAMS` is the authority every offline cross-check leans on, so a
+club whose bye is wrong *there* makes every CHEAT row that agrees with it wrong
+too, and this reports them all as clean.
+
+`--live` closes that. It asks ESPN which club each man is actually on today and
+when that club is actually off, so both halves of the A.J. Brown shape are
+checked against the NFL rather than against the file's own opinion. It covers
+all 309 rows -- K and D/ST included, since ESPN's pool carries them. What it
+still cannot see is a man who is on the roster but should not be ranked where he
+is: a knee that will not be right until November reads as a perfectly ordinary
+WR2 from here. Reading the wire is still a human job (training data predates the
 current transaction wire, and confidently says PHI).
 
 Usage:
-    python check-cheat.py            # report; exit 1 if any ERROR
+    python check-cheat.py            # offline; report; exit 1 if any ERROR
+    python check-cheat.py --live     # also check team and bye against ESPN
     python check-cheat.py --quiet    # only ERRORs and the summary
     python check-cheat.py --strict   # exit 1 on WARN as well
 
@@ -45,7 +55,35 @@ INDEX_HTML = Path(__file__).parent / "index.html"
 PRICED_POSITIONS = ("QB", "RB", "WR", "TE")
 BYE_RANGE = (4, 15)          # generous; the real NFL window sits inside this
 
+# --- live check (opt-in) ------------------------------------------------------
+# Same host and season refresh-adp.py uses. The pool is requested well past its
+# real size so ESPN returns all of it: at 1200 it hands back ~1026 and every one
+# of the sheet's 309 rows is in there, kickers and defences included. Asking for
+# only the top few hundred by ownership silently drops the tail of the sheet,
+# which is exactly where a stale entry is most likely to be sitting.
+PRO_TEAMS_URL = ("https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/"
+                 "seasons/2026?view=proTeamSchedules_wl")
+POOL_URL = ("https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/"
+            "segments/0/leaguedefaults/8?view=kona_player_info")
+POOL_LIMIT = 1200
+FREE_AGENT_ABBR = "FA"       # ESPN's proTeamId 0
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+
+SUFFIX_RE = re.compile(r"\s+(Jr\.?|Sr\.?|II|III|IV|V)$", re.IGNORECASE)
+APOSTROPHE_RE = re.compile(r"[‘’ʼ]")
+
 findings = {"ERROR": [], "WARN": [], "NOTE": []}
+
+
+def normalize_name(name):
+    """Loose match key -- deliberately the same rules as refresh-adp.py and
+    refresh-tiers.py. Apostrophes and periods are dropped rather than folded,
+    because sources disagree about whether the name has one at all: ESPN writes
+    "Tre' Harris" where the Chargers and PFR write "Tre Harris"."""
+    n = APOSTROPHE_RE.sub("'", name)
+    n = SUFFIX_RE.sub("", n)
+    n = n.replace("'", "").replace(".", "")
+    return re.sub(r"\s+", " ", n).strip().lower()
 
 
 def add(level, check, msg):
@@ -64,9 +102,77 @@ def load(name, html):
         sys.exit(2)
 
 
+def fetch_live():
+    """Return ({abbr: bye}, {normalized name: abbr}) as ESPN has them today.
+
+    Every failure path here is fatal rather than a skip, and that is the whole
+    point of the function. A live check that quietly falls back to reporting
+    nothing is worse than no live check at all: it prints the same "clean" line
+    on a day the wire is unreachable as on a day the sheet is genuinely right,
+    and the reader cannot tell those apart. So this either produces real data or
+    it stops the run.
+
+    `requests` is imported here rather than at module scope so the default
+    offline path keeps working on a machine that has never installed it.
+    """
+    try:
+        import requests
+    except ImportError:
+        die("--live needs the `requests` package (pip install requests); "
+            "the default offline check does not")
+
+    def get(url, headers=None):
+        try:
+            r = requests.get(url, headers={"User-Agent": USER_AGENT, **(headers or {})},
+                             timeout=30)
+        except requests.RequestException as e:
+            die(f"could not reach ESPN ({e}) -- not reporting a clean sheet on a failed fetch")
+        if r.status_code != 200:
+            die(f"ESPN returned HTTP {r.status_code} for {url}, expected 200")
+        try:
+            return r.json()
+        except ValueError as e:
+            die(f"ESPN response wasn't valid JSON ({e})")
+
+    pro = (get(PRO_TEAMS_URL).get("settings") or {}).get("proTeams") or []
+    by_id, abbr_bye = {}, {}
+    for t in pro:
+        abbr, bye = t.get("abbrev"), t.get("byeWeek")
+        if not abbr:
+            continue
+        by_id[t.get("id")] = abbr
+        if abbr != FREE_AGENT_ABBR:
+            abbr_bye[abbr.upper()] = bye
+    if len(abbr_bye) != 32:
+        die(f"ESPN listed {len(abbr_bye)} clubs, expected 32 -- its response shape may have "
+            "changed; not checking anything against a list this short")
+
+    pool = get(POOL_URL, headers={"x-fantasy-filter": json.dumps(
+        {"players": {"limit": POOL_LIMIT,
+                     "sortPercOwned": {"sortPriority": 1, "sortAsc": False}}})}).get("players", [])
+    if len(pool) < 500:
+        die(f"ESPN returned {len(pool)} players, expected close to 1000 -- too few to check the "
+            "tail of the sheet, which is where a stale entry hides")
+
+    live = {}
+    for p in pool:
+        pl = p.get("player", {})
+        name, tid = pl.get("fullName"), pl.get("proTeamId")
+        if name and tid in by_id:
+            live.setdefault(normalize_name(name), by_id[tid].upper())
+    return abbr_bye, live
+
+
+def die(msg):
+    print(f"ERROR: {msg}", file=sys.stderr)
+    sys.exit(2)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--live", action="store_true",
+                    help="also check every team and bye against ESPN's current data")
     ap.add_argument("--quiet", action="store_true", help="only ERRORs and the summary")
     ap.add_argument("--strict", action="store_true", help="exit 1 on WARN as well as ERROR")
     args = ap.parse_args()
@@ -176,6 +282,47 @@ def main():
         f"{len(only_depth)} players are on a depth chart but not the cheat sheet"
         " (expected: backup QBs, TE2s, kickers -- CHEAT only ranks draftable depth)")
 
+    # ── The same cross-check, against the NFL instead of against the file ────
+    live_checked = 0
+    if args.live:
+        espn_bye, espn_team = fetch_live()
+
+        # The byes first, because everything above trusts DEPTH_TEAMS for them.
+        # A club whose bye is wrong here is wrong on every row that agrees with
+        # it, and the offline pass calls that consistent.
+        for abbr in sorted(abbr_bye):
+            theirs = espn_bye.get(abbr.upper())
+            if theirs is None:
+                add("WARN", "live/no-club",
+                    f"ESPN lists no club abbreviated {abbr} -- one of the two is using a"
+                    f" different code, and every {abbr} bye below is unchecked")
+            elif theirs != abbr_bye[abbr]:
+                add("ERROR", "live/depth-bye",
+                    f"{abbr} ({abbr_mascot.get(abbr, '?')}): DEPTH_TEAMS says bye"
+                    f" {abbr_bye[abbr]}, ESPN says {theirs} -- and every CHEAT row on"
+                    f" {abbr} inherits it")
+
+        unknown = []
+        for name, (pos, team, bye) in sorted(cheat_names.items()):
+            theirs = espn_team.get(normalize_name(name))
+            if theirs is None:
+                unknown.append(f"{name} ({pos})")
+                continue
+            live_checked += 1
+            if theirs == FREE_AGENT_ABBR:
+                add("WARN", "live/free-agent",
+                    f"{name} ({pos}) is ranked at {team}, but ESPN has him unsigned --"
+                    " he cannot have that bye, and probably should not have that rank")
+            elif theirs != str(team).upper():
+                add("ERROR", "live/team",
+                    f"{name}: the sheet says {team} (bye {bye}), ESPN says {theirs} --"
+                    " this is the A.J. Brown shape, caught against the NFL this time")
+        if unknown:
+            add("NOTE", "live/unknown",
+                f"{len(unknown)} on the sheet are not in ESPN's pool at all, so nothing"
+                f" checked their club: {', '.join(unknown[:6])}"
+                + (" ..." if len(unknown) > 6 else ""))
+
     # ── Pricing and tier coverage ───────────────────────────────────────────
     # A player with no ADP has no value/reach tag. Usually that is just depth:
     # ADP holds the top ~250 *by draft-room position*, which is a different
@@ -247,9 +394,17 @@ def main():
     counts = (f"{len(cheat_names)} players on the sheet, {len(teams)} teams, "
               f"{len(adp)} ADP entries, {len(tier)} tiers")
     print(f"\n{counts}")
+    if args.live:
+        print(f"{live_checked} of them had their club and bye checked against ESPN")
     print(f"{n_err} error(s), {n_warn} warning(s), {len(findings['NOTE'])} note(s)")
     if not n_err and not n_warn:
-        print("Clean. This says the file agrees with itself -- not that it agrees with the NFL.")
+        # The offline run can only ever claim internal agreement. Say exactly
+        # which of the two was established, so a clean line is never read as
+        # more than it is.
+        print("Clean. Every club and bye agrees with ESPN -- but not that a man is ranked"
+              "\nwhere he should be: an injury reads as an ordinary row from here."
+              if args.live else
+              "Clean. This says the file agrees with itself -- not that it agrees with the NFL.")
     sys.exit(1 if n_err or (args.strict and n_warn) else 0)
 
 
