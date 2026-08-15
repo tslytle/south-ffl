@@ -315,8 +315,25 @@ def main():
         new_html,
     )
     if n_tooltip == 0:
-        fail("could not find the ADP tooltip string to update -- aborting before "
-             "writing a data-only change with a stale/wrong tooltip")
+        # The tooltip was retired on 2026-08-13 (1898b35), which gave the cheat
+        # sheet real column headers -- Rank/Player/ADP/Gap/Team/Bye -- instead of
+        # a hover. So "no match" now has two very different meanings and only one
+        # of them is dangerous:
+        #
+        #   * no `title="Consensus ADP` anywhere -> the tooltip is gone by design,
+        #     nothing to keep in step, carry on and write the data.
+        #   * such a title exists but this regex missed it -> its wording drifted,
+        #     which is the stale/wrong-label case this guard is for. Still fatal.
+        #
+        # Checking absence rather than assuming it is the whole point; the regex
+        # already matches any source name and any captured date, so a bare 0 with
+        # the string present can only mean the shape changed.
+        if 'title="Consensus ADP' in new_html:
+            fail("found a 'Consensus ADP' tooltip whose wording this script no longer "
+                 "matches -- aborting before writing a data-only change with a "
+                 "stale/wrong tooltip")
+        print("\nNote: no ADP tooltip on the page (retired 2026-08-13 in favour of "
+              "column headers); capture date recorded in the ADP_2026 comment only.")
 
     INDEX_HTML.write_text(new_html, encoding="utf-8")
     print(f"\nWrote {INDEX_HTML}. Review with `git diff` before committing.")
