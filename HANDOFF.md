@@ -18,6 +18,8 @@ written up here; the third is the pre-draft work below.
 | `7d9cbfd` | The three "how this works" method notes closed and demoted to asides. 2,964px of prose before the first number, handed to the reader again on every visit; 162px closed. |
 | `9583c8d` | Every panel header hung off one **baseline** rather than a box. Drift was up to 24.5px across the twenty-five headers, and the `?` badge added the commit before was itself one of the offenders. 0 drift after, at both widths. |
 | `3480233` | `check-cheat.py --live` — below. |
+| `56e1683` | The hero band put back on the page's own left edge — below. |
+| `3fef6c9` | The way out and the view's controls on one line — below. |
 
 ### The pre-draft tools, run 2026-08-15 — all three clean, nothing written
 
@@ -71,6 +73,54 @@ so do `DEPTH_TEAMS`' 32 byes.
 **What it still cannot see, and this is the one that matters on Sept 7:** a man who is on a roster
 but ranked where he should not be. A knee that will not be right until November reads as a perfectly
 ordinary WR2 from here. Reading the wire is still a human job.
+
+### Two alignment defects, found by looking and fixed
+
+Prompted by "I feel like there are some design and alignment flaws" — which was right.
+
+- **The hub had two left edges 18px apart** (`56e1683`). On the spine: the nav brand, the ticker,
+  the hub heading, every group label, every door. Inset 18px: the countdown card **and its green
+  accent bar**, the LEAGUE HISTORY hairline and the figures strip — every visible edge the hero
+  has, sitting just inside the edge the ticker directly beneath them uses. The cause was a second
+  gutter: `.wrap` already owns the page gutter and `.gameBorder` added its own on top. **The tell is
+  in the rule**: `background`, `border`, `border-radius` and `box-shadow` are all explicitly zeroed,
+  which is what a bordered card looks like after the border comes off — the padding that cleared it
+  outlived it, and the print sheet had already dropped it. One edge now, at both widths.
+- **Every group view spent 153px before saying what it was** (`3fef6c9`). A 44px touch target alone
+  on one line, 38px of gap, a full-width band holding nothing but three right-aligned buttons, and
+  an empty corner where the two half-used rows met. One row now, nav left and controls right:
+  **69px back above the fold** on all six group views, controls not moved horizontally (last
+  button's right edge 1150.4 before and after). Phone stacks as before.
+
+**Two traps worth keeping, both avoided by design rather than by luck:**
+1. **One auto margin, not two.** `.allctl` already justifies its own buttons to its end, so the bar
+   only pushes the group right. `space-between` would have stranded the controls at the **left** on
+   the hub, where `.uback` is hidden and the row has a single child — the same shape as the
+   competing auto margins that stranded the theme toggle in `f8f9a105`.
+2. **The phone override sits after the rules it overrides**, not in the file's main
+   `(max-width:760px)` block ~700 lines earlier, where it would have lost to the unconditional
+   rules at equal specificity and never applied. That is the shape that killed the site search.
+
+**Checked and clean while looking**, so the next session need not re-chase it: 19 views at 375px
+with **0 horizontal overflow**; the panel-header baselines from `9583c8d` hold (every `h4` on Draft
+Rankings at 521.2, the `?` badge taking the leading slot rather than displacing its title); the
+ticker's apparently hard-cut edges are **36px gradient fades** that a JPEG flattens; Standings,
+Manager Profiles and Draft Night all sit correctly on the spine.
+
+**One thing noticed and left alone:** in `@media print`, `.allctl` is set `display:none` as
+screen-only furniture at one point and `display:block !important` by a **later, more specific**
+rule (`body[data-route] :is(.uhub,header.gameBorder,.allctl)`), so Expand all / Collapse all /
+Download as PDF very likely print into the PDF. Not measured — emulating print media needs a tool
+this session did not have — and it predates both commits above. Worth checking against a real
+PDF export before the freeze.
+
+**Environment note that cost time:** the Claude-in-Chrome screenshot path and the in-app Browser
+pane fail in *opposite* ways. Chrome screenshots fine but its router will not reveal a view while
+its window is hidden — a hidden tab runs no `requestAnimationFrame` and throttles timers, so view
+switching silently does nothing and `await`-based measurement times out at 45s. The in-app pane
+routes and measures fine at 1280 but **cannot screenshot at all**. Use the pane to measure and
+Chrome to look, and bring the Chrome window to the front first. The pane also has **no top-level
+`await`** — build an iframe in one call and read it in the next.
 
 ---
 
