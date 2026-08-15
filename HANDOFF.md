@@ -6,8 +6,48 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
+## WHERE THIS STANDS — 2026-08-15 (latest): defences are on Steals & Busts (`e8baa93`, live)
+*Read this first; the section below it is the same day's earlier work and is what this rests on.*
+
+Asked for directly after the section below flagged it. **ADR 0017** records the reversal and
+annotates ADR 0015, which stands in every other respect.
+
+The exclusion was never a convention — it was a scope drawn at a measured error bar, and the
+correction below moved the bar out from under it: **11.8% median season error → 1.1%**, from
+20-40% of the whole D/ST spread down to about 4%. So the test is re-applied, not relaxed.
+
+Mechanically it is **one line out of `draftValue()` and `D/ST` into `POS_ORDER`** — a filter
+coming off rather than a measure being extended, since Steals & Busts is the same
+`draftPicksPriced()` that Draft Rankings sums, read one pick at a time. Defences were already
+being priced here and thrown away at the last step. `POS_ORDER` matters: its own comment warns
+that a missing entry makes the sort key NaN and scatters the cards.
+
+**Face validity, which is the gate for a defining metric (ADR 0016).** Unprompted, the board
+returns the **2019 Patriots at pick 145 (+99)** and the **2017 Jaguars at 151 (+88)** as the top
+defensive steals, and the **2015 Bills at pick 70 (−21)** — Rex Ryan's first year, taken in the
+sixth on hype — as the worst. Those are the three anyone in this league would name.
+
+**Robustness, measured rather than claimed.** Re-ranked with ±2 points of noise, which is the
+entire remaining residual: the three defensive steals do not move, and the busts move only in
+their third card, between two 2015 defences already within a point of each other. What the noise
+*can* move is a **sign** — 8 of the 178 defences sit within 2.5 points of their going rate, 2
+within half a point. **The first draft of the code comment claimed no card could change sign;
+that was wrong, and measuring it rather than trusting it is what caught it.** The page now states
+the limit instead of implying a precision it does not have.
+
+**Untouched on purpose: the waiver board still excludes defences and kickers.** Those values come
+from the league export directly and are never reconstructed, so nothing in the scoring correction
+bears on that exclusion — it rests on its own reasoning and needs its own decision.
+
+Verified in the browser rather than assumed: three defensive cards per column sorted last, every
+D/ST link resolving to the right team-season page (PFR's `rav` for Baltimore included), defences
+reaching four managers' personal panels, the record book's top steal and bust unchanged (Cooper
+Kupp and Jonathan Taylor both outrank every defence), no console errors.
+
+---
+
 ## WHERE THIS STANDS — 2026-08-15 (later): every pulled number checked, and the defences were wrong
-*Read this first. The sections below are the previous states of play and remain accurate for
+*The sections below are the previous states of play and remain accurate for
 everything they cover, **except** every "about 12%" said of defences — that number is now ~2%.*
 
 Prompted by "I want to make sure all of the data pulled is accurate", which is five separate
