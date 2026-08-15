@@ -1520,12 +1520,12 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .board .bpos{display:inline-block;color:var(--muted);font-weight:600;font-size:var(--t-tiny);letter-spacing:.02em;
   text-transform:uppercase}
 .board .nfl{color:var(--muted);font-size:var(--t-tiny);text-transform:uppercase}
-/* what the pick beat its slot by. Pushed to the right of the club and
-   position so it reads as the verdict on the line rather than another label,
-   and it is the only coloured thing in a cell, so the sign carries. */
-.board .pv{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
-.board .pv.pos{color:var(--pos)}
-.board .pv.neg{color:var(--neg)}
+/* The board records what happened; it does not grade it. The per-pick figure
+   ("over the going rate") lived here in a `.pv` span and its three rules were
+   deleted with it -- a rule kept for markup that no longer exists is the dead
+   weight this file has twice had to hunt down. The judgement still lives on
+   Draft Rankings and Steals & Busts, and each cell's tooltip still carries the
+   slot's going rate for anyone who wants it. */
 
 
 /* ---- start & sit ---- */
@@ -4742,10 +4742,7 @@ function boardHTML(y){
             `${Math.round(q.vor)} over replacement in ${q.games} game${q.games === 1 ? "" : "s"}`
           : `Pick #${p[0]}`;
         return `<div class="pk" title="${esc(tip)}"><div class="pl">${pLink(p[1], y, null, PID[p[1]])}</div>
-        <div class="mt"><span class="nfl">${esc(p[2])}</span> <span class="bpos">${p[3]}</span>${
-          q ? `<span class="pv ${q.over < 0 ? "neg" : "pos"}">${
-            q.over < 0 ? "&minus;" : "+"}${Math.round(Math.abs(q.over))}</span>` : ""
-        }</div></div>`; }).join("")}</td>`;
+        <div class="mt"><span class="nfl">${esc(p[2])}</span> <span class="bpos">${p[3]}</span></div></div>`; }).join("")}</td>`;
     }).join("")}</tr>`).join("");
   return head + rows + "</tbody>";
 }
