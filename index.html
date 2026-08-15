@@ -641,16 +641,17 @@ details.sub details.sub > .subbody{padding-bottom:20px}
    this works" and a second label saying the same thing in caps is not
    a design, and it is aria-hidden because a screen reader that reads
    the heading has already been told. */
-/* 1.25 rather than the inherited 1.55: a one-line title needs no leading, and
-   the tighter line box is also what stops the raised badge below from growing
-   the heading by 6px on a phone. */
-details.how > summary .ssh{color:var(--body);line-height:1.25}
+details.how > summary .ssh{color:var(--body)}
 details.how > summary:hover .ssh{color:var(--accent)}
 .howmark{display:inline-flex;align-items:center;justify-content:center;flex:none;
-  /* The badge centres on the heading's cap band, not on its baseline. Oswald
-     sets a tall cap on a 1.55 line, so a baseline-aligned circle hangs ~4px
-     below the word it marks; .28em of its own size is what measured level. */
-  width:1.45em;height:1.45em;margin-right:.5em;vertical-align:.28em;
+  /* The badge centres on the heading's cap band, not on its baseline: Oswald
+     sets a tall cap, so a baseline-aligned circle hangs ~3px below the word it
+     marks. The lift is position:relative rather than vertical-align because a
+     raised inline box grows the line box it sits in — measured, vertical-align
+     put 6px of air into the heading and knocked its first baseline 4px off
+     every other panel title on the page, which is the one thing the header
+     grid below cannot have. A relative offset paints low and lays out level. */
+  width:1.45em;height:1.45em;margin-right:.5em;position:relative;top:-3px;
   border:1px solid var(--line);border-radius:50%;background:var(--surface);
   font-family:var(--sans);font-size:.6em;font-weight:700;line-height:1;
   color:var(--muted);transition:color .15s,border-color .15s}
@@ -3370,12 +3371,38 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead h3.sec2,
   body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary h4.ssh{
     grid-area:2/1/3/2;margin-bottom:0;align-self:start}
+  /* The note column centred while the title column was pinned to the top, so
+     the two halves of every header agreed only when the note happened to be
+     one line. Measured on the six panel headers: a three-line note put its
+     first line 24.5px above the title's, and the chevron 17px below it — the
+     longer the note, the further apart the three pieces drifted, which is why
+     it read as unaligned rather than as a style.
+
+     Everything in a header now hangs off one line. The note is top-aligned and
+     nudged so its FIRST BASELINE lands on the eyebrow's (panel) or the
+     heading's (board) — a baseline match rather than a box match, because the
+     two columns are set at different sizes and only their baselines can agree.
+     The offsets are measured, not chosen: they are the gap between where each
+     element puts its own first baseline (note 17px from its top, eyebrow 12,
+     h4 heading 27) and cannot be derived from the type tokens, since half of
+     each number is the font's own ascent. Anything that changes --t-base,
+     --t-micro or --t-h4 has to re-measure them. */
   body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .subnote,
   body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary .subnote{
-    grid-area:1/2/3/3;margin-top:0;align-self:center}
+    grid-area:1/2/3/3;align-self:start}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .subnote{
+    margin-top:-5px}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary .subnote{
+    margin-top:10px}
+  /* The control sits on the same line, centred on it rather than on the panel:
+     a disclosure arrow halfway down a four-line header belongs to nothing. */
   body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .chev-s,
   body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary .chev-s{
-    grid-area:1/3/3/4;align-self:center}
+    grid-area:1/3/3/4;align-self:start}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub > summary.subhead .chev-s{
+    margin-top:-2px}
+  body[data-route]:not([data-route="hub"]) .uactive details.sub details.sub > summary .chev-s{
+    margin-top:7px}
 }
 
 /* Functional motion only, and never against an explicit preference. */
