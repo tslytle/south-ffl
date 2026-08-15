@@ -3318,6 +3318,30 @@ body[data-route]:not([data-route="hub"]) .uactive .subnav{
 .uback{display:none;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-4);
   min-height:44px;font-size:var(--t-small);font-weight:700;color:var(--accent);
   background:none;border:0;padding:0 var(--sp-2) 0 0;cursor:pointer;font-family:inherit}
+
+/* The way out and the view's controls share one line: nav left, controls right.
+   Stacked they cost 153px before a group view says what it is — a 44px touch
+   target alone on one line, then a full-width band holding nothing but a
+   right-aligned trio, and an empty corner where the two meet.
+   ONE auto margin, not two. .allctl already justifies its own buttons to its
+   end; giving the bar `space-between` as well would strand the controls at the
+   left on the hub, where .uback is hidden and the row has a single child. That
+   is the same shape as the two competing auto margins that stranded the theme
+   toggle mid-bar in f8f9a105. */
+.viewbar{display:flex;align-items:center;gap:var(--sp-3);flex-wrap:wrap}
+.viewbar > .allctl{margin-top:0;margin-left:auto}
+.viewbar > .uback{margin-bottom:0}
+/* Phone stacks again -- three buttons plus the link do not fit 375px, and the
+   way out must not be crowded. This block sits AFTER the rules it overrides on
+   purpose: the file's main (max-width:760px) block is ~700 lines earlier, so a
+   phone declaration written there would lose to the unconditional rules above
+   at the same specificity and never apply. That exact shape killed the site
+   search and one .rrow rule before it. */
+@media (max-width:760px){
+  .viewbar{display:block}
+  .viewbar > .allctl{margin-top:22px;margin-left:0}
+  .viewbar > .uback{margin-bottom:var(--sp-4)}
+}
 body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 .uback:hover{text-decoration:underline}
 .uback:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -3543,9 +3567,10 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   </div>
 </section>
 
+<div class="viewbar">
 <button class="uback" type="button" id="uback">&larr; All sections</button>
-
 <div class="allctl"><button data-all="1">Expand all</button><button data-all="0">Collapse all</button><button id="printBtn" type="button">Download as PDF</button></div>
+</div>
 <section id="ahead"><details class="sect" open><summary class="sechead"><div><p class="eyebrow">Next up</p><h2 class="sec">The 2026 Season</h2>
   <p class="sec-note">Everything before a ball is thrown &mdash; when the draft is, who you are picking against, and the NFL slate it all runs on.</p></div><span class="chev" aria-hidden="true"></span></summary><div class="sectbody">
   <div class="subnav" id="nav-ahead"></div>
