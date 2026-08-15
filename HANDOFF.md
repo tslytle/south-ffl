@@ -6,6 +6,42 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
+## The "Page build failed" mails are cancelled builds, not failed ones (`5ab49b7`)
+*Diagnosed 2026-08-15 after the pattern showed up four times in a day.*
+
+**Nothing is broken and nothing was ever lost.** Every one of the four errored builds had
+`duration: 0` and an `updated_at` **exactly equal** to the `created_at` of the build that followed
+it. They never ran.
+
+**The cause is two pushes inside one build window.** A build takes 33-46s; the working rhythm here
+is to push the code commit and then the HANDOFF commit about 30s later, which lands the second
+push while the first build is still going. Pages cancels the in-flight build and reports the
+cancellation as `Page build failed.`
+
+The control case settles it. `ef77193` built 21:08:01 → 21:08:38, and `513fe33` was pushed at
+21:08:40 — **two seconds after it finished**. Both built. Every overlap errored; the one near-miss
+that cleared did not.
+
+**Fix: make both commits, then push once.** Costs nothing and removes the cause.
+
+**Two checks that lied during this diagnosis, both worth knowing:**
+
+1. **A build's `commit` field is unreliable after a cancellation.** `d282b55` has **no build entry
+   at all**, and the build that served it is labelled `0003ae61`. Going by SHA, the newest commit
+   looks unbuilt; by content it is live. **Check content, not SHA.**
+2. **Local file size never matches the live byte count.** `core.autocrlf=true`, so the working tree
+   is CRLF and `index.html` reads **10,769 bytes larger** than git's copy — exactly its line count.
+   Compare `git show HEAD:index.html | wc -c`, which matches `Content-Length` byte for byte.
+
+**`.nojekyll` added**, and measured rather than assumed: the next build ran **24.4s** against a
+33-46s range all week, below every prior build. Pages here runs Jekyll by default, and this repo
+has no `_config.yml`, no `_layouts`, no front matter and not one Liquid tag in 10,769 lines — the
+markdown under `docs/` was already being served raw, which is Jekyll copying it untouched. One
+measurement, not a trend, but it shrinks the window a collision can happen in. Verified after:
+`index.html` byte-identical to HEAD, `docs/adr/*.md`, `HANDOFF.md` and `og-image.png` all 200.
+
+---
+
 ## WHERE THIS STANDS — 2026-08-15 (latest): one replacement line for both boards (`0003ae6`, live)
 *Read this first. The sections below are the same day's earlier steps, and the one directly below
 is **partly superseded** — read its ADR 0019 annotation before trusting its numbers.*
