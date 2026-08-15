@@ -6,12 +6,12 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15: the sheet is checked against the NFL now
+## WHERE THIS STANDS — 2026-08-15: the sheet checked against the NFL, and three edges straightened
 *Read this first. The 2026-08-14 section below it is the previous state of play and is still
 accurate for everything it covers.*
 
-**Three commits, all on `main` and live.** Two came from the Mac that morning and were never
-written up here; the third is the pre-draft work below.
+**Six commits, all on `main` and live**, plus this file's own updates. The first two came from the
+Mac that morning and were never written up here; the rest are the PC session below.
 
 | commit | what it was |
 |---|---|
@@ -20,6 +20,7 @@ written up here; the third is the pre-draft work below.
 | `3480233` | `check-cheat.py --live` — below. |
 | `56e1683` | The hero band put back on the page's own left edge — below. |
 | `3fef6c9` | The way out and the view's controls on one line — below. |
+| `8c1f6f3` | The per-pick figure taken off the draft board — below. |
 
 ### The pre-draft tools, run 2026-08-15 — all three clean, nothing written
 
@@ -113,6 +114,35 @@ rule (`body[data-route] :is(.uhub,header.gameBorder,.allctl)`), so Expand all / 
 Download as PDF very likely print into the PDF. Not measured — emulating print media needs a tool
 this session did not have — and it predates both commits above. Worth checking against a real
 PDF export before the freeze.
+
+### The draft board records; it does not grade (`8c1f6f3`)
+
+**Justin's call, and it reverses one stated consequence of ADR 0015** — which is annotated in place
+rather than left to contradict the file, so read that bullet before putting anything back.
+
+The board printed "over the going rate" as a green or red number on all 192 cells. It is the
+sharpest thing on the page and it was competing with the board's own job, which is the round-by-round
+record. The judging already has two homes with their methodology attached: **Draft Rankings** for
+classes and **Steals & Busts** for single picks.
+
+- **The figure is unpublished, not deleted.** Every cell keeps its tooltip — `Pick #7 · the going
+  rate here was 86 · he returned 225 over replacement in 16 games` — so ADR 0015's "walk me through
+  a disputed middle pick" still has its answer, on demand rather than always on. Note the one real
+  cost: **a tooltip is hover-only, so it does not exist on a phone**, and this site's audience is
+  league members on phones. If that matters, the answer is a tap target, not putting the number back.
+- **`draftPicksPriced()` is untouched.** Nothing downstream moved.
+- **`.pv`, `.pv.pos` and `.pv.neg` went with the span** — three rules kept alive for markup that no
+  longer exists is exactly the dead weight this file has twice had to hunt down. `class="pv`
+  appeared exactly once in the document, so nothing else could break.
+- **Consequence for the record above:** the 2026-08-14 contrast note in this file hand-checks
+  `.pv.pos` at 8.56 and `.pv.neg` at 5.16. **Those elements no longer exist** — that line is history,
+  not a surface to re-measure. The same section's "the per-pick surplus rides inside the column" is
+  history for the same reason; the column is still a fixed 120px and the grid is still 1478px.
+
+**Measured after, on the served file:** 0 `.pv` spans in the DOM, all 192 pick cells still drawn,
+board width **1478px at both desktop and 375px** — the figure checked on every commit since the grid
+was fixed, so it provably did not move — no console errors, and 8 views at 375px with 0 horizontal
+overflow. Live 45 seconds after the push, confirmed by byte-comparing the served file against HEAD.
 
 **Environment note that cost time:** the Claude-in-Chrome screenshot path and the in-app Browser
 pane fail in *opposite* ways. Chrome screenshots fine but its router will not reveal a view while

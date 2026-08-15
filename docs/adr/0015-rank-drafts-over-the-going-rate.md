@@ -234,6 +234,16 @@ every correlation ADR 0004 ran and was caught by a human read.
 - The year's draft board gains a going rate and a surplus on **every** pick, so "walk me through
   it" has an answer for a disputed middle pick and not only for the two extremes. ADR 0005 already
   found that grid too wide once, so it is held to the same 375px check.
+  - **Reversed on the visible half, 2026-08-15 (`8c1f6f3`), at Justin's call.** The surplus is no
+    longer printed on the board: the board records what happened round by round and does not grade
+    it, and a coloured number on all 192 cells was the sharpest thing on a page whose job there is
+    the record. **The reasoning above still holds and is still served** — each cell keeps a tooltip
+    carrying the slot's going rate and what the man returned, so "walk me through a disputed middle
+    pick" still has its answer, one hover away instead of always on. The metric is untouched:
+    `draftPicksPriced()` is unchanged and Draft Rankings and Steals & Busts are unaffected. What
+    went with it were the three now-dead `.pv` rules. **Anyone tempted to put it back should read
+    this bullet as a decision, not an omission.** The 375px check still applies and still passes;
+    the grid is 1478px, exactly as before, because `col.tmcol` is a fixed 120px.
 - **2014's defensive scoring is unknown and immaterial — closed 2026-08-14.** The change log says
   2015 "added extra defensive and return scoring categories" without naming them, so 2014 is the
   modern set minus some subset and nobody has the settings page. It was closed by measurement rather
