@@ -17,10 +17,12 @@ weekly rosters and player ids:
 
 Fantasy points are computed here from raw stats under *this league's* rulebook
 per season -- not taken from anyone else's arithmetic. That is checkable, and
-it is checked: --verify re-scores 2018-2025 against the points the archive
-already holds and reports the agreement (100.0% when this was written).
+--verify checks it: it walks every roster-week the league export recorded,
+2018-2025, re-scores that man from raw nflverse stats and compares. Measured
+2026-08-15: 22,417 of 22,419 skill player-weeks agree exactly (99.99%), and the
+run fails if that rate drops below SKILL_FLOOR.
 
-Four rules are not on the league's scoring page and were recovered from the
+Six rules are not on the league's scoring page and were recovered from the
 residuals of that check:
   * a BLOCKED field goal counts as a miss (nflverse files it apart from
     fg_missed_*), which was 52 of the 76 original disagreements;
@@ -28,7 +30,21 @@ residuals of that check:
     6 and are neither rushing nor receiving scores;
   * a kicker still scores whatever he does with the ball in his hands --
     Matt Prater threw a touchdown off a fake in 2018;
-  * a missed PAT costs nothing.
+  * a missed PAT costs nothing;
+  * yards allowed are NET of sack yardage -- see yards_allowed();
+  * a fumble returned for a touchdown is a defensive score that nflverse keeps
+    out of def_tds -- see dst_points().
+
+The last two are the 2026-08-15 additions and they are the defensive ones.
+
+The two player-weeks that still disagree are source differences rather than
+rulebook gaps, and are recorded here so they are not re-investigated:
+  * Caleb Williams 2025 wk6, +0.50. He lost 5 yards recovering his own fumble;
+    ESPN charged that to his rushing yards, nflverse files it in
+    fumble_recovery_yards_own. Neither is wrong, they just count it in
+    different columns.
+  * Tony Pollard 2020 wk17, +0.10. One yard, and nflverse carries a stat
+    correction that ESPN's frozen box score does not.
 
 2014's DEFENSIVE rulebook is not known and does not need to be. The change
 log records that 2015 "added extra defensive and return scoring categories"
@@ -43,12 +59,21 @@ sixteen. Those categories are worth a median of 6 points and at most 28 to any
 drafted 2014 defence, against a season averaging 90. 2014's YARDAGE rule is a
 different matter and is known -- see yardage_points().
 
-Defences are a known and bounded exception. Their categories and the
-yards-allowed ladder reproduce exactly, but nflverse's play-by-play build
-carries ~11% more sacks and ~23% more fumble recoveries than ESPN's feed, so a
-D/ST season total lands within about 12% rather than exactly. ADR 0015 keeps
-defences in Draft Rankings, where that error moves a class score by under one
-point, and out of Steals & Busts, where it would be the whole story.
+Defences are a known and bounded exception, but a much smaller one than this
+file used to claim. The old note blamed the gap on nflverse carrying ~11% more
+sacks and ~23% more fumble recoveries than ESPN's feed, and put a D/ST season
+total within about 12%. The 12% was right (measured: 12.8% mean absolute error
+per club-season) and the diagnosis was wrong. Running the weekly check for the
+first time showed the residual was almost entirely one-sided -- computed was
+never meaningfully HIGH -- which is the signature of missing categories, not of
+a noisier feed. The two missing rules are the last two above. With them a club
+season lands within **1.9%** mean absolute error, and 91.5% of club-weeks are
+exact to the point.
+
+What remains is one yards-allowed ladder step in a single game, on about 8% of
+club-weeks, and its cause is not isolated. So ADR 0015's disposition still
+stands on its own terms -- defences in Draft Rankings, out of Steals & Busts --
+it just rests on a tenth of the error it was written for.
 
 Usage:
     python refresh-players.py --verify   # re-run every check, write nothing
@@ -167,6 +192,20 @@ def kicker_points(r, year):
     return p
 
 
+def yards_allowed(r):
+    """What one club gained, as the yards-allowed ladder means it.
+
+    The ladder is fed TOTAL NET yards, and net yards are passing and rushing
+    less what the sacks took back. nflverse keeps sack yardage in its own column
+    rather than netting it out of passing_yards, so summing the two gives a club
+    more yards than it gained and drops the defence a ladder step. That was the
+    larger half of the defensive gap: it alone moved the exact-agreement rate
+    from 63% to 88%, and it is a definition rather than a fitted correction.
+    """
+    return (num(r, "passing_yards") + num(r, "rushing_yards")
+            - abs(num(r, "sack_yards_lost")))
+
+
 def ladder(v, tbl):
     for hi, pts in tbl:
         if v <= hi:
@@ -181,14 +220,34 @@ def dst_points(r, pts_allowed, yds_allowed):
     p += num(r, "def_safeties") * 2
     p += (num(r, "def_punt_blocks") + num(r, "def_pat_blocks") + num(r, "def_fg_blocks")) * 2
     p += (num(r, "def_tds") + num(r, "special_teams_tds")) * 6
+    # A fumble returned for a touchdown is a defensive score, and nflverse files
+    # it apart from def_tds -- which carries interception returns. Recovered from
+    # the residuals of --verify, exactly as the four player rules above were: it
+    # was 65 of the disagreements on its own. The same column also holds an
+    # OFFENCE's touchdown on its own recovered fumble (the team file aggregates
+    # both sides), which is why it is capped at the number of opponent fumbles
+    # this defence actually recovered -- uncapped, it hands nine defences six
+    # points for a touchdown their offence scored.
+    p += min(num(r, "fumble_recovery_tds"), num(r, "fumble_recovery_opp")) * 6
     p += num(r, "def_2pt_made") * 2
     return p + ladder(pts_allowed, PA_LADDER) + ladder(yds_allowed, YA_LADDER)
 
 
 # ── season values ───────────────────────────────────────────────────────
-def player_season(year):
-    """gsis id -> {'pos':.., 'pts':.., 'games':.., 'name':..} for weeks 1-17."""
-    out = {}
+SCORED = ("QB", "RB", "WR", "TE", "K")
+
+
+def player_weeks(year, league_pos=None):
+    """Yield (gsis id, week, position, name, points) for weeks 1-17.
+
+    `league_pos` maps a gsis id to the position THIS LEAGUE drafted him at, and
+    it is what stops nflverse's own position label deciding whether a man's
+    production exists. nflverse files a two-way player at his defensive
+    position -- Travis Hunter is a CB there -- so the position filter alone
+    dropped every catch he made in 2025 and the board baked him as a pick that
+    never played. He played seven games and was bad, which is a different fact
+    and the one the board exists to state.
+    """
     for r in rows(grab("stats_player", f"stats_player_week_{year}.csv")):
         if r.get("season_type") != "REG" or int(float(r["week"])) > LAST_WEEK:
             continue
@@ -197,32 +256,53 @@ def player_season(year):
             continue
         pos = (r.get("position") or "").upper()
         pos = "RB" if pos == "FB" else pos
-        if pos not in ("QB", "RB", "WR", "TE", "K"):
-            continue
-        e = out.setdefault(pid, {"pos": pos, "pts": 0.0, "games": 0,
-                                 "name": r.get("player_display_name") or r.get("player_name")})
-        e["pts"] += kicker_points(r, year) if pos == "K" else offense_points(r, year)
+        if pos not in SCORED:
+            # Only a man this league actually drafted is rescued this way; the
+            # pool stays otherwise as nflverse files it, so no defender wanders
+            # into the receiver pool and moves the replacement line.
+            pos = (league_pos or {}).get(pid)
+            if pos not in SCORED:
+                continue
+        pts = kicker_points(r, year) if pos == "K" else offense_points(r, year)
+        yield pid, int(float(r["week"])), pos, \
+            (r.get("player_display_name") or r.get("player_name")), pts
+
+
+def player_season(year, league_pos=None):
+    """gsis id -> {'pos':.., 'pts':.., 'games':.., 'name':..} for weeks 1-17."""
+    out = {}
+    for pid, _w, pos, name, pts in player_weeks(year, league_pos):
+        e = out.setdefault(pid, {"pos": pos, "pts": 0.0, "games": 0, "name": name})
+        e["pts"] += pts
         e["games"] += 1
     return out
 
 
-def dst_season(year, scores):
-    """club code -> {'pts':.., 'games':..}"""
+def dst_weeks(year, scores):
+    """(club code, week) -> points."""
     off, team_rows = {}, []
     for r in rows(grab("stats_team", f"stats_team_week_{year}.csv")):
         if r.get("season_type") != "REG" or int(float(r["week"])) > LAST_WEEK:
             continue
         w = int(float(r["week"]))
-        off[(r["team"], w)] = num(r, "passing_yards") + num(r, "rushing_yards")
+        off[(r["team"], w)] = yards_allowed(r)
         team_rows.append((r, w))
-    out = defaultdict(lambda: {"pts": 0.0, "games": 0})
+    out = {}
     for r, w in team_rows:
         pa = scores.get((str(year), str(w), r["team"]))
         ya = off.get((r["opponent_team"], w))
         if pa is None or ya is None:
             continue
-        e = out[r["team"]]
-        e["pts"] += dst_points(r, pa, ya)
+        out[(r["team"], w)] = dst_points(r, pa, ya)
+    return out
+
+
+def dst_season(year, scores):
+    """club code -> {'pts':.., 'games':..}"""
+    out = defaultdict(lambda: {"pts": 0.0, "games": 0})
+    for (club, _w), pts in dst_weeks(year, scores).items():
+        e = out[club]
+        e["pts"] += pts
         e["games"] += 1
     return out
 
@@ -376,6 +456,184 @@ def load_index_data():
     return html, const("ARCH"), const("PFR"), const("PFR_EXTRA"), const("DRAFTS")
 
 
+# ── the check ───────────────────────────────────────────────────────────
+# Skill agreement is expected to be total: the rulebook either reproduces the
+# league's own arithmetic or it does not. The floor is set just below the
+# measured rate so an ordinary source correction does not fail the run, while a
+# rulebook regression -- which moves hundreds of weeks at once -- does.
+SKILL_FLOOR = 0.999
+# A rate floor cannot see a small defect: disabling the two-way-player rescue
+# costs seven player-weeks out of 22,419 and clears 99.9% comfortably, which is
+# how Travis Hunter sat wrong on the board for a season. So the two remaining
+# disagreements are NAMED, and any skill disagreement that is not one of these
+# fails the run however few there are. Both are documented in the header; a new
+# one is either a rulebook regression or a fact about the wire worth reading.
+KNOWN_SKILL_DIFFS = {
+    (2020, 17, "Tony Pollard"),      # own-fumble recovery yardage, +0.10
+    (2025, 6, "Caleb Williams"),     # own-fumble recovery yardage, +0.50
+}
+# Defences cannot reach that and are not asked to. The floor sits well under the
+# measured 91.5% but far above the 63% the rulebook scored before the two
+# defensive rules were found.
+DST_FLOOR = 0.85
+# The rate alone is too blunt to guard the defensive rules: dropping the
+# fumble-return touchdown costs only 3.7 points of it and clears the floor.
+# Bias is the sharp instrument, and it is the one that found both rules. A
+# defence that is scored under a complete rulebook is wrong in both directions
+# about equally; a missing category can only ever subtract, so it shows up as a
+# one-sided mean long before it dents the exact-agreement rate. Measured -0.11;
+# dropping the fumble-return TD alone takes it past -0.35.
+DST_BIAS_MAX = 0.25
+
+
+def roster_weeks(rec):
+    """Yield (week, archive player index, the points the export recorded).
+
+    Mirrors rosterAt() in index.html, which is the only definition of this
+    shape: week 1 is a full snapshot, every later week is a delta of adds,
+    drops and slot moves, and each week's `p` map carries that week's points.
+    A man on the roster with no entry in `p` scored nothing recorded and is
+    skipped rather than read as a zero.
+    """
+    if rec.get("snap"):
+        return
+    wks = sorted(int(w) for w in rec["w"])
+    cur, i = {}, 0
+    for w in range(1, (max(wks) if wks else 0) + 1):
+        while i < len(wks) and wks[i] <= w:
+            step = rec["w"][str(wks[i])]
+            if isinstance(step, list):
+                cur = {r[0]: r[3] for r in step}
+            else:
+                for pid in step["d"]:
+                    cur.pop(pid, None)
+                for r in step["a"]:
+                    cur[r[0]] = r[3]
+                cur = {pid: None for pid in cur}
+                for pid, v in (step.get("p") or {}).items():
+                    if int(pid) in cur:
+                        cur[int(pid)] = v
+            i += 1
+        for pid, pts in cur.items():
+            if pts is not None:
+                yield w, pid, pts
+
+
+def verify_weekly(ARCH, DRAFTS, gsis_of_idx, name_to_gsis, scores):
+    """Re-score every roster-week the league recorded and compare to its points.
+
+    This is the claim the whole board rests on -- that fantasy points computed
+    here from raw nflverse stats are this league's own points -- and it is the
+    only part of the pipeline that can be checked against an authority rather
+    than against itself. The league export holds what ESPN actually paid each
+    man each week; nothing else here does.
+
+    Skill and defence are reported apart because they are not the same claim.
+    Skill scoring is exact and any disagreement is a defect until explained.
+    Defensive scoring is reconstructed from public box scores and is not exact:
+    it is reported with its residual so the gap is a measured number rather
+    than an assurance.
+    """
+    tol = 0.005
+    tot = defaultdict(int)
+    dst_resid, skill_bad, unjoined = [], [], defaultdict(int)
+
+    print(f"\n{'year':>5} {'skill wks':>10} {'exact':>8} {'rate':>7}    "
+          f"{'D/ST wks':>9} {'exact':>7} {'rate':>7} {'mean resid':>11}")
+    for y in SEASONS:
+        S = ARCH["S"].get(str(y))
+        if not S or S.get("static") or not S.get("teams"):
+            continue    # 2014-2017 are stored as standings only, with no weeks
+        drafted = {}
+        for lst in DRAFTS[str(y)]["picks"].values():
+            for pk in lst:
+                drafted[pk[1]] = pk[3]
+        league_pos = {name_to_gsis[n]: p for n, p in drafted.items()
+                      if p != "D/ST" and n in name_to_gsis}
+        pw = defaultdict(float)
+        for pid, w, _pos, _nm, pts in player_weeks(y, league_pos):
+            pw[(pid, w)] += pts
+        dw = dst_weeks(y, scores)
+
+        n = {"skill": 0, "dst": 0}
+        ok = {"skill": 0, "dst": 0}
+        resid = []
+        for rec in S["teams"].values():
+            for w, idx, export_pts in roster_weeks(rec):
+                name, pos = ARCH["P"][idx][0], ARCH["P"][idx][1]
+                if pos == "D/ST":
+                    code = dst_code(name, y)
+                    if not code or (code, w) not in dw:
+                        unjoined[name] += 1
+                        continue
+                    got, kind = dw[(code, w)], "dst"
+                else:
+                    gid = gsis_of_idx.get(idx)
+                    if gid is None:
+                        unjoined[name] += 1
+                        continue
+                    got, kind = pw.get((gid, w), 0.0), "skill"
+                n[kind] += 1
+                if abs(got - export_pts) <= tol:
+                    ok[kind] += 1
+                elif kind == "dst":
+                    resid.append(got - export_pts)
+                else:
+                    skill_bad.append((y, w, name, pos, export_pts, round(got, 2)))
+        dst_resid += resid
+        for k in ("skill", "dst"):
+            tot[k] += n[k]
+            tot[k + "_ok"] += ok[k]
+        mean = sum(resid) / n["dst"] if n["dst"] else 0.0
+        print(f"{y:>5} {n['skill']:>10} {ok['skill']:>8} "
+              f"{100 * ok['skill'] / max(n['skill'], 1):>6.2f}%    "
+              f"{n['dst']:>9} {ok['dst']:>7} "
+              f"{100 * ok['dst'] / max(n['dst'], 1):>6.1f}% {mean:>+11.2f}")
+
+    rate = tot["skill_ok"] / max(tot["skill"], 1)
+    print(f"\nSkill: {tot['skill_ok']:,} of {tot['skill']:,} player-weeks reproduce the "
+          f"league's own points exactly ({100 * rate:.2f}%).")
+    surprises = [d for d in skill_bad if (d[0], d[1], d[2]) not in KNOWN_SKILL_DIFFS]
+    for y, w, name, pos, exp, got in skill_bad:
+        tag = "" if (y, w, name) in KNOWN_SKILL_DIFFS else "   <- NOT A KNOWN DIFFERENCE"
+        print(f"    {y} wk{w:<3} {name:<24} {pos:<3} export {exp:>7}  here {got:>7}"
+              f"  {got - exp:+.2f}{tag}")
+    missing = KNOWN_SKILL_DIFFS - {(d[0], d[1], d[2]) for d in skill_bad}
+    for y, w, name in sorted(missing):
+        print(f"    {y} wk{w} {name} now agrees -- drop it from KNOWN_SKILL_DIFFS")
+    dmean = sum(dst_resid) / max(tot["dst"], 1)
+    print(f"\nD/ST: {tot['dst_ok']:,} of {tot['dst']:,} club-weeks exact "
+          f"({100 * tot['dst_ok'] / max(tot['dst'], 1):.1f}%), mean residual "
+          f"{dmean:+.2f} points per club-week against a mean score of about 6.8.")
+    print("      The remainder is one yards-allowed ladder step in a single game;"
+          "\n      the cause is not isolated, which is why defences stay off"
+          "\n      Steals & Busts (ADR 0015).")
+    if unjoined:
+        top = sorted(unjoined.items(), key=lambda t: -t[1])[:4]
+        print(f"\nUnjoined: {sum(unjoined.values())} roster-weeks over {len(unjoined)} men "
+              f"with no nflverse id, e.g. {', '.join(f'{k} x{v}' for k, v in top)}")
+
+    drate = tot["dst_ok"] / max(tot["dst"], 1)
+    bad = []
+    if surprises:
+        bad.append(f"{len(surprises)} skill player-week(s) disagree that are not in "
+                   f"KNOWN_SKILL_DIFFS, the first being "
+                   f"{surprises[0][2]} {surprises[0][0]} wk{surprises[0][1]}")
+    if rate < SKILL_FLOOR:
+        bad.append(f"skill agreement {100 * rate:.2f}% is below its "
+                   f"{100 * SKILL_FLOOR:.1f}% floor")
+    if drate < DST_FLOOR:
+        bad.append(f"D/ST agreement {100 * drate:.1f}% is below its "
+                   f"{100 * DST_FLOOR:.0f}% floor")
+    if abs(dmean) > DST_BIAS_MAX:
+        bad.append(f"D/ST residual is one-sided at {dmean:+.2f} points per club-week "
+                   f"(limit {DST_BIAS_MAX}), which is the shape of a missing category")
+    if bad:
+        raise SystemExit("\nFAILED: " + "; ".join(bad) + " -- the rulebook has regressed.")
+    print(f"\nVerified. Skill holds above {100 * SKILL_FLOOR:.1f}%, D/ST above "
+          f"{100 * DST_FLOOR:.0f}%, and the D/ST residual is two-sided.")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -397,6 +655,15 @@ def main():
     name_to_gsis = {n: gsis_of_pfr[v] for n, v in pfr_of.items() if v in gsis_of_pfr}
     print(f"joined {len(name_to_gsis)} archive names to nflverse via pfr_id")
 
+    # The weekly check walks rosters, which reference players by their index in
+    # ARCH.P rather than by name, so it needs the join keyed that way -- two men
+    # can share a name and the name key keeps only the first.
+    gsis_of_idx = {}
+    for i, p in enumerate(ARCH["P"]):
+        pfr = (PFR[i] if i < len(PFR) else "") or PFR_EXTRA.get(p[0], "")
+        if pfr in gsis_of_pfr:
+            gsis_of_idx[i] = gsis_of_pfr[pfr]
+
     scores = game_scores()
 
     # every D/ST name the league has ever used -> club code
@@ -413,7 +680,17 @@ def main():
 
     out, report = {}, []
     for y in SEASONS:
-        pl = player_season(y)
+        # what this season's drafts actually name, resolved before scoring so a
+        # man nflverse files at a defensive position is still scored at the one
+        # he was drafted at rather than dropped
+        drafted = {}
+        for lst in DRAFTS[str(y)]["picks"].values():
+            for pk in lst:
+                drafted[pk[1]] = pk[3]
+        league_pos = {name_to_gsis[n]: p for n, p in drafted.items()
+                      if p != "D/ST" and n in name_to_gsis}
+
+        pl = player_season(y, league_pos)
         ds = dst_season(y, scores)
         # Keyed by gsis id, never by name: two men can share a name in one
         # season, and a name-keyed pool silently drops one of them, which moves
@@ -426,12 +703,6 @@ def main():
         for key, (nm, pts, games, pos) in pool.items():
             by_pos[pos].append((key, pts, games))
         rep = replacement_from(by_pos)
-
-        # what this season's drafts actually name
-        drafted = {}
-        for lst in DRAFTS[str(y)]["picks"].values():
-            for pk in lst:
-                drafted[pk[1]] = pk[3]
 
         keepkeys = set()
         for pos, lst in by_pos.items():
@@ -516,6 +787,9 @@ def main():
     blob = json.dumps({str(y): out[y] for y in SEASONS}, separators=(",", ":"))
     print(f"\nPLAYER_VALUE is {len(blob):,} bytes")
 
+    if args.verify:
+        verify_weekly(ARCH, DRAFTS, gsis_of_idx, name_to_gsis, scores)
+
     if args.verify or args.dry_run:
         print("\n(nothing written)")
         return
@@ -536,7 +810,8 @@ HEADER = """/* ── What every drafted man's season was actually worth ──�
    from the league export: the export only records points while a man sat
    on somebody's roster, and 42% of drafted players spent part of a season
    on nobody's. Re-scoring 2018-2025 this way reproduces the export's own
-   points for 23,668 player-weeks at 100.0%.
+   points for 22,417 of 22,419 skill player-weeks (99.99%); the two that
+   differ are columns the two sources file differently, not scoring.
 
    `rep` is the replacement line -- the man just past the startable bar at
    each position -- computed over EVERY NFL player, then checked against
@@ -546,7 +821,7 @@ HEADER = """/* ── What every drafted man's season was actually worth ──�
    from one that played and was bad, and the board states the fact rather
    than diagnosing the cause.
 
-   Defences are within about 12% rather than exact -- see the script's
+   Defences are within about 2% rather than exact -- see the script's
    header for why, and ADR 0015 for why that keeps them on this board and
    off Steals & Busts. */
 """
