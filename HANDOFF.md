@@ -6,8 +6,68 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15 (latest): defences are on Steals & Busts (`e8baa93`, live)
-*Read this first; the section below it is the same day's earlier work and is what this rests on.*
+## WHERE THIS STANDS — 2026-08-15 (latest): defences on the wire too, kickers measurably not (`ef77193`, live)
+*Read this first. The section below it is the draft-side half of the same decision.*
+
+Asked for straight after the section below. **ADR 0018** records it. It is **not the same change
+and not the same reason**, and that is the point worth carrying forward.
+
+**ADR 0017 turned on reconstruction accuracy. None of it applies here.** Waiver values come
+straight out of the league export — the points ESPN actually awarded, week by week — so nothing is
+reconstructed and nothing was ever inaccurate. **Deleting the filter would still have been wrong.**
+
+A wire value is points **minus the replacement at that position that week**, and that replacement
+is read off the **rostered** pool, since the export cannot see a free agent. So a position can
+only be priced here if the pool reliably runs past its startable bar. If it does not, the code
+falls back to the worst rostered man and the subtraction quietly becomes *"minus the worst
+starter"* — which flatters every pickup at that spot, the exact failure the board's own header
+warns about. **The pool had no D/ST in it at all** (`if(!LINEUP[p[1]]) return`), so removing the
+filter alone would have subtracted **zero** and handed defences their raw points.
+
+**Measured over all 136 wire weeks, 2018-2025** — this is the load-bearing number:
+
+| position | bar | thinnest week | median | weeks with nobody past the bar |
+|---|---|---|---|---|
+| QB | 12 | — | 22.9 | **0** |
+| **D/ST** | 12 | 14 | 19 | **0** |
+| **K** | 12 | 12 | 14 | **31 — 22.8%** |
+
+So **defences are priced and kickers are not, and that asymmetry is a measurement rather than a
+preference.** `WIRE_POS` states the numbers and says plainly: if kicker rosters ever deepen,
+re-run the count — **do not add K on the grounds that D/ST is there.**
+
+**`BAR_POS` is new, beside `LINEUP`, so the D/ST bar is measured rather than assumed.** Every team
+*looks* like it starts exactly one defence; counted, it is **11.76 to 12.00** a week, rounding to
+12 in all eight seasons. Kept out of `LINEUP` itself because `LINEUP` drives `replacementAt()`'s
+flex model, which a defence has no business in. (My first pass hardcoded `teams.length` and I
+replaced it — this repo counts rather than assumes, and `STARTS_BAR` exists for exactly that.)
+
+**`SKILL` is deleted.** It read *"kickers and defences are streamed, not valued — nobody remembers
+who dropped which D/ST"*, which is a claim about what is **interesting**, not what can be
+measured; ADR 0015 and 0017 had already taken most of it. Nothing replaces it as a single rule,
+deliberately — the draft board prices a season against every NFL player and can carry any
+position, the wire prices a week against the rostered pool and cannot.
+
+**One visible knock-on: the Record Book's "Best pickup ever" changes hands.** Kyren Williams
+(2023, +123.7) gives way to the **2018 Bears D/ST**, claimed week 2 and held all sixteen for
+**+139.0**. Face-valid — best fantasy defence of its season by a distance. Its copy also loses a
+pronoun, since *"the weeks he was held"* is wrong once the answer is the Bears. "The costliest
+cut" is unchanged.
+
+Verified rather than assumed: 403 defensive pickups and 363 drops on the board; defences 23.5% of
+all wire moves and 32% of the top fifty (a skew, not a takeover — explicable, since a defence is
+cheap early and a good one is held all year — and the board caps at three per position anyway);
+every D/ST link resolving to the right team-season page; **no kicker anywhere on it**; Start & Sit
+unaffected, its skill bars still QB 12 / RB 29 / WR 31 / TE 12; no console errors.
+
+**Note for the next session:** the local dev server serves the 2.7MB `index.html` from cache, so a
+plain reload shows the OLD file and every check silently passes against stale code — it cost a
+confusing "0 defensive adds" here. Append a query string (`?v=2`) rather than trusting a reload.
+
+---
+
+## WHERE THIS STANDS — 2026-08-15: defences are on Steals & Busts (`e8baa93`, live)
+*The section below it is the same day's earlier work and is what this rests on.*
 
 Asked for directly after the section below flagged it. **ADR 0017** records the reversal and
 annotates ADR 0015, which stands in every other respect.
