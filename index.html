@@ -454,7 +454,13 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
 
 /* cards + masthead */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:16px;box-shadow:var(--sh);transition:box-shadow .2s ease,transform .2s ease}
-.gameBorder{position:relative;padding:44px 18px 8px;margin-top:0;background:none;border:0;border-radius:0;box-shadow:none}
+/* No horizontal padding: .wrap already owns the page gutter, and a second one
+   here put the hero band 18px inside the left spine every other block sits on
+   (12px at phone width). Nothing marked that edge -- every visual property on
+   this rule is zeroed out, which is the tell: it was a bordered card once and
+   the padding that cleared the border outlived it. The print sheet had already
+   dropped it. Restore a gutter here only if this element paints an edge again. */
+.gameBorder{position:relative;padding:44px 0 8px;margin-top:0;background:none;border:0;border-radius:0;box-shadow:none}
 header{position:relative;z-index:1;text-align:center}
 .kicker{font-size:var(--t-fine);font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:var(--muted)}
 h1{font-family:var(--serif);font-size:clamp(44px,8vw,72px);font-weight:700;line-height:1.04;margin:0;
@@ -2598,7 +2604,7 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
   body{font-size:var(--t-body)}
   .wrap{padding:0 12px}
   .card{padding:12px;border-radius:var(--r-md)}
-  .gameBorder{padding:34px 12px 6px;margin-top:0}
+  .gameBorder{padding:34px 0 6px;margin-top:0}   /* .wrap's 12px is the gutter */
   h1{font-size:clamp(30px,9vw,40px)}
   .figures{grid-template-columns:repeat(3,1fr);gap:6px}
   .fig{padding:12px 4px;border-radius:var(--r-sm)}
