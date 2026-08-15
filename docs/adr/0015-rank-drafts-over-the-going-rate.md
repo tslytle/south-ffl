@@ -4,6 +4,15 @@
 Accepted (2026-08-14). Supersedes ADR 0004 entirely and ADR 0008 for Steals & Busts.
 **Two preconditions in "The robustness gate" below must pass before the board ships.**
 
+> **Amended 2026-08-15 by ADR 0017.** The defensive exclusion below — *"defences are graded in
+> Draft Rankings and excluded from Steals & Busts"* — is reversed, and the diagnosis it rests on
+> (nflverse carrying ~11% more sacks and ~23% more fumble recoveries than ESPN) was wrong. The
+> 11.8% median season error was real and independently reproduced; its cause was two missing
+> scoring rules, not a noisier feed. Corrected, that error is 1.1% median and defences clear the
+> bar this ADR set. **Everything else here stands**, including the reasoning that drew the line at
+> a measured error bar in the first place — ADR 0017 re-applies that same test rather than
+> relaxing it.
+
 ## Context
 
 ADR 0004 ranked a draft on the value its picks produced *while on the drafting team's own

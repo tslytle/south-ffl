@@ -3725,7 +3725,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
     <li><b>It ranks the draft, not the season that followed it.</b> Nothing here reads a roster, a lineup or a trade. A pick is judged on what that player did all year, whoever ended up holding him &mdash; so a manager who drafted brilliantly and traded the lot away in October still has the better draft. That is a deliberate change. The version of this board that ran until 2026 measured what a class delivered to its own roster, which is drafting and roster management measured together, and it graded the second one badly: it ran at &minus;0.41 against a manager&rsquo;s moves, so the fastest route up it was to draft sixteen men and never touch the wire again. Its runner-up of all time was a 5&ndash;9 team that made one move all season.</li>
     <li><b>Every pick is worth what he beat the going rate for his slot by.</b> The <b>going rate</b> is what a pick at that spot was actually worth that year &mdash; a curve fitted through all of the season&rsquo;s picks, so pick 3 is expected to return a great deal and pick 180 almost nothing. Beat it and you gain; fall short and you lose. The curve is drawn across every position at once on purpose: a curve per position would only ever compare a quarterback to the other quarterbacks taken around him, and taking a quarterback too early would stop being a mistake the board could see. You spent pick 26, and pick 26 is graded against everything pick 26 could have bought.</li>
     <li><b>A player is worth what he scored over a man you could have had for free.</b> Points alone make the answer to every question a quarterback &mdash; in 2023 nine of the twelve highest scorers in fantasy were quarterbacks, and measured against their own position it is four. So every man is measured against replacement at his position: the best player just outside the number that actually get started here each week, counted from real lineups rather than assumed from the lineup card. <b>A pick can never cost more than the pick itself.</b> Replacement is free, so a man who finished below it would simply not have been used &mdash; the pick bought an option nobody exercised, which is worth nothing rather than less than nothing.</li>
-    <li><b>Kickers and defences count.</b> A sixteen-pick draft graded on eleven picks is not a graded draft, and spending a ninth-rounder on a kicker when picks around there were returning a startable receiver is a real mistake that the going rate prices correctly. Defences appear here and not on Steals &amp; Busts: a defence&rsquo;s season can only be reconstructed to within about 2%, which moves a class score by a point or two but is a larger share of the story on a board about single picks.</li>
+    <li><b>Kickers and defences count.</b> A sixteen-pick draft graded on eleven picks is not a graded draft, and spending a ninth-rounder on a kicker when picks around there were returning a startable receiver is a real mistake that the going rate prices correctly. Defences appear here and, since 15 August 2026, on Steals &amp; Busts too: a defence&rsquo;s season can be reconstructed to within about 2%, which is small enough to judge a single pick by. It was 12% until the defensive scoring was corrected, and at 12% it was not.</li>
     <li><b>The score is relative to that season; the headline figure already isn&rsquo;t.</b> 100 is an average draft for its own year and every 15 points is one standard deviation, and that is what the all-time list sorts on. The figure beside it &mdash; how far past the going rate the class landed &mdash; needs no such adjustment, because replacement is recomputed under each season&rsquo;s own rulebook. Measured, the half-PPR era since 2021 runs about 5% hotter than the years before it, against a 17% swing between two seasons under the same rules.</li>
     <li><b>Where the numbers come from, and what they miss.</b> Every player&rsquo;s season is computed from nflverse&rsquo;s public play-by-play stats under this league&rsquo;s own scoring rules for that year &mdash; including 2014, which paid whole points per block of yards rather than the fractional rates every later season uses. Checked against the league&rsquo;s own export for 2018&ndash;2025, it reproduces 23,668 player-weeks exactly. Two things it does not: a defence&rsquo;s weekly line differs slightly from the one ESPN published, and a man drafted who never played a down &mdash; suspended, retired in the summer, hurt in August &mdash; is scored at nothing, with the games he played printed beside him so you can decide for yourself what that excuses. The board states the fact and declines to diagnose it.</li>
   </ul>
@@ -3811,7 +3811,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
       </div>
       Same twenty points on the scoreboard, wildly different weeks. Add up a season and that&rsquo;s the number on the card.</li>
     <li><b>Which free agent?</b> In a normal week the twelve teams start about <span class="egg">12 QBs, 29 RBs, 31 WRs and 12 TEs</span><span class="punct">.</span> So line the running backs up by what they scored that week: the top 29 were in somebody&rsquo;s lineup, and <b>number 30 was not</b>. He&rsquo;s the one anybody could have had.</li>
-    <li><b>A draft pick is judged on the pick, not on what you did next.</b> Whether you kept him, started him or cut him in week two does not enter it &mdash; that is the difference between this board and the waiver board below, which is entirely about what you did next. Kickers are judged here; defences are not, because a defence&rsquo;s season can only be reconstructed to within about 2% &mdash; about a twenty-fifth of the whole gap between the best defence in a year and the twelfth, and a quarter of it before the defensive scoring was corrected on 15 August 2026. Trades have their own section above, on their own yardstick.</li>
+    <li><b>A draft pick is judged on the pick, not on what you did next.</b> Whether you kept him, started him or cut him in week two does not enter it &mdash; that is the difference between this board and the waiver board below, which is entirely about what you did next. Kickers and defences are both judged here. Defences were left off until 15 August 2026, when correcting their scoring took a rebuilt defensive season from within about 12% of the real one to within about 2% &mdash; from a quarter of the whole gap between the best defence in a year and the twelfth, down to a twenty-fifth of it. Trades have their own section above, on their own yardstick.</li>
   </ul>
   </div></details>
 
@@ -8691,9 +8691,10 @@ const SKILL = p => p.pos !== "K" && p.pos !== "D/ST";
    the RB and WR bars sit past 24: the flex is in there too. */
 const LINEUP = { QB: 1, RB: 2, WR: 2, TE: 1 };
 /* Reading order for the per-position sweeps on Steals & Busts. K is here
-   because ADR 0015 put kickers on that board; without an entry the sort key
-   is NaN and the kicker cards land wherever the sort happens to leave them. */
-const POS_ORDER = { QB: 1, RB: 2, WR: 3, TE: 4, K: 5 };
+   because ADR 0015 put kickers on that board, and D/ST because ADR 0017 put
+   defences back on it; without an entry the sort key is NaN and those cards
+   land wherever the sort happens to leave them. */
+const POS_ORDER = { QB: 1, RB: 2, WR: 3, TE: 4, K: 5, "D/ST": 6 };
 
 /* ── Where the startable line actually sits ──────────────────────────
    The lineup card says 2 RB and 2 WR, but the flex means the real
@@ -8764,17 +8765,34 @@ function replacementAt(byPos, bar){
    definition, so a worthless climb cannot produce a large surplus. Nothing is
    left to filter.
 
-   Defences sit this one out; kickers do not. A kicker's season reproduces
-   exactly, a defence's only within about 2% -- under a point on a sixteen-pick
-   class, and about a twenty-fifth of the entire spread between the best
-   defence and the twelfth. So a defence can sink a draft class on the board
-   above and can never appear on this one.
+   Every position is on this board, defences included (ADR 0017). ADR 0015
+   had kept them off: a defensive season could only be rebuilt to within 12%,
+   which is a quarter of the entire spread between the best defence in a year
+   and the twelfth, and on a board about single picks that margin was the
+   whole story. Finding the two missing defensive scoring rules on 2026-08-15
+   took it to about 2% -- a twenty-fifth of that spread -- and the reason
+   stopped applying.
 
-   That margin was 12% and a quarter of the spread until 2026-08-15, when the
-   two missing defensive rules were found. The exclusion is inherited from
-   that era and is now a much weaker call than it was: revisit ADR 0015 before
-   assuming it still holds, since 8% of club-weeks are still a yards-allowed
-   ladder step out for a reason nobody has isolated.
+   Note which board's arithmetic this is: the same `draftPicksPriced()` that
+   Draft Rankings sums, read one pick at a time. Defences were already being
+   priced here and thrown away at the last step, so this is a filter coming
+   off rather than a measure being extended.
+
+   The residual is real and is not hidden: about 8% of club-weeks are still
+   one yards-allowed ladder step out, for a cause nobody has isolated, worth
+   roughly 2 points on a defensive season against a spread of 66. Measured
+   rather than asserted, by re-ranking with +/-2 points of noise: the three
+   defensive steals do not move at all, and the busts move only in their third
+   card, between two 2015 defences the board already has within a point of
+   each other. What that noise CAN move is a sign -- eight of the 178
+   defences sit within 2.5 points of their going rate, two within half a
+   point -- so a defence that close to the line may read as a small steal or
+   a small bust depending on the residual. It cannot make one look like the
+   other kind of story, which is what these columns are for.
+
+   The waiver board below is a separate question and still excludes defences:
+   those values come from the league export directly and are never
+   reconstructed, so none of this bears on it either way.
 
    All twelve seasons, where this board used to run 2018-2025 plus a
    starters-only stand-in for 2017. */
@@ -8782,7 +8800,6 @@ function draftValue(){
   const out = [];
   Object.keys(DRAFTS).map(Number).sort((a, b) => b - a).forEach(y => {
     draftPicksPriced(y).forEach(p => {
-      if(p.pos === "D/ST") return;
       out.push(Object.assign({ pid: PID[p.name] }, p));
     });
   });
@@ -8833,13 +8850,13 @@ function draftValue(){
    swing inside a single era).
 
    Kickers and defences are in, because a sixteen-pick draft graded on eleven
-   picks is not a graded draft. Defences are in *here* and out of Steals &
-   Busts: their season totals land within about 2% rather than exactly, which
-   moves a class score by a point or two but would be the whole story on a
-   board about single picks. That was 12% until 2026-08-15, when the weekly
-   check found the gap was two missing scoring rules rather than a noisy feed;
-   correcting it moved no class score by more than 2 points and left the top
-   eight of the all-time list in order. ADR 0015 has the numbers. */
+   picks is not a graded draft. Defences are now on Steals & Busts as well
+   (ADR 0017, reversing ADR 0015): their season totals land within about 2%
+   rather than exactly, which is small enough to judge one pick by. That was
+   12% until 2026-08-15, when the weekly check found the gap was two missing
+   scoring rules rather than a noisy feed; correcting it moved no class score
+   by more than 2 points and left the top eight of the all-time list in
+   order. ADR 0015 has the numbers behind the original exclusion. */
 
 /* Least squares of value on log(slot). Two passes' worth of sums, no fitting
    library, and it is the only curve shape this board is allowed -- see above. */
