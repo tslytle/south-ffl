@@ -4,6 +4,16 @@
 Accepted (2026-08-15). Retires the `SKILL` convention, which ADR 0015 and ADR 0017 had already
 overruled in part. Companion to ADR 0017, on a **different** basis — see "Not the same reason".
 
+> **Superseded in scope the same day by ADR 0019.** The measurement below is sound and its
+> conclusion followed correctly from the board as it then stood — but it read the shallow rostered
+> pool as a *kicker* problem when it was a problem with pricing free agency against a pool of men
+> who were, by definition, not free. Replacement is now drawn over every NFL player, week by week,
+> so the constraint this ADR is built on no longer exists and the waiver board carries all six
+> positions. **What survives:** deleting `SKILL`, defences on the wire, and the principle that a
+> position may only be priced where a replacement can actually be found. **What does not:** the
+> exclusion of kickers, `BAR_POS`, and the top-of-board figures quoted below — the 2018 Bears
+> D/ST's +139.0 was itself an artefact of the pool this ADR left in place.
+
 ## Context
 
 `SKILL` was one line and one comment, older than any ADR that touched it:

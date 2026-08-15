@@ -15,6 +15,13 @@ weekly rosters and player ids:
     games.csv                    final scores, for points allowed
     players.csv                  the pfr_id -> gsis_id crosswalk
 
+Two things are written per season. `rep`/`p` are the whole-season values the
+Draft Rankings board reads. `wrep` is a WEEKLY replacement line -- what the man
+just past the startable bar scored in that week, at each position -- and the
+waiver board reads it (ADR 0019). It is baked for the same reason the season
+values are: it needs NFL-wide weekly stats, and the league export only records
+the men somebody was holding. Only seasons with weekly rosters get one.
+
 Fantasy points are computed here from raw stats under *this league's* rulebook
 per season -- not taken from anyone else's arithmetic. That is checkable, and
 --verify checks it: it walks every roster-week the league export recorded,
@@ -326,6 +333,45 @@ def game_scores():
     return s
 
 
+def wire_replacement(year, scores, league_pos=None):
+    """week -> {pos: what the man just past the startable bar scored THAT week}.
+
+    The waiver board asks what a pickup gave you "above what was sitting there
+    for free", and until 2026-08-15 it answered that from the ROSTERED pool --
+    the (bar+1)th best man the league happened to be holding. That pool cannot
+    see a free agent, which is the one thing the question is about. It is also
+    biased in a single direction: the pool is a subset of the league, so the
+    man just past the bar inside it is never better and usually worse than the
+    man just past the bar in the NFL. Every wire value computed against it was
+    therefore too generous, and most of all at exactly the positions with the
+    shallowest pools.
+
+    Drawn here over EVERY player who took the field that week instead, which is
+    the same definition `replacement_from()` uses for the season and the same
+    bar. That makes the two boards agree on what replacement means, rather than
+    each having its own.
+
+    A thin week stays thin on purpose -- byes cut the pool and the replacement
+    line drops with them, which is the "bye-week wasteland" the board's own
+    header asks for.
+    """
+    byw = defaultdict(lambda: defaultdict(list))
+    for pid, w, pos, _nm, pts in player_weeks(year, league_pos):
+        byw[w][pos].append(pts)
+    for (_club, w), pts in dst_weeks(year, scores).items():
+        byw[w]["D/ST"].append(pts)
+    out = {}
+    for w in sorted(byw):
+        rep = {}
+        for p, n in BAR.items():
+            a = sorted(byw[w].get(p, []), reverse=True)
+            if not a:
+                continue
+            rep[p] = round(a[n] if len(a) > n else a[-1], 1)
+        out[str(w)] = rep
+    return out
+
+
 def replacement_from(by_pos):
     """The bar counts the men who start; replacement is the one just past it."""
     rep = {}
@@ -605,9 +651,10 @@ def verify_weekly(ARCH, DRAFTS, gsis_of_idx, name_to_gsis, scores):
     print(f"\nD/ST: {tot['dst_ok']:,} of {tot['dst']:,} club-weeks exact "
           f"({100 * tot['dst_ok'] / max(tot['dst'], 1):.1f}%), mean residual "
           f"{dmean:+.2f} points per club-week against a mean score of about 6.8.")
-    print("      The remainder is one yards-allowed ladder step in a single game;"
-          "\n      the cause is not isolated, which is why defences stay off"
-          "\n      Steals & Busts (ADR 0015).")
+    print("      The remainder is one yards-allowed ladder step in a single game"
+          "\n      and the cause is not isolated. At this size defences are judged"
+          "\n      on Steals & Busts as well as Draft Rankings (ADR 0017); at the"
+          "\n      12% it used to be, ADR 0015 kept them off.")
     if unjoined:
         top = sorted(unjoined.items(), key=lambda t: -t[1])[:4]
         print(f"\nUnjoined: {sum(unjoined.values())} roster-weeks over {len(unjoined)} men "
@@ -763,7 +810,12 @@ def main():
                 emit[pos].append([nm, round(pool[k][1], 1), pool[k][2]])
         for name in zeros:
             emit[drafted[name]].append([name, 0.0, 0])
+        # Weekly replacement for the waiver board. Only the seasons that have
+        # weekly rosters can use it, and those are the only ones it is baked
+        # for -- 2014-2017 are standings-only and no wire board runs on them.
         out[y] = {"rep": rep, "p": dict(emit)}
+        if not (ARCH["S"].get(str(y)) or {}).get("static", 1):
+            out[y]["wrep"] = wire_replacement(y, scores, league_pos)
 
         # ADR 0015 bakes a subset to keep the file small; that saving is only
         # allowed if it cannot change an answer, so prove the line the browser
