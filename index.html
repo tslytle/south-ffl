@@ -1520,12 +1520,24 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .board .bpos{display:inline-block;color:var(--muted);font-weight:600;font-size:var(--t-tiny);letter-spacing:.02em;
   text-transform:uppercase}
 .board .nfl{color:var(--muted);font-size:var(--t-tiny);text-transform:uppercase}
-/* The board records what happened; it does not grade it. The per-pick figure
-   ("over the going rate") lived here in a `.pv` span and its three rules were
-   deleted with it -- a rule kept for markup that no longer exists is the dead
-   weight this file has twice had to hunt down. The judgement still lives on
-   Draft Rankings and Steals & Busts, and each cell's tooltip still carries the
-   slot's going rate for anyone who wants it. */
+/* The board records what happened and does not grade it, so the per-pick figure
+   ("over the going rate") is OFF by default -- see ADR 0015's annotated
+   consequence. It is not gone: a `title` carries it on every cell, and #ratebtn
+   reveals it on the board itself, which is the only way a phone can reach it at
+   all. A tooltip needs a hover, and this site's readers are on phones.
+   Why a board-level toggle rather than a tap target per cell: the cell's own
+   tap already belongs to the player link, the non-link area of a 120px cell is
+   about 20px tall, and giving 192 cells a 44px target would grow the grid this
+   file has kept at exactly 1478px since the columns were fixed. One control,
+   44px on a phone through the existing picker rule, reveals all 192 at once --
+   which is also what you want while dragging a 1478px board sideways.
+   The span renders always and is revealed by a class on the table, so toggling
+   costs no redraw and survives a season switch (drawDraft replaces the table's
+   innerHTML, never the table). */
+.board .pv{display:none;margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.board.showrate .pv{display:inline}
+.board .pv.pos{color:var(--pos)}
+.board .pv.neg{color:var(--neg)}
 
 
 /* ---- start & sit ---- */
@@ -3699,6 +3711,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <p class="draftempty" id="draftempty">Choose a season above to open its board.</p>
   <div id="draftpanel" hidden>
     <div class="draftmeta" id="draftmeta"></div>
+    <div class="rpick" id="draftrate"><button type="button" id="ratebtn" aria-pressed="false" aria-controls="draftboard">Going rate</button></div>
     <p class="swipe">Swipe the board sideways to see every team. Individual picks also sit under each team in Seasons.</p>
     <div class="card"><div class="tw"><table class="board" id="draftboard"></table></div></div>
   </div>
@@ -4742,7 +4755,10 @@ function boardHTML(y){
             `${Math.round(q.vor)} over replacement in ${q.games} game${q.games === 1 ? "" : "s"}`
           : `Pick #${p[0]}`;
         return `<div class="pk" title="${esc(tip)}"><div class="pl">${pLink(p[1], y, null, PID[p[1]])}</div>
-        <div class="mt"><span class="nfl">${esc(p[2])}</span> <span class="bpos">${p[3]}</span></div></div>`; }).join("")}</td>`;
+        <div class="mt"><span class="nfl">${esc(p[2])}</span> <span class="bpos">${p[3]}</span>${
+          q ? `<span class="pv ${q.over < 0 ? "neg" : "pos"}">${
+            q.over < 0 ? "&minus;" : "+"}${Math.round(Math.abs(q.over))}</span>` : ""
+        }</div></div>`; }).join("")}</td>`;
     }).join("")}</tr>`).join("");
   return head + rows + "</tbody>";
 }
@@ -4764,6 +4780,15 @@ document.getElementById("draftyears").innerHTML =
 });
 document.getElementById("draftyears").addEventListener("click", e => {
   const b = e.target.closest("button[data-y]"); if(b) drawDraft(+b.dataset.y);
+});
+/* The label does not change with the state -- it names what the control is
+   about, and `.on` plus aria-pressed carry whether it is on, exactly as the
+   season pills do. A button whose label flips between "Show" and "Hide" tells
+   a screen reader its name changed rather than its state. */
+document.getElementById("ratebtn").addEventListener("click", function(){
+  const on = document.getElementById("draftboard").classList.toggle("showrate");
+  this.classList.toggle("on", on);
+  this.setAttribute("aria-pressed", String(on));
 });
 
 /* ---- seasons ---- */
