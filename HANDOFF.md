@@ -10,7 +10,7 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 *Read this first. The 2026-08-14 section below it is the previous state of play and is still
 accurate for everything it covers.*
 
-**Six commits, all on `main` and live**, plus this file's own updates. The first two came from the
+**Seven commits, all on `main` and live**, plus this file's own updates. The first two came from the
 Mac that morning and were never written up here; the rest are the PC session below.
 
 | commit | what it was |
@@ -21,6 +21,7 @@ Mac that morning and were never written up here; the rest are the PC session bel
 | `56e1683` | The hero band put back on the page's own left edge — below. |
 | `3fef6c9` | The way out and the view's controls on one line — below. |
 | `8c1f6f3` | The per-pick figure taken off the draft board — below. |
+| `f723253` | …and given a control, so a phone can reach it at all — below. |
 
 ### The pre-draft tools, run 2026-08-15 — all three clean, nothing written
 
@@ -127,17 +128,42 @@ classes and **Steals & Busts** for single picks.
 
 - **The figure is unpublished, not deleted.** Every cell keeps its tooltip — `Pick #7 · the going
   rate here was 86 · he returned 225 over replacement in 16 games` — so ADR 0015's "walk me through
-  a disputed middle pick" still has its answer, on demand rather than always on. Note the one real
-  cost: **a tooltip is hover-only, so it does not exist on a phone**, and this site's audience is
-  league members on phones. If that matters, the answer is a tap target, not putting the number back.
+  a disputed middle pick" still has its answer, on demand rather than always on.
 - **`draftPicksPriced()` is untouched.** Nothing downstream moved.
-- **`.pv`, `.pv.pos` and `.pv.neg` went with the span** — three rules kept alive for markup that no
-  longer exists is exactly the dead weight this file has twice had to hunt down. `class="pv`
-  appeared exactly once in the document, so nothing else could break.
-- **Consequence for the record above:** the 2026-08-14 contrast note in this file hand-checks
-  `.pv.pos` at 8.56 and `.pv.neg` at 5.16. **Those elements no longer exist** — that line is history,
-  not a surface to re-measure. The same section's "the per-pick surplus rides inside the column" is
-  history for the same reason; the column is still a fixed 120px and the grid is still 1478px.
+
+**Then the control, `f723253`, the same day — because a hover is not a thing a phone has.** The
+tooltip left the figure reachable on a desktop and *gone* on the devices this site is read on, which
+is not "opt-in", it is broken for the audience. `#ratebtn` sits above the board and reveals all 192.
+
+- **Board-level, not a target per cell**, for three reasons that are measurements rather than taste:
+  the cell's own tap already belongs to the **player link**; the non-link area of a 120px cell is
+  about **20px** tall; and 192 cells each carrying a 44px target would grow the grid this file has
+  held at **1478px** since the columns were fixed. One control also beats 192 taps while you are
+  dragging a 1478px board sideways.
+- **It reuses `.rpick`**, so it inherits the existing `min-height:44px` phone rule instead of
+  inventing a target size. Measured at 375px: 44px tall.
+- **The span renders always; a class on the table reveals it.** No redraw, and it survives a season
+  switch because `drawDraft` replaces the table's `innerHTML`, never the table.
+- **The label does not flip between "Show" and "Hide."** It names the control; `.on` and
+  `aria-pressed` carry the state, exactly as the season pills do. A label that changes tells a
+  screen reader the button's *name* changed rather than its state.
+- **`.pv`, `.pv.pos` and `.pv.neg` are back** (they were deleted with the span in `8c1f6f3`, which
+  was right at the time — a rule kept for markup that no longer exists is the dead weight this file
+  has twice had to hunt down). So the 2026-08-14 contrast note in this file that hand-checks
+  `.pv.pos` and `.pv.neg` describes live elements again, but **not the same numbers**: it recorded
+  8.56 and 5.16, and they now measure clear of AA in all four combinations below. Re-measure rather
+  than trusting either figure.
+
+**The sweep, and the trap in running it.** `contrast-sweep.js`, four combinations, **0 failures**:
+{375px, 1280px} × {dark, light} — 62,858 checked at 375 in each theme, 23,506 dark and 24,880 light
+at 1280. Two things worth copying next time:
+- **Sweeping with the figures hidden measures nothing and reports the same zero.** `showrate` has to
+  be forced on before `__runAll()`. Swept off then on, `checked` went **62,666 → 62,774**, which is
+  the only reason we know the spans are in the population at all. A zero from the off state would
+  have been an honest-looking lie of exactly the kind trap 5 exists to warn about.
+- **The desktop dark run reports its theme as `?`** because no `data-theme` attribute is set.
+  That is genuinely dark: `--pos`, `--neg`, `--surface` and the body ground are identical with the
+  attribute present and absent, checked rather than assumed.
 
 **Measured after, on the served file:** 0 `.pv` spans in the DOM, all 192 pick cells still drawn,
 board width **1478px at both desktop and 375px** — the figure checked on every commit since the grid

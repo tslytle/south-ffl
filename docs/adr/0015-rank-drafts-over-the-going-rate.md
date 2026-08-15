@@ -240,10 +240,17 @@ every correlation ADR 0004 ran and was caught by a human read.
     the record. **The reasoning above still holds and is still served** — each cell keeps a tooltip
     carrying the slot's going rate and what the man returned, so "walk me through a disputed middle
     pick" still has its answer, one hover away instead of always on. The metric is untouched:
-    `draftPicksPriced()` is unchanged and Draft Rankings and Steals & Busts are unaffected. What
-    went with it were the three now-dead `.pv` rules. **Anyone tempted to put it back should read
-    this bullet as a decision, not an omission.** The 375px check still applies and still passes;
-    the grid is 1478px, exactly as before, because `col.tmcol` is a fixed 120px.
+    `draftPicksPriced()` is unchanged and Draft Rankings and Steals & Busts are unaffected.
+    **Anyone tempted to put it back on by default should read this bullet as a decision, not an
+    omission.** The 375px check still applies and still passes; the grid is 1478px, exactly as
+    before, because `col.tmcol` is a fixed 120px.
+  - **And given a control the same day (`f723253`), because a hover is not a thing a phone has.**
+    Leaving the figure in a `title` made it unreachable on the devices this site is actually read
+    on — opt-in on a desktop, gone on a phone. `#ratebtn` above the board reveals all 192 at once.
+    It is a **board-level** toggle rather than a target per cell for three measured reasons: the
+    cell's own tap already belongs to the player link, the non-link area of a 120px cell is about
+    20px tall, and 192 cells each carrying a 44px target would grow the 1478px grid. Off remains
+    the default, so the paragraph above still describes what the board does when you arrive at it.
 - **2014's defensive scoring is unknown and immaterial — closed 2026-08-14.** The change log says
   2015 "added extra defensive and return scoring categories" without naming them, so 2014 is the
   modern set minus some subset and nobody has the settings page. It was closed by measurement rather
