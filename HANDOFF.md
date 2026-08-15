@@ -6,9 +6,77 @@ See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first
 
 ---
 
-## WHERE THIS STANDS — 2026-08-14: the draft-ranking overhaul
-*Read this first. The 2026-08-12 section below it is the previous state of play and is still
+## WHERE THIS STANDS — 2026-08-15: the sheet is checked against the NFL now
+*Read this first. The 2026-08-14 section below it is the previous state of play and is still
 accurate for everything it covers.*
+
+**Three commits, all on `main` and live.** Two came from the Mac that morning and were never
+written up here; the third is the pre-draft work below.
+
+| commit | what it was |
+|---|---|
+| `7d9cbfd` | The three "how this works" method notes closed and demoted to asides. 2,964px of prose before the first number, handed to the reader again on every visit; 162px closed. |
+| `9583c8d` | Every panel header hung off one **baseline** rather than a box. Drift was up to 24.5px across the twenty-five headers, and the `?` badge added the commit before was itself one of the offenders. 0 drift after, at both widths. |
+| `3480233` | `check-cheat.py --live` — below. |
+
+### The pre-draft tools, run 2026-08-15 — all three clean, nothing written
+
+Three weeks out, and the state of play is that **nothing needs writing yet**, exactly as the
+2026-08-12 entry predicted:
+- **`refresh-adp.py --dry-run`**: 250/250, mean absolute move **0.4 picks**, median 0.2. The
+  largest single move in the whole table is Stefon Diggs 144.6 → 134.5. One add, one drop, both at
+  the tail: Evan Engram out, Cyrus Allen (KC rookie WR) in.
+- **`refresh-tiers.py --dry-run`**: 125/125 matched, **4 tier changes** (Achane 2→3, Croskey-Merritt
+  6→5, Meyers 5→6, Juwan Johnson 4→3), 0 added, 0 dropped.
+- **`check-cheat.py`**: 0 errors, 0 warnings, the same 11 expected notes.
+
+**Writing 154 sub-pick moves onto a live site three weeks early is churn**, and both scripts have to
+be re-run near Sept 7 regardless. Re-run then; that is still the only dated work on this file.
+
+**Two things in the diff were chased rather than assumed, and both came back clean.** Worth
+recording because the *shape* of each looked like a defect:
+- **Engram falling out of ESPN's top 250 entirely** is the shape of a man who got hurt or released.
+  He didn't: active, Denver, in camp, no event — checked against live sources, not memory. ESPN's
+  pool is sorted by percent-owned, so the bottom of it churns on its own.
+- **Tyreek Hill, Odell Beckham Jr. and Ricky Pearsall are priced but on no CHEAT row.** Hill is the
+  one that looks alarming. He is a **free agent** recovering from a dislocated knee with ACL and LCL
+  tears, with no guarantee he plays a snap in 2026 — so his 169.8 is right and the sheet is right to
+  omit him. Note the tell: every off-sheet name sits in a **166.8-170.2** band, which is where ESPN
+  parks men who are barely drafted at all. A number in that band is not a ranking.
+
+### `check-cheat.py --live` — and why the old check could not have caught its own worst case
+
+The file's own docstring named the gap and never closed it: it proves the file agrees with itself,
+and **`DEPTH_TEAMS` is the thing it agrees with**. A club whose bye is wrong there is wrong on every
+CHEAT row that matches it, and the offline run calls all of them clean.
+
+`--live` asks ESPN which club each man is on today and when that club is off. **All 309 rows are
+covered** — K and D/ST too, since the pool carries them. Measured 2026-08-15: 309 of 309 agree, and
+so do `DEPTH_TEAMS`' 32 byes.
+
+- **The pool is requested at 1200 on purpose.** ESPN returns its whole ~1026 at that number. Ask for
+  the top few hundred by ownership and you drop the tail of the sheet — which is precisely where a
+  stale entry hides. At 400 the check covers 267 skill players; at 1200 it covers all 309.
+- **It was proved by fault injection, not by passing.** A check that has never failed is not a
+  check. Two faults were injected into a scratch copy, **each internally consistent so the offline
+  pass would still call it clean**: a player who is on no depth chart moved to the wrong club *with
+  that club's real bye*, and a club's bye changed in `DEPTH_TEAMS` **and** in every CHEAT row
+  carrying it. Offline reported 0 errors on both. `--live` caught both and exited 1.
+- **Every failure path is fatal — deliberately.** A 404 exits 2 without printing a verdict. A live
+  check that degrades quietly prints the same "clean" on a day the wire is down as on a day the
+  sheet is genuinely right, and nothing in the output distinguishes them.
+- **The default is unchanged**: no network, no `requests` import unless `--live` is passed, same 11
+  notes, same exit 0. The clean line now states which of the two things it established.
+
+**What it still cannot see, and this is the one that matters on Sept 7:** a man who is on a roster
+but ranked where he should not be. A knee that will not be right until November reads as a perfectly
+ordinary WR2 from here. Reading the wire is still a human job.
+
+---
+
+## WHERE THIS STANDS — 2026-08-14: the draft-ranking overhaul
+*The 2026-08-12 section below it is the previous state of play and is still accurate for everything
+it covers.*
 
 **Draft Rankings and Steals & Busts were rebuilt from the question down**, in a `/grill-with-docs`
 session. The old metric ranked what a class *delivered to a roster*, which is drafting and roster
@@ -119,7 +187,7 @@ from 578ms to 258ms.
 
    **PowerShell — this is the PC this file hands off to:**
    ```powershell
-   python refresh-adp.py --dry-run; if ($?) { python refresh-tiers.py --dry-run }; if ($?) { python check-cheat.py }
+   python refresh-adp.py --dry-run; if ($?) { python refresh-tiers.py --dry-run }; if ($?) { python check-cheat.py --live }
    ```
    `&&` is a **parser error** in Windows PowerShell 5.1 — not a failed command, a refusal to run
    the line at all. This block used to carry the bash form below and nothing else, in a file whose
@@ -130,11 +198,13 @@ from 578ms to 258ms.
    ```bash
    python refresh-adp.py --dry-run && python refresh-tiers.py --dry-run && python check-cheat.py
    ```
-   Only the two refresh scripts take `--dry-run`; `check-cheat.py` is read-only by design and
-   takes `--quiet` / `--strict` instead.
-   `check-cheat.py` is new and read-only; it exits 1 on any ERROR. Neither refresh script will ever
-   notice a player changed teams — that cross-check is what `check-cheat.py` automates, and it is
-   still no substitute for a live source on a trade.
+   Only the two refresh scripts take `--dry-run`; `check-cheat.py` never writes and takes
+   `--live` / `--quiet` / `--strict` instead. It exits 1 on any ERROR.
+   **`--live` is the flag that matters here** (2026-08-15): without it the check can only prove the
+   file agrees with itself, and `DEPTH_TEAMS` is the authority it agrees *with* — so a club whose
+   bye is wrong there is wrong on every row that matches it and the run still says clean. With it,
+   every club and bye is checked against ESPN's own data. It needs `requests`; the default path
+   still needs nothing and touches no network.
 2. **The last ~50ms of load**, if anyone cares: the draft cheat sheet, the hub hero and figures
    strip, and the two layout-reading helpers are all still eager, **on purpose**. The cheat sheet in
    particular is the one surface used under time pressure on Sept 7 and never rehearsed — do not
@@ -875,12 +945,16 @@ the rest are from the PC session (2026-08-11/12):
   Run it before draft night and after any hand-edit:
 
   ```bash
-  python check-cheat.py
+  python check-cheat.py --live
   ```
 
-  It exits 1 on any ERROR. What it cannot do is tell you a player was traded — only that the file
-  disagrees with itself. Checking the sheet against the actual NFL is still a human job, and still
-  wants a live search rather than memory (training data confidently says PHI).
+  It exits 1 on any ERROR. **`--live` (2026-08-15) is what changed here.** Without it the check can
+  only tell you the file disagrees with itself — and it leans on `DEPTH_TEAMS` to do that, so a
+  wrong bye *there* passes on every row. With it, all 309 rows have their club and bye checked
+  against ESPN, which is the traded-player case automated rather than left to a human. What is
+  **still** a human job is the part no roster feed exposes: whether a man is ranked where he should
+  be. An injury reads as an ordinary row from either mode, and that still wants a live search
+  rather than memory (training data confidently says PHI).
 
 ### Overhaul, remaining — in the order it should be done
 The vocabulary, hub and router are merged and live. What's left, with the traps:
