@@ -86,6 +86,20 @@ so bring a section to the top instead of scrolling to it.
 | `d46e9d6` | **The name leads on a manager card.** The grade left its absolute top-right mint pill (loudest thing on the card, by accident) for the footer at the record's own weight: `12 seasons · 90–71 · 96.4`. `fillGradeCells()` untouched — same `[data-grade]` hook. Footer atoms are nowrap at t-tiny; at t-fine the record broke mid-number ("88–"/"75"). Phone: grade takes its own row on every card — natural wrap left 12 of 17 two-line. |
 | `90e6d89` | **A badge never decides a standings row's height.** Tagged rows ran 112px vs 89.7. The slot is on every row now; the table pays ~24px/row, weighed against widening the pinned OWNER column (which would cost a phone its second data column) and taken. |
 
+**Then the colour pass, same day (`a75d2fc`, `c3331ab`), asked for as "more vibrance."** The
+rule that made it safe: colour is encoding, never decoration (ADR 0012). The position palette
+(pink QB / orange RB / cyan WR / teal TE / purple K / gold D/ST) now reaches everywhere
+positions render — Steals & Busts and wire cards (whose tag used to wear the verdict tint,
+saying up/down twice), the 252 draft drawers, the profile's tendency figures and fact rows.
+And all 32 club abbreviations wear **generated** franchise colours: hue is the identity,
+luminance is whatever the floor demands — blended until 4.7:1 against the measured worst
+ground per theme. **Traps that run found, all real:** the closed profile overlay hid with
+opacity alone (contents stayed tabbable and in the sweep — `visibility` now rides the fade);
+`.pfdcard span` (0-1-1) silently repainted the position pill (third instance of the
+caption-rule cascade shape, after `.drawtrig` and `.badge`); and the club palette failed
+**only at 375px dark** because the champion row's gold fill paints on phones alone — tune
+against the composited worst ground (`#494C57`), never against `--raise` raw.
+
 **The port is COMPLETE (2026-08-16, `4c5823a`).** The profile rebuild landed: career tiles
 are bare figures (transparent cells, rules not boxes, one grid serving two grounds —
 the profile rail and the rules glance — with the frame closed by container top+left and
