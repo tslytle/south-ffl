@@ -2037,9 +2037,16 @@ body:has(.backpill.on){padding-bottom:86px}
 .pfmask{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);
   opacity:0;pointer-events:none;transition:opacity .2s}
 .pfmask.on{opacity:1;pointer-events:auto}
+/* visibility rides along with opacity, delayed so the fade-out still plays.
+   An opacity-0 overlay is invisible but REAL: its contents stay tabbable,
+   in the accessibility tree, and in the contrast sweep's population — which
+   is how a closed modal put 16 ghost failures on every route the moment a
+   dark-ink pill (whose legibility lives in its own background) entered the
+   card. Found by the sweep, fixed for keyboards as much as for the gate. */
 .pfwrap{position:fixed;inset:0;z-index:201;display:flex;align-items:flex-start;justify-content:center;
-  padding:34px 18px;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s}
-.pfwrap.on{opacity:1;pointer-events:auto}
+  padding:34px 18px;overflow-y:auto;opacity:0;pointer-events:none;visibility:hidden;
+  transition:opacity .2s,visibility 0s .2s}
+.pfwrap.on{opacity:1;pointer-events:auto;visibility:visible;transition:opacity .2s,visibility 0s}
 .pfcard{width:100%;max-width:940px;background:var(--bg);border-radius:var(--r-md);
   max-height:calc(100vh - 68px);overflow-y:auto;overflow-x:hidden;
   box-shadow:0 24px 60px rgba(0,0,0,.3);transform:translateY(8px);transition:transform .22s}
@@ -2150,6 +2157,11 @@ body:has(.backpill.on){padding-bottom:86px}
 .pfdcard b{display:block;font-family:var(--serif);font-size:var(--t-h4);font-weight:600;color:var(--ink)}
 .pfdcard span{display:block;font-size:var(--t-tiny);font-weight:600;letter-spacing:.06em;text-transform:uppercase;
   color:var(--muted);margin-top:4px}
+/* the position pill inside the figure is a span too, and the caption rule
+   above (0-1-1) silently beats .rpos (0-1-0) — the third instance of this
+   cascade shape (.drawtrig and .badge were the others). The sweep caught it
+   as muted-on-cyan at 1.03:1. */
+.pfdcard span.rpos{display:inline-block;color:#0B0E11;font-size:var(--t-base);margin-top:0}
 .pffav{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .pffavp{display:inline-flex;align-items:baseline;gap:5px;font-size:var(--t-fine);background:var(--surface);
   border:1px solid var(--line);border-radius:var(--r-pill);padding:4px 11px;color:var(--body)}
@@ -2606,6 +2618,24 @@ table.h2 td.ev{color:var(--faint)}
 .postag-dst{background:#FFCC06}
 .tpos.postag-qb,.tpos.postag-rb,.tpos.postag-wr,.tpos.postag-te,.tpos.postag-k,.tpos.postag-dst{
   color:#0B0E11;border-color:transparent}
+/* Hindsight cards speak the position palette too. The tag used to wear the
+   card's verdict tint — mint up, rust down — which encoded the same up/down
+   the card's own number already states, twice. Position is the information
+   the tag actually holds, and this palette is the one the cheat sheet, the
+   rosters and the boxscores already speak. Per-position rules because the
+   .dv.up/.dv.down tints outrank a bare .postag-* at the cascade. */
+.dv .dvtag[class*="postag-"]{color:#0B0E11}
+.dv .dvtag.postag-qb{background:#FEA8C3}
+.dv .dvtag.postag-rb{background:#FF9000}
+.dv .dvtag.postag-wr{background:#01C7F2}
+.dv .dvtag.postag-te{background:#30EFDD}
+.dv .dvtag.postag-k{background:#DF84FF}
+.dv .dvtag.postag-dst{background:#FFCC06}
+/* a position the map doesn't know keeps the draft board's grey, not an
+   invisible dark-ink-on-nothing pill */
+.rpos:not([class*="postag-"]){background:#9CA3AF}
+/* the profile's draft-tendency figures run the pill at figure size */
+.rpos.lg{font-size:var(--t-base);padding:3px 10px;letter-spacing:.06em}
 /* The roster's own position tag: a small pill ahead of the "· opponent"
    line, sized for running inline with text rather than a fixed grid
    column. */
@@ -4836,7 +4866,7 @@ function seasonDraft(year, team){
   const rosterBtn = `<button class="tbtn" data-rteam="${esc(team)}" data-ryear="${year}">Roster</button>`;
   const draftBtn = (d && d.picks[team])
     ? `<details class="dpicks"><summary>Draft</summary><ol>` + d.picks[team].map((p,i) =>
-        `<li><span class="dr">R${p[4] || i+1}</span><b>${esc(p[1])}</b><span class="dm">${p[3]} ${esc(p[2])}</span><span class="do">#${p[0]}</span></li>`
+        `<li><span class="dr">R${p[4] || i+1}</span><b>${esc(p[1])}</b><span class="dm"><span class="rpos ${posClass(p[3])}">${p[3]}</span>${esc(p[2])}</span><span class="do">#${p[0]}</span></li>`
       ).join("") + `</ol></details>`
     : "";
   const profBtn = `<button class="tbtn" data-profile="${esc(OWNER_OF[team]||team)}">Profile</button>`;
@@ -7229,8 +7259,8 @@ function pfBuild(o){
     draftHTML = `<div class="pfdraft">
       <div class="pfdcard"><b>${myPicks.length}</b><span>Career picks</span></div>
       <div class="pfdcard"><b>${Object.keys(firstPicks).length}</b><span>Drafts entered</span></div>
-      <div class="pfdcard"><b>${topPos[0]}</b><span>Most drafted (${topPos[1]})</span></div>
-      ${topFirst ? `<div class="pfdcard"><b>${topFirst[0]}</b><span>Usual first pick (${topFirst[1]}&times;)</span></div>` : ""}
+      <div class="pfdcard"><b><span class="rpos lg ${posClass(topPos[0])}">${topPos[0]}</span></b><span>Most drafted (${topPos[1]})</span></div>
+      ${topFirst ? `<div class="pfdcard"><b><span class="rpos lg ${posClass(topFirst[0])}">${topFirst[0]}</span></b><span>Usual first pick (${topFirst[1]}&times;)</span></div>` : ""}
     </div>`;
     if(faves.length){
       draftHTML += `<div class="pffav">` + faves.map(([nm, ys]) =>
@@ -7269,7 +7299,7 @@ function pfBuild(o){
     facts.push(["Owns", `<b>${esc(bestRiv.o)}</b>, ${bestRiv.w}&ndash;${bestRiv.l}`]);
     facts.push(["Owned by", `<b>${esc(worstRiv.o)}</b>, ${worstRiv.l}&ndash;${worstRiv.w}`]);
   }
-  if(topPos) facts.push(["Drafts most", `<b>${topPos[0]}</b> &middot; ${topPos[1]} career picks`]);
+  if(topPos) facts.push(["Drafts most", `<span class="rpos ${posClass(topPos[0])}">${topPos[0]}</span> ${topPos[1]} career picks`]);
   if(faveName) facts.push(["Keeps drafting", `<b>${esc(faveName)}</b>, ${faveCount} times`]);
   const notes = [];
   if(ppg && me.hasPts && ppgRank !== winRank)
@@ -9823,7 +9853,7 @@ lazyBoard("steals", function(){
      whole way needs no comment. */
   const draftCard = (p, byTeam) => `
     <div class="dv ${p.over >= 0 ? "up" : "down"}">
-      <span class="dvtag">${p.pos}</span>
+      <span class="dvtag ${posClass(p.pos)}">${p.pos}</span>
       <span class="dvwho"><b>${pLink(p.name, p.y, null, p.pid)}</b>
         <span>${esc(byTeam ? p.team : who(p.team))} &middot; ${p.y}</span>
         <span class="dvmove">Taken ${p.overall} overall, where the going rate was
@@ -9834,7 +9864,7 @@ lazyBoard("steals", function(){
 
   const wireCard = (x, added, byTeam) => `
     <div class="dv ${(added ? x.val >= 0 : x.val < 0) ? "up" : "down"}">
-      <span class="dvtag">${x.pos}</span>
+      <span class="dvtag ${posClass(x.pos)}">${x.pos}</span>
       <span class="dvwho"><b>${pLink(x.name, x.y, x.w, x.pid)}</b>
         <span>${esc(byTeam ? x.team : who(x.team))} &middot; ${x.y}</span>
         <span class="dvmove">${added ? "Added" : "Dropped"} week ${x.w}${
