@@ -61,5 +61,17 @@ The width of the thing a header introduces. ADR 0014's rule — a header never s
 ## Plate
 The shared ground every manager mark sits on — one background, one ring, one circular mask, one optical size, across the manager grid, the profile, the champion rows, the awards wall, the hub masthead and the id chip. Dark in both themes, and not by preference: the previously unplated marks are white artwork on transparent PNGs drawn for a dark ground, so a light plate erases them, while photographs carry their own background and survive either. The initials fallback is the same plate with ink letters, so a manager with no logo reads as a considered mark rather than a missing asset. Genuinely dark artwork remains the weak case (one logo), fixable only with a re-cut asset.
 
+## Elevation
+Whether a fill sits above or below the ground it is on, and by how much — a measured property, not an impression. Per ADR 0022, anything that reads as a container clears **1.5:1** against what it actually sits on (in light, the bounding hairline carries this duty), and a control's boundary clears **3:1** against its own fill. The ladder runs sunken → ground → surface → raise, and every fill picks a direction; there is no neutral third option. Elevation alternates with **role, not depth**: a closed board is a control and is raised; open, it is content and drops to the ground, freeing the level below it to rise again.
+
+## Container vocabulary
+The six things a piece of content may live in, replacing the single all-purpose bubble: **raised control** (tap it and it navigates), **chip** (a fact attached to a control, never free-floating), **editorial block** (no box; hairline rules), **bare figure** (a statistic is number + label, never a box), **plate** (the manager mark, protected), **person** (a card-grid cell with no card; the plate does the work). A container is chosen by what the content *is*, and the container is shaped by the text — never the text poured into the container.
+
+## Reference mapping
+Which outside voice governs which register, settled 2026-08-15: **Letterboxd** owns the editorial register and the card grids; **Sleeper** owns product chrome (elevation, chips, controls, phone composition); **ESPN and FantasyPros** are density benchmarks only — information per row, never appearance. Judged on desktop; the phone is *composed*, not squeezed — it may look different, never crushed.
+
+## Closed-state fact
+What a collapsed board says instead of prose: its size — `12 seasons · 2014–2025`, `1,138 games · boxscores from 2018`. The description moves to the opened state, where it is orientation rather than an obstacle. Makes every closed bar the same height **by construction** rather than by a rule someone maintains. Corollary, **one masthead per screen**: a group view orients the reader once; per-panel kickers go where they duplicate the group's.
+
 ## Soft freeze
 From ~2026-09-03 until draft night: data-refresh commits (`refresh-adp.py`, `refresh-tiers.py`, cheat-sheet corrections) still land; code and layout changes stop. `main` is the deploy branch and GitHub Pages serves it directly, so every push is a live publish with no staging step — the freeze is the substitute for one.

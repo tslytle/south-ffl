@@ -3,6 +3,9 @@
 ## Status
 Accepted (2026-08-15)
 
+Annotated by ADR 0022 (2026-08-15): the shared rule stands; the elevation change is
+token-only and moved no geometry. The chip-variant count remains the test.
+
 ## Context
 Nine rows on this site do the same job — a strip of small controls, most of them behind
 an uppercase caption. Every one of them had been drawn on its own terms:

@@ -3,6 +3,11 @@
 ## Status
 Accepted (2026-08-11)
 
+Annotated by ADR 0022 (2026-08-15): the floor stands and is re-baselined against the
+new elevation ladder. This sweep measures text against its own background and so can
+never see a container against the page — that population sat at 1.08:1 for twelve
+clean sessions. ADR 0022's surface-separation floor covers it.
+
 ## Context
 A visual audit measured the computed foreground against the *composited* background (alpha tints
 resolved against whatever they sit on, gradient stops taken at their darkest) for every

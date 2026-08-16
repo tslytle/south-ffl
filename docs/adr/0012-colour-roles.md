@@ -3,6 +3,11 @@
 ## Status
 Accepted (2026-08-12)
 
+Annotated by ADR 0022 (2026-08-15): every role stands. Several VALUES moved —
+--muted, --faint, --neg, --rust, --silver-ink, and the elevation tokens — because
+the new lighter grounds sank them below AA. The role table survives value changes
+by design; that is what a role table is for.
+
 ## Context
 The palette was disciplined — measured, AA-clean in both themes — and still read as
 clashing, which was the complaint that started the visual pass ("sometimes colors

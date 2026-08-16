@@ -42,7 +42,52 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15 (latest): every board bar the same length (ADR 0021)
+## WHERE THIS STANDS — 2026-08-15 (latest): the elevation ladder is live (ADR 0022)
+*Read this first. The sections below are the same day's earlier work and still current.*
+
+A `/grill-with-docs` session on "a lot of stuff doesn't look right" found one number under
+most of it: **`--surface` at 1.08:1 against `--bg`** — no container visibly on anything, and
+ADR 0005's sweep structurally blind to it (it measures text against its own background, never
+a container against the page). Three directions were prototyped, the hybrid won —
+**Letterboxd owns editorial, Sleeper owns product chrome** (full mapping in `CONTEXT.md`) —
+and it was proved across six surfaces including the site's deepest nesting before anything
+touched `main`. Prototypes are `_proto-preview.html` / `_spine-preview.html`, untracked;
+delete them once the port is complete.
+
+**What landed: the token layer, site-wide.** Dark ladder re-cut (`--surface` #26334F at
+1.52:1, `--raise` above it, `--soft` genuinely below), light's `--line` made honest (1.27:1
+→ 1.55:1 against a white card), and every text token that the lighter grounds sank below AA
+lifted with it: `--muted`, `--faint`, `--neg`, `--rust`, `--rust-ink`, `--silver-ink`, both
+`.14` tints thinned to `.10`. Both dark blocks in lockstep, checked. `--plate` untouched.
+
+**The tuning failed its own gates fourteen times before passing, and every failure was one
+mistake in different clothes: a colour measured against a ground it doesn't sit on.**
+`--dim`-equivalents on raised fills, chips lighter than what they sink into, text on `.14`
+tints that lift the ground just enough. The instrument that caught all of it is ADR 0022's
+new floor pair: **container ≥ 1.5:1 against its actual ground, control boundary ≥ 3:1** —
+the check whose absence let 1.08:1 survive twelve clean sessions.
+
+**Measured after:** ADR 0005 sweep **0 in all four combinations, two passes each** —
+{375 (iframe), 1580} × {dark, light}; desktop ran at 1580, not the baseline 2048 — **re-run
+at 2048 before the freeze**. ADR 0021's invariant holds (one `(x, right)` pair over 16).
+One accepted exception, named in the ADR: `i.self` sits at ground level, bounded by its ring.
+
+**Traps this session confirmed:** the sweep must run in a *fronted* tab (a non-fronted pane
+throttles rAF and the run silently stalls); `__runAll()` is synchronous — `await` masks a
+30s tool timeout, so kick it and read a global; the pane screenshots composite at scroll 0,
+so bring a section to the top instead of scrolling to it.
+
+**Still to port, surface by surface, all gated by the same floors:** the closed-state fact on
+all 16 bars (+ one masthead per screen, per-panel kickers deduped) · conditional `IN HERE`
+with current-panel state · **then** the `.backpill` deletion (contingent on the jump bar
+landing first — the pill is its replacement's inferior twin, not dead code today) · the
+manager grid (name leads, grade at fact-weight) · the profile rebuild (bare figures, lead +
+structured facts) · standings badge slot (every row reserves it; a badge must never decide a
+row's height). The prototype is the reference for all of it.
+
+---
+
+## 2026-08-15: every board bar the same length (ADR 0021)
 *Read this first. The section below it is the same day's earlier step and still current.*
 
 Follow-up to the chip work: "I want the bars to be the same length and for everything to match",

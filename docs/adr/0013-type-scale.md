@@ -3,6 +3,9 @@
 ## Status
 Accepted (2026-08-12)
 
+Annotated by ADR 0022 (2026-08-15): the eight-value structure stands untouched by
+the elevation change.
+
 ## Context
 Asked where the site looked wrong, the answer included "sometimes text looks wonky or
 uneven". The cause was mechanical and visible in the token block:

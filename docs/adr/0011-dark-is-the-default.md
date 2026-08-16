@@ -3,6 +3,10 @@
 ## Status
 Accepted (2026-08-12)
 
+Annotated by ADR 0022 (2026-08-15): dark remains the default and is now explicitly
+the design target; light is held to "no defect, no ugliness" and separates its
+containers by hairline rather than fill.
+
 ## Context
 The dark palette shipped inside `@media (prefers-color-scheme:dark)`. That made
 the archive a **light document that went dark when the reader's OS asked** — the

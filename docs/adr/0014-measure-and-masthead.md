@@ -3,6 +3,10 @@
 ## Status
 Accepted (2026-08-12)
 
+Annotated by ADR 0022 (2026-08-15): the measure rule stands (still with no
+instance, per 0021). The masthead half is narrowed by the session's one-masthead-
+per-screen rule in CONTEXT.md: a group view carries one masthead, not one per level.
+
 > **Superseded in application by ADR 0021 (2026-08-15).** The measure rule below is
 > sound and still governs where a constraint goes. Its one instance is gone: `#board`
 > no longer caps itself at 720px, because that cap was paid in the **collapsed** state —
