@@ -90,8 +90,8 @@ or rises — there is no neutral third option, on purpose.
 
 ### Measured after
 ADR 0005 sweep **zero in all four combinations** — {375px, 1580px} × {dark, light},
-two passes each (desktop pass at 1580, not the baseline's 2048 — re-run at 2048 before
-the freeze). `gradientSkipped` 325 dark. ADR 0021's invariant holds: one `(x, right)`
+two passes each. (The desktop pass ran at 1580 rather than the baseline's 2048; the
+2048 re-run happened 2026-08-16 with the profile rebuild, zero in all four.) `gradientSkipped` 325 dark. ADR 0021's invariant holds: one `(x, right)`
 pair over 16 panels. Token ratios on the served file: surface/bg 1.52, muted/raise
 4.96, faint/raise 4.68, enc/raise 4.86. One accepted exception: the H2H legend swatch
 `i.self` sits on `--bg` at ground level and is bounded by its existing inset

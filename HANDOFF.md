@@ -86,12 +86,15 @@ so bring a section to the top instead of scrolling to it.
 | `d46e9d6` | **The name leads on a manager card.** The grade left its absolute top-right mint pill (loudest thing on the card, by accident) for the footer at the record's own weight: `12 seasons · 90–71 · 96.4`. `fillGradeCells()` untouched — same `[data-grade]` hook. Footer atoms are nowrap at t-tiny; at t-fine the record broke mid-number ("88–"/"75"). Phone: grade takes its own row on every card — natural wrap left 12 of 17 two-line. |
 | `90e6d89` | **A badge never decides a standings row's height.** Tagged rows ran 112px vs 89.7. The slot is on every row now; the table pays ~24px/row, weighed against widening the pinned OWNER column (which would cost a phone its second data column) and taken. |
 
-**Still to port:** the **profile rebuild** — bare figures for the career tiles (`90–71` currently
-wraps inside its tile at some widths), THE BREAKDOWN's six paragraphs → lead + structured
-facts, rank rails restyled. It is the deepest surface and deserves its own session; the
-prototype's surface 5 (`_spine-preview.html`, untracked) is the approved reference. Also
-still open: the ADR 0022 note to re-run the desktop sweep at 2048 (all sweeps this day ran
-at 1580), and the prototype files' deletion once the port is done.
+**The port is COMPLETE (2026-08-16, `4c5823a`).** The profile rebuild landed: career tiles
+are bare figures (transparent cells, rules not boxes, one grid serving two grounds —
+the profile rail and the rules glance — with the frame closed by container top+left and
+cell right+bottom at any column count), and THE BREAKDOWN is one lead sentence plus fact
+rows, with the points-vs-wins comparison and both caveats surviving as notes. The rank
+rails needed nothing — the token commit had already fixed their track. Swept
+{375, 2048} × {dark, light}, two passes each, all zero — which also paid ADR 0022's
+1580-vs-2048 debt. Both prototype files are deleted. Nothing from the 2026-08-15 design
+session remains unported.
 
 ---
 
