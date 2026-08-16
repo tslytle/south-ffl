@@ -672,6 +672,25 @@ h3.sec2{font-family:var(--serif);font-size:var(--t-h3);font-weight:600;margin:0 
   color:var(--ink);letter-spacing:-.015em;line-height:1.18}
 details.sub > summary:hover h3.sec2{color:var(--accent)}
 details.sub > summary.subhead .chev-s{align-self:center}
+/* ADR 0022 port: the closed bar states a fact, not a paragraph. The prose is in
+   .subbody now — orientation on open rather than an obstacle while shut — so
+   every bar is one height by construction, which is what ADR 0021 was reaching
+   for and could not get while a 71-word description set the tallest bar.
+   --surface, not --soft, for the chip: these bars sit on the page ground, and a
+   sunken chip on the ground itself has nothing to sink into. */
+.subfact{margin-left:auto;align-self:center;flex:0 0 auto;background:var(--surface);
+  border-radius:var(--r-pill);padding:5px 13px;font-size:var(--t-fine);
+  color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+details.sub > .subbody > .subnote:first-child{margin:0 0 16px}
+@media (max-width:760px){
+  /* The chip always takes its own row on a phone — left to natural wrapping,
+     three bars broke and one did not, which is the ragged-height defect this
+     chip exists to end. A zero-height pseudo flex item is the line break;
+     order puts it between the chevron and the chip. */
+  details.sub > summary.subhead{flex-wrap:wrap}
+  details.sub > summary.subhead::before{content:"";flex-basis:100%;order:3;height:0}
+  .subfact{margin-left:0;order:4}
+}
 section[id] > details.sub{border-top:1px solid var(--line)}
 section:first-of-type > details.sub{border-top:0}
 section[id]{scroll-margin-top:calc(var(--navh) + 14px)}
@@ -3634,8 +3653,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 <section id="ahead"><details class="sect" open><summary class="sechead"><div><p class="eyebrow">Next up</p><h2 class="sec">The 2026 Season</h2>
   <p class="sec-note">Everything before a ball is thrown &mdash; when the draft is, who you are picking against, and the NFL slate it all runs on.</p></div><span class="chev" aria-hidden="true"></span></summary><div class="sectbody">
   <div class="subnav" id="nav-ahead"></div>
-<section id="draft2026"><details class="sub" open><summary class="subhead"><div><p class="eyebrow">Monday, September 7</p><h3 class="sec2">Draft Night</h3>
-  <p class="subnote">Everything you need before the board opens &mdash; when it starts, where you pick, how the format works, and the cheat sheets to study.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="draft2026"><details class="sub" open><summary class="subhead"><div><p class="eyebrow">Monday, September 7</p><h3 class="sec2">Draft Night</h3></div><span class="subfact">16 rounds · 192 picks</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Everything you need before the board opens &mdash; when it starts, where you pick, how the format works, and the cheat sheets to study.</p>
   <div class="card dnwhen">
     <div class="dnwhen-main">
       <p class="dnlabel">The 2026 draft</p>
@@ -3679,8 +3698,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="drlegend" id="drlegend"></div>
   <div class="drpanel" id="drpanel"></div>
 </div></details></section>
-<section id="nflsched"><details class="sub"><summary class="subhead"><div><p class="eyebrow">All eighteen weeks</p><h3 class="sec2">NFL Schedule</h3>
-  <p class="subnote">Every game of the 2026 regular season. Pick a week to see the slate, or pick a team to follow them through all eighteen &mdash; byes included. Times and networks are the opening slate; the NFL flexes some later games as the season goes on.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="nflsched"><details class="sub"><summary class="subhead"><div><p class="eyebrow">All eighteen weeks</p><h3 class="sec2">NFL Schedule</h3></div><span class="subfact">18 weeks · 272 games</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every game of the 2026 regular season. Pick a week to see the slate, or pick a team to follow them through all eighteen &mdash; byes included. Times and networks are the opening slate; the NFL flexes some later games as the season goes on.</p>
   <div class="nflbar">
     <div class="nflctl"><label for="nflweek">Week</label>
       <button class="nflstep" id="nflprev" aria-label="Previous week">&lsaquo;</button>
@@ -3695,21 +3714,21 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 <section id="people"><details class="sect"><summary class="sechead"><div><p class="eyebrow">Everyone who has played</p><h2 class="sec">The Managers</h2>
   <p class="sec-note">The twelve who play now and the five who came before, what they have won, and where they sit against each other all-time.</p></div><span class="chev" aria-hidden="true"></span></summary><div class="sectbody">
   <div class="subnav" id="nav-people"></div>
-<section id="managers"><details class="sub" open><summary class="subhead"><div><p class="eyebrow">Everyone who has played</p><h3 class="sec2">Manager Profiles</h3>
-  <p class="subnote">Every manager in league history. Pick a card to open their full profile &mdash; grade, attribute chart, season-by-season record, rivalries and draft history.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="managers"><details class="sub" open><summary class="subhead"><div><h3 class="sec2">Manager Profiles</h3></div><span class="subfact">17 managers · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every manager in league history. Pick a card to open their full profile &mdash; grade, attribute chart, season-by-season record, rivalries and draft history.</p>
   <div class="mgrsort" id="mgrsort"></div>
   <div class="mgrgrid" id="mgrgrid"></div>
 </div></details></section>
-<section id="board"><details class="sub"><summary class="subhead"><div><p class="eyebrow">The honor roll</p><h3 class="sec2">Champions</h3>
-  <p class="subnote">Every winner of The Alma. A gold edge marks a title that was not that manager&rsquo;s first.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="board"><details class="sub"><summary class="subhead"><div><p class="eyebrow">The honor roll</p><h3 class="sec2">Champions</h3></div><span class="subfact">12 title games · 7 champions</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every winner of The Alma. A gold edge marks a title that was not that manager&rsquo;s first.</p>
   <div class="card" id="champboard"></div>
 </div></details></section>
-<section id="awards"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every badge, everyone</p><h3 class="sec2">Awards Wall</h3>
-  <p class="subnote">The trait badges from every manager's profile, gathered in one grid instead of seventeen. Earned off career numbers &mdash; hardware, scoring, activity, luck of the draw &mdash; not a vote.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="awards"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every badge, everyone</p><h3 class="sec2">Awards Wall</h3></div><span class="subfact">17 managers · 12 seasons</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">The trait badges from every manager's profile, gathered in one grid instead of seventeen. Earned off career numbers &mdash; hardware, scoring, activity, luck of the draw &mdash; not a vote.</p>
   <div class="awardswall" id="awardswall"></div>
 </div></details></section>
-<section id="owners"><details class="sub"><summary class="subhead"><div><p class="eyebrow">All-time</p><h3 class="sec2">The Ledger</h3>
-  <p class="subnote">Regular season and playoff records are kept separate. The Post column counts only playoff games actually played &mdash; a first-round bye is a reward for the seed, not a win in the record. Select a name to follow that manager through every season below.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="owners"><details class="sub"><summary class="subhead"><div><p class="eyebrow">All-time</p><h3 class="sec2">The Ledger</h3></div><span class="subfact">1,138 games all-time</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Regular season and playoff records are kept separate. The Post column counts only playoff games actually played &mdash; a first-round bye is a reward for the seed, not a win in the record. Select a name to follow that manager through every season below.</p>
   <div class="spotbar" id="spotbar"></div>
   <div class="card"><p class="swipe">Swipe the table sideways for more columns &rarr;</p><div class="tw"><table class="ledger" id="ownertable"></table></div></div>
   <div id="ledgerera"></div>
@@ -3718,13 +3737,13 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 <section id="history"><details class="sect"><summary class="sechead"><div><p class="eyebrow">Twelve seasons, 1,138 games</p><h2 class="sec">The Seasons</h2>
   <p class="sec-note">Every standings table, every game, every rivalry &mdash; and what the records would look like if the schedule had been fair.</p></div><span class="chev" aria-hidden="true"></span></summary><div class="sectbody">
   <div class="subnav" id="nav-history"></div>
-<section id="seasons"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Year by year</p><h3 class="sec2">Standings</h3>
-  <p class="subnote">Final order after the playoffs, newest first. Reg is the regular-season record, Post is that year's playoff run. Points, moves and splits are on file for every season.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="seasons"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Year by year</p><h3 class="sec2">Standings</h3></div><span class="subfact">12 seasons · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Final order after the playoffs, newest first. Reg is the regular-season record, Post is that year's playoff run. Points, moves and splits are on file for every season.</p>
   <div class="card" style="padding:0"><nav class="yearnav" id="yearnav" aria-label="Jump to season"></nav>
   <div id="seasonlist" style="padding:14px 16px 16px"></div></div>
 </div></details></section>
-<section id="matchups"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every game</p><h3 class="sec2">Matchups</h3>
-  <p class="subnote">Every game ever played. Pick a season, then tap any matchup to open the head-to-head boxscore &mdash; both lineups with each player&rsquo;s points. From 2018 that means starters, bench and a full stat line for every man. For 2014&ndash;2017 ESPN keeps only the starters, and only where they still add up to the score it recorded &mdash; every 2017 game passes that check, and about two of every three from 2014&ndash;2016.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="matchups"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every game</p><h3 class="sec2">Matchups</h3></div><span class="subfact">1,138 games · boxscores from 2018</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every game ever played. Pick a season, then tap any matchup to open the head-to-head boxscore &mdash; both lineups with each player&rsquo;s points. From 2018 that means starters, bench and a full stat line for every man. For 2014&ndash;2017 ESPN keeps only the starters, and only where they still add up to the score it recorded &mdash; every 2017 game passes that check, and about two of every three from 2014&ndash;2016.</p>
   <div class="msticky">
     <div class="rpick" id="myears"></div>
     <div class="wkbar mwkbar" id="mweeks"></div>
@@ -3733,8 +3752,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="statkey" id="statkey"></div>
   <div id="mpanel" hidden><div class="card"><div id="mbody"></div></div></div>
 </div></details></section>
-<section id="h2h"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Rivalries</p><h3 class="sec2">Head-to-head</h3>
-  <p class="subnote">Pick a manager to see their record against every rival, sorted by how often they win. Regular season and playoffs combined, 2014&ndash;2025.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="h2h"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Rivalries</p><h3 class="sec2">Head-to-head</h3></div><span class="subfact">Every rival · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Pick a manager to see their record against every rival, sorted by how often they win. Regular season and playoffs combined, 2014&ndash;2025.</p>
   <p class="h2note" id="h2note"></p>
   <div class="rpick" id="h2pick"></div>
   <div class="card" id="h2card"><div id="h2detail"></div></div>
@@ -3743,8 +3762,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
     <div class="h2legend"><span><i class="up"></i>Winning record</span><span><i class="dn"></i>Losing record</span><span><i class="self"></i>No matchup</span></div>
     <div class="h2wrap"><table class="h2" id="h2table"></table></div></details>
 </div></details></section>
-<section id="allplay"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Schedule &amp; luck</p><h3 class="sec2">All-Play</h3>
-  <p class="subnote">What every record would look like if each team played the entire league every week, instead of the one opponent the schedule happened to give them. Regular season only. Points are on file for all twelve seasons, so this reaches back to 2014.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="allplay"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Schedule &amp; luck</p><h3 class="sec2">All-Play</h3></div><span class="subfact">12 seasons · every week re-run</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">What every record would look like if each team played the entire league every week, instead of the one opponent the schedule happened to give them. Regular season only. Points are on file for all twelve seasons, so this reaches back to 2014.</p>
   <div class="rpick" id="apyears"></div>
   <div class="card"><div class="tw"><table class="ledger" id="aptable"></table></div></div>
   <p class="pfnote" id="apnote"></p>
@@ -3753,8 +3772,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 <section id="building"><details class="sect"><summary class="sechead"><div><p class="eyebrow">How rosters get made</p><h2 class="sec">Draft, Rosters &amp; Trades</h2>
   <p class="sec-note">The draft board, the weekly rosters, the trades and the pickups &mdash; and, with hindsight, which of it worked.</p></div><span class="chev" aria-hidden="true"></span></summary><div class="sectbody">
   <div class="subnav" id="nav-building"></div>
-<section id="drafts"><details class="sub"><summary class="subhead"><div><p class="eyebrow">The board</p><h3 class="sec2">Drafts</h3>
-  <p class="subnote">Full boards, round by round, in draft order. The latest board is open below &mdash; pick any season to switch, and find individual picks under each team in the season standings.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="drafts"><details class="sub"><summary class="subhead"><div><p class="eyebrow">The board</p><h3 class="sec2">Drafts</h3></div><span class="subfact">12 boards · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Full boards, round by round, in draft order. The latest board is open below &mdash; pick any season to switch, and find individual picks under each team in the season standings.</p>
   <div class="yearpick" id="draftyears"></div>
   <p class="draftempty" id="draftempty">Choose a season above to open its board.</p>
   <div id="draftpanel" hidden>
@@ -3764,8 +3783,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
     <div class="card"><div class="tw"><table class="board" id="draftboard"></table></div></div>
   </div>
 </div></details></section>
-<section id="draftranks"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every class, ranked</p><h3 class="sec2">Draft Rankings</h3>
-  <p class="subnote">Every team&rsquo;s draft, every year, best to worst &mdash; graded on one question: did each pick beat what a pick at that spot was worth? Nothing about what happened to the class afterwards counts. Drop the man in October and the pick still stands.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="draftranks"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Every class, ranked</p><h3 class="sec2">Draft Rankings</h3></div><span class="subfact">140 classes · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every team&rsquo;s draft, every year, best to worst &mdash; graded on one question: did each pick beat what a pick at that spot was worth? Nothing about what happened to the class afterwards counts. Drop the man in October and the pick still stands.</p>
 
   <details class="sub how"><summary><div><h4 class="ssh"><span class="howmark" aria-hidden="true">?</span>How this works</h4>
     <p class="subnote">One question, asked of every pick, and the honest limits of the answer.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
@@ -3795,8 +3814,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   </div></details>
 
 </div></details></section>
-<section id="rosters"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Week by week</p><h3 class="sec2">Rosters</h3>
-  <p class="subnote">Every roster, every week. Players picked up that week are marked, each line carries that week&rsquo;s box score, and the moves below show exactly who came and went.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="rosters"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Week by week</p><h3 class="sec2">Rosters</h3></div><span class="subfact">Every week · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every roster, every week. Players picked up that week are marked, each line carries that week&rsquo;s box score, and the moves below show exactly who came and went.</p>
   <div class="rpick" id="rosteryears"></div>
   <div class="rpick" id="rosterteams"></div>
   <p class="draftempty" id="rosterempty">Choose a season and a team to open their roster.</p>
@@ -3808,8 +3827,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
     </div>
   </div>
 </div></details></section>
-<section id="trades"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Wheeling and dealing</p><h3 class="sec2">Trades</h3>
-  <p class="subnote">Every deal the league has made &mdash; both sides of it, what each haul was worth, and who came out ahead. In-season player trades and draft-day pick swaps both. How the scoring works is spelled out just below.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="trades"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Wheeling and dealing</p><h3 class="sec2">Trades</h3></div><span class="subfact">Every deal · 2014–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every deal the league has made &mdash; both sides of it, what each haul was worth, and who came out ahead. In-season player trades and draft-day pick swaps both. How the scoring works is spelled out just below.</p>
   <div class="trsum" id="trsum"></div>
 
   <details class="sub how"><summary><div><h4 class="ssh"><span class="howmark" aria-hidden="true">?</span>How trades are judged</h4>
@@ -3833,8 +3852,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="rpick" id="trmgrs"></div>
   <div id="trlist"></div>
 </div></details></section>
-<section id="startsit"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Lineup decisions</p><h3 class="sec2">Start &amp; Sit</h3>
-  <p class="subnote">What every manager actually started, against the best lineup their roster could have produced that week. Points left on the bench are the difference. Covers 2018&ndash;2025, regular season and winner&rsquo;s bracket only.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="startsit"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Lineup decisions</p><h3 class="sec2">Start &amp; Sit</h3></div><span class="subfact">8 seasons · 2018–2025</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">What every manager actually started, against the best lineup their roster could have produced that week. Points left on the bench are the difference. Covers 2018&ndash;2025, regular season and winner&rsquo;s bracket only.</p>
   <div class="ssfigures" id="ssfigures"></div>
   <div class="card"><h3 class="ssh">Decision record</h3>
     <p class="ssnote">Ranked by winnable losses &mdash; games lost where the best available lineup would have beaten the opponent&rsquo;s score. The next column shows how many of those came in the winner&rsquo;s bracket, and whether any cost the Alma Bowl. A perfect week means no lineup from that roster would have scored more. Managers with fewer than 30 weeks on file are marked &mdash; a short run is not a fair comparison.</p>
@@ -3846,8 +3865,8 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
     <p class="ssnote">Weeks where nothing on the bench would have helped. Only counting weeks where the bench actually scored, so an empty bench doesn&rsquo;t earn credit.</p>
     <div id="ssperfect"></div></div>
 </div></details></section>
-<section id="steals"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Hindsight</p><h3 class="sec2">Steals &amp; Busts</h3>
-  <p class="subnote">Who won and lost their season at the draft table and on the waiver wire.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+<section id="steals"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Hindsight</p><h3 class="sec2">Steals &amp; Busts</h3></div><span class="subfact">2,239 picks priced</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Who won and lost their season at the draft table and on the waiver wire.</p>
 
   <details class="sub how"><summary><div><h4 class="ssh"><span class="howmark" aria-hidden="true">?</span>How this works</h4>
     <p class="subnote">One idea, one example. Thirty seconds.</p></div><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
