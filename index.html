@@ -2328,7 +2328,9 @@ body:has(.backpill.on){padding-bottom:86px}
 /* the only local fill: this bar is itself --surface, so a --surface chip on
    it would have no edge but its border. --raise is the one step up available */
 .recjump button{background:var(--raise)}
-.recjump button.top{color:var(--accent)}
+/* the .top accent is gone: a permanently mint "Top ten" read as a selected
+   state that never changed — the bar actively lied about where you were.
+   Position is marked by .on now, tracked on scroll like the group jump bars. */
 @media (max-width:640px){
   .recjump{position:static;backdrop-filter:none}
 }
@@ -8426,6 +8428,34 @@ lazyBoard("records", function(){
     const el = document.getElementById(b.dataset.rj);
     if(el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  /* The bar marks the section you are IN, same rule as the group jump bars:
+     an index that never says where you are is half a control — and this one
+     was worse, wearing a permanent accent on Top ten that read as a selected
+     state. The 140px fold offset clears the sticky bar's own height. */
+  if(jump){
+    const markRec = () => {
+      const fold = scrollYNow() + 140;
+      let cur = null;
+      jump.querySelectorAll("button[data-rj]").forEach(b => {
+        const el = document.getElementById(b.dataset.rj);
+        if(!el) return;
+        const top = el.getBoundingClientRect().top + scrollYNow();
+        if(top <= fold && (!cur || top > cur.top)) cur = { top, b };
+      });
+      jump.querySelectorAll("button[data-rj]").forEach(b => {
+        const on = !!cur && b === cur.b;
+        b.classList.toggle("on", on);
+        if(on) b.setAttribute("aria-current", "true");
+        else b.removeAttribute("aria-current");
+      });
+    };
+    let rraf = 0;
+    window.addEventListener("scroll", () => {
+      if(rraf || !jump.offsetParent) return;
+      rraf = requestAnimationFrame(() => { rraf = 0; markRec(); });
+    }, { passive: true });
+    markRec();
+  }
   const note = document.querySelector("#records .sec-note");
   if(note) note.innerHTML = `Drawn from the <b>${NUM(allGames.length)}</b> games that count &mdash; every regular-season and winner&rsquo;s-bracket game from 2014 to 2025. The ten rarest things that have ever happened are showcased first; the rest are filed under the manager who owns them, most-decorated first. The consolation ladders settle placement, so they sit this out. Lineup records begin in 2018.`;
 });
