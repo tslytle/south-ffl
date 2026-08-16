@@ -1249,13 +1249,18 @@ a.nflgame:hover .nflside b{color:var(--accent)}
    is capped and centred so the year, the name and the record read as one
    plaque line instead of drifting apart across a wide card, and the year is
    set in gold as the anchor the eye travels down. */
-/* The measure rule: a header never spans wider than the thing it introduces.
-   Champions is the only board in the file whose panel is narrower than its
-   route, and the 720px lived on the panel — so the header ran 1040 and the list
-   720, centred inside it: three edges where there should be two. The constraint
-   moves up to the disclosure, so header and panel share both edges by
-   construction, and the block keeps the same left spine as every other board. */
-#board details.sub{max-width:720px}
+/* The 720px measure is gone — see ADR 0021. ADR 0014 moved it off the panel and
+   onto the disclosure so that header and list would share both edges, which was
+   right about the edges and wrong about which state to optimise. It fixed the
+   OPEN board, and eleven of twelve boards on this site are COLLAPSED by default:
+   the group view opens on four header bars, three of them 1040 and Champions
+   alone at 720, which is the one thing in that view that does not line up.
+
+   A board's own measure is not worth a ragged edge in the state the page is
+   almost always in. The plaque line does spread — the record sits further from
+   the name at 1040 than at 720 — but it spreads into the same three-column
+   leaderboard shape The Ledger uses directly beneath it, and it right-aligns
+   into a real column rather than drifting. Consistency wins that trade. */
 #champboard{padding:6px 10px}
 .plate{width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;cursor:pointer;
   display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:16px;padding:15px 10px;
@@ -3222,11 +3227,14 @@ body[data-route]:not([data-route="hub"]) section.uroute.uactive > details.sect[o
    the width it was; outline-offset supplies the air between content and frame.
 
    A padding-plus-negative-margin bleed was tried first and gets the full-width
-   boards right, but Champions is capped at max-width:720px — it is measured to
+   boards right, but Champions was then capped at max-width:720px — measured to
    its own rows, per ADR 0014 — and a capped box cannot be widened by a negative
    margin, so the padding ate 30px of it. The outline has no such failure mode:
-   it frames whatever width the board already decided on, which means it also
-   traces the measure on the boards that have one instead of fighting it.
+   it frames whatever width the board already decided on. That cap is gone as of
+   ADR 0021 and every board is now full width, so the failure mode this avoided
+   has no instance left in the file — kept because the property that avoided it
+   (an outline costs the layout nothing) is still what makes the frame work at
+   all, and any future measured board would hit the same wall.
 
    --bbleed is capped by .wrap's own padding, not chosen by eye: 20px on desktop
    and 12px on a phone. An outline does NOT create a scrollbar, so an offset
