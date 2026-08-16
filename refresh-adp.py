@@ -275,6 +275,9 @@ def main():
     now_local = datetime.now()
     captured = now_local.strftime("%b %-d") if sys.platform != "win32" else now_local.strftime("%b %#d")
     captured_full = now_local.strftime("%Y-%m-%d")
+    # Prose form for the reader-facing note, which spells the month out.
+    captured_page = (now_local.strftime("%B %-d") if sys.platform != "win32"
+                     else now_local.strftime("%B %#d"))
 
     # Source comment above ADP_2026: swap PFF framing for ESPN half-PPR.
     # Strip whatever comment block(s) sit directly above `const ADP_2026 =`
@@ -333,7 +336,24 @@ def main():
                  "matches -- aborting before writing a data-only change with a "
                  "stale/wrong tooltip")
         print("\nNote: no ADP tooltip on the page (retired 2026-08-13 in favour of "
-              "column headers); capture date recorded in the ADP_2026 comment only.")
+              "column headers); the reader-facing capture date is the cheat-sheet "
+              "note updated below.")
+
+    # The reader-facing provenance line under "Cheat sheets". This is the only
+    # place the page itself says where its ADP came from and when -- the JS
+    # comment above ADP_2026 is invisible to anyone reading the site. It sat at
+    # a hardcoded "August 10" while the data moved to Aug 11 and then Aug 15,
+    # because nothing updated it; that is the same silent-staleness this whole
+    # guard family exists to prevent, so it is machine-written now and missing
+    # it is fatal rather than a note.
+    new_html, n_note = re.subn(
+        r"The ADP here comes from ESPN&rsquo;s half-PPR draft room, captured <b>[^<]*</b>",
+        f"The ADP here comes from ESPN&rsquo;s half-PPR draft room, captured <b>{captured_page}</b>",
+        new_html,
+    )
+    if n_note != 1:
+        fail(f"expected exactly 1 ADP provenance note on the page, matched {n_note} -- "
+             "aborting before writing data whose stated capture date would be wrong")
 
     INDEX_HTML.write_text(new_html, encoding="utf-8")
     print(f"\nWrote {INDEX_HTML}. Review with `git diff` before committing.")

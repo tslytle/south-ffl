@@ -296,7 +296,11 @@ def main():
 
     # Local date, not UTC -- this is a user-facing label read by a US league,
     # and UTC rolls over hours before the local evening does.
-    captured = datetime.now().strftime("%Y-%m-%d")
+    now_local = datetime.now()
+    captured = now_local.strftime("%Y-%m-%d")
+    # Prose form for the reader-facing note, which spells the month out.
+    captured_page = (now_local.strftime("%B %-d") if sys.platform != "win32"
+                     else now_local.strftime("%B %#d"))
     total_experts = {pos: fp_by_pos[pos].get("total_experts") for pos in fp_by_pos}
     # Strip whatever comment block(s) sit directly above `const TIER_2026 =`
     # -- regardless of what they say, not just ones this script previously
@@ -320,6 +324,20 @@ def main():
         f"   real signal to group by there. */\n{decl}"
     )
     new_html = new_html[:comment_start] + new_comment + new_html[decl_start + len(decl):]
+
+    # The reader-facing provenance line under "Cheat sheets", the tiers half.
+    # The comment block above is invisible to anyone reading the site, so this
+    # sentence is the only place the page states where the tiers came from and
+    # when. It shared a hardcoded date with the ADP half and went stale exactly
+    # the same way, so it is machine-written and missing it is fatal.
+    new_html, n_note = re.subn(
+        r"the position tiers come from FantasyPros&rsquo; half-PPR consensus, captured <b>[^<]*</b>",
+        f"the position tiers come from FantasyPros&rsquo; half-PPR consensus, captured <b>{captured_page}</b>",
+        new_html,
+    )
+    if n_note != 1:
+        fail(f"expected exactly 1 tiers provenance note on the page, matched {n_note} -- "
+             "aborting before writing data whose stated capture date would be wrong")
 
     INDEX_HTML.write_text(new_html, encoding="utf-8")
     print(f"\nWrote {INDEX_HTML}. Review with `git diff` before committing.")
