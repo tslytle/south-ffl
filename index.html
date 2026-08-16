@@ -73,7 +73,12 @@
      one brand accent; gold appears only where something was won. */
   --bg:#F5F7FA; --surface:#FFFFFF; --raise:#EEF1F6;
   --ink:#0E1420; --body:#3A4353; --muted:#58627C; --faint:#616B84;
-  --line:#DFE4EE; --soft:#EAEEF5;
+  /* Light separates by hairline, not fill (white cards on a near-white ground
+     cannot clear a fill floor without going muddy). The line itself therefore
+     has to be honest: #DFE4EE measured 1.27:1 against a white card — the same
+     invisible-boundary defect ADR 0022 fixes in dark. Now 1.55:1. The print
+     block keeps its own copy of the old value on purpose. */
+  --line:#C7D0DD; --soft:#EAEEF5;
   --accent:#0B6B4E; --accent-dk:#073226; --accent-soft:#E2F4EB; --accent-lt:#159E6E;
   --enc:#1E7FB0; --enc-soft:#E4F1F9; --enc-ink:#0F4863;
   --gold-text:#8A5A0C; --trophy:#C99A26; --rust:#B14225; --rust-soft:#FAE9E2; --rust-ink:#96341A;
@@ -157,9 +162,17 @@
 :root:not([data-theme="light"]){
     /* Navy-dark flagship: deep blue-slate surfaces (not near-black green),
        mint doing all the accent work, gold reserved for hardware. */
-    --bg:#0B0F1C; --surface:#121828; --raise:#1B2338;
-    --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
-    --line:#232C42; --soft:#182034;
+    /* Elevation ladder re-cut (ADR 0022). The old values put surface at 1.08:1
+       against the ground and line at 1.37:1 — no container was visibly ON
+       anything, and ADR 0005's sweep could never see it because it measures
+       text against its own background, not a container against the page.
+       Surface now clears 1.5:1 vs bg, raise is a real step above surface, soft
+       genuinely sinks. muted/faint are lightened with it: on the new surface
+       the old values measured 4.41:1 and 3.69:1 — below AA. --plate is
+       deliberately NOT on this ladder (dark in both themes, ADR-protected). */
+    --bg:#0B0F1C; --surface:#26334F; --raise:#2D3A59;
+    --ink:#F2F5FA; --body:#C3CBDC; --muted:#ABB5CA; --faint:#9DA7BF;
+    --line:#3A4560; --soft:#0B101E;
     --accent:#2FDA87; --accent-dk:#0A3A2C; --accent-soft:rgba(47,218,135,.14); --accent-lt:#63EBA3;
     --enc:#4FB4EA; --enc-soft:rgba(79,180,234,.14); --enc-ink:#A5DCF5;
     /* --gold stays bright for rules, edges and fills; small gold LABELS use
@@ -167,13 +180,13 @@
        against dark surfaces. */
     --gold-text:#F2BE5C;
     --trophy:#F2B84B;   /* trophy fill: brighter than --gold, softer than --gold-lt */
-    --rust:#FF6B4A; --rust-soft:rgba(255,107,74,.14); --rust-ink:#FF8A73;
+    --rust:#FF9B84; --rust-soft:rgba(255,107,74,.10); --rust-ink:#FFA18E;
     --gold:#F2B84B; --gold-lt:#F7CD73; --gold-soft:rgba(242,184,75,.14); --silver:#A8B0BC; --bronze:#C98F5A;
-    --pos:#2FDA87; --neg:#FF5C5C;
+    --pos:#2FDA87; --neg:#FF8A7A;
     --gold-ink:#F7CD73; --gold-tint:rgba(242,184,75,.12);
-    --silver-ink:#C7CDD6; --silver-soft:rgba(168,176,188,.14); --silver-line:#47516A;
+    --silver-ink:#E2E6EC; --silver-soft:rgba(168,176,188,.10); --silver-line:#47516A;
     --bronze-ink:#E0AD82; --bronze-soft:rgba(201,143,90,.14); --bronze-line:#8B5F3D;
-    --paper-1:#1C2439; --paper-2:#161D2F; --paper-3:#111725;
+    --paper-1:#2B3854; --paper-2:#243049; --paper-3:#1D283E;
     --panel-2:rgba(255,255,255,.035); /* zebra must lighten, not darken, on dark */
     --sh:0 1px 2px rgba(0,0,0,.45);
     --sh-lg:0 6px 18px rgba(0,0,0,.4);
@@ -183,19 +196,20 @@
    toggled to dark, but this is the one rule that says so explicitly, and the
    print block's :root:root needs something at (0,2,0) to beat. */
 :root[data-theme="dark"]{
-  --bg:#0B0F1C; --surface:#121828; --raise:#1B2338;
-  --ink:#F2F5FA; --body:#C3CBDC; --muted:#8F99B1; --faint:#808BA5;
-  --line:#232C42; --soft:#182034;
+  /* Must stay identical to the block above — same ladder, same ADR 0022 note. */
+  --bg:#0B0F1C; --surface:#26334F; --raise:#2D3A59;
+  --ink:#F2F5FA; --body:#C3CBDC; --muted:#ABB5CA; --faint:#9DA7BF;
+  --line:#3A4560; --soft:#0B101E;
   --accent:#2FDA87; --accent-dk:#0A3A2C; --accent-soft:rgba(47,218,135,.14); --accent-lt:#63EBA3;
   --enc:#4FB4EA; --enc-soft:rgba(79,180,234,.14); --enc-ink:#A5DCF5;
   --gold-text:#F2BE5C; --trophy:#F2B84B;
-  --rust:#FF6B4A; --rust-soft:rgba(255,107,74,.14); --rust-ink:#FF8A73;
+  --rust:#FF9B84; --rust-soft:rgba(255,107,74,.10); --rust-ink:#FFA18E;
   --gold:#F2B84B; --gold-lt:#F7CD73; --gold-soft:rgba(242,184,75,.14); --silver:#A8B0BC; --bronze:#C98F5A;
-  --pos:#2FDA87; --neg:#FF5C5C;
+  --pos:#2FDA87; --neg:#FF8A7A;
   --gold-ink:#F7CD73; --gold-tint:rgba(242,184,75,.12);
-  --silver-ink:#C7CDD6; --silver-soft:rgba(168,176,188,.14); --silver-line:#47516A;
+  --silver-ink:#E2E6EC; --silver-soft:rgba(168,176,188,.10); --silver-line:#47516A;
   --bronze-ink:#E0AD82; --bronze-soft:rgba(201,143,90,.14); --bronze-line:#8B5F3D;
-  --paper-1:#1C2439; --paper-2:#161D2F; --paper-3:#111725;
+  --paper-1:#2B3854; --paper-2:#243049; --paper-3:#1D283E;
   --panel-2:rgba(255,255,255,.035);
   --sh:0 1px 2px rgba(0,0,0,.45);
   --sh-lg:0 6px 18px rgba(0,0,0,.4);
