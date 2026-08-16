@@ -1989,10 +1989,22 @@ body:has(.backpill.on){padding-bottom:86px}
   margin:0 0 12px;padding-bottom:7px;border-bottom:1px solid var(--line)}
 .pfbody .pfright h4{margin-top:24px}
 .pfbody .pfright h4:first-child{margin-top:0}
-.pfboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:24px}
-.pfbox{border:1px solid var(--line);border-top:2px solid var(--line);border-radius:var(--r-md);padding:14px 12px;text-align:center;background:var(--surface);box-shadow:var(--sh)}
-.pfbox b{display:block;font-family:var(--serif);font-size:var(--t-h3);font-weight:700;color:var(--ink);line-height:1.05}
-.pfbox span{display:block;font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+/* Bare figures (ADR 0022 port): a statistic is number + label divided by
+   rules, never a box. Cells are TRANSPARENT — this grid serves two grounds
+   (the profile rail on --raise, the rules glance on its own card) and a
+   painted cell would have to be right about both. The container draws the
+   top and left edge, every cell draws its own right and bottom, so the
+   frame closes at any column count — the rules glance is auto-fit.
+   Numbers are unbreakable and a step smaller: at t-h3 "90–71" wrapped
+   mid-record inside a 300px rail's third, which is the poured-text defect. */
+.pfboxes{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-bottom:24px;
+  border-top:1px solid var(--line);border-left:1px solid var(--line);
+  border-radius:var(--r-md);overflow:hidden}
+.pfbox{border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:12px 11px;text-align:left;background:transparent}
+.pfbox b{display:block;font-family:var(--serif);font-size:var(--t-h4);font-weight:600;color:var(--ink);
+  line-height:1.05;white-space:nowrap;font-variant-numeric:tabular-nums}
+.pfbox span{display:block;font-size:var(--t-micro);font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:5px}
 .pfbar{margin-bottom:15px}
 .pfbarhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
   font-size:var(--t-fine);font-weight:600;color:var(--body)}
@@ -2005,6 +2017,15 @@ body:has(.backpill.on){padding-bottom:86px}
 .pfprose p{font-size:var(--t-base);line-height:1.72;color:var(--body);margin:0 0 11px}
 .pfprose p:last-child{margin-bottom:0}
 .pfprose b{font-weight:600;color:var(--ink)}
+/* The breakdown's new shape (ADR 0022 port): one lead sentence, then fact
+   rows divided by rules, then any surviving editorial as quiet notes. */
+.pfprose .pflead{font-size:var(--t-lead);line-height:1.5;margin:0 0 14px;max-width:54ch}
+.pffacts{border-top:1px solid var(--line);margin:0 0 14px}
+.pffacts > div{display:flex;gap:14px;padding:8px 0;border-bottom:1px solid var(--line)}
+.pffacts .k{flex:none;width:138px;color:var(--muted);font-size:var(--t-small)}
+.pffacts .v{font-size:var(--t-base);color:var(--body);font-variant-numeric:tabular-nums;min-width:0}
+.pffacts .v b{font-weight:600;color:var(--ink)}
+.pfprose .pffactnote{font-size:var(--t-small);color:var(--muted);line-height:1.55;margin:0 0 8px}
 @media (max-width:860px){
   .pfheromain{grid-template-columns:1fr;gap:20px;text-align:center}
   .pfscoutline{font-size:var(--t-lead)}
@@ -7217,36 +7238,49 @@ function pfBuild(o){
     }
   }
 
-  /* ---- the breakdown: narrative assembled from real facts ---- */
-  const bits = [];
+  /* ---- the breakdown: a lead plus structured facts (ADR 0022 port) ----
+     This used to be four to seven generated paragraphs, and most of them
+     were numbers wearing a sentence — "They have reached the playoffs 9
+     times in 12, winning 62.5% of the games once there" is a fact row with
+     prose around it. One sentence keeps the voice: the title line, which
+     is the only bit that was ever narrative. The two insight clauses that
+     were genuine editorial (the points-vs-wins comparison) and the two
+     caveats (records begin 2016, small sample) survive as notes — those
+     are the sentences that were NOT just numbers dressed up. */
   const seasonWord = o.seasons === 1 ? "one season" : o.seasons + " seasons";
+  let lead;
   if(o.titleYears.length){
     const ys = o.titleYears.slice().sort();
-    bits.push(`${esc(o.n)} has ${ys.length > 1 ? ys.length + " titles" : "a title"} to show for ${seasonWord} in the league, taking the Alma Bowl in ${ys.join(", ").replace(/, ([^,]*)$/, " and $1")}.`);
+    lead = `${esc(o.n)} has ${ys.length > 1 ? ys.length + " titles" : "a title"} to show for ${seasonWord} in the league, taking the Alma Bowl in ${ys.join(", ").replace(/, ([^,]*)$/, " and $1")}.`;
   } else if(o.best < 99){
-    bits.push(`Across ${seasonWord}, ${esc(o.n)} has come closest in ${o.bestYr}, finishing ${ord(o.best)}.`);
+    lead = `Across ${seasonWord}, ${esc(o.n)} has come closest in ${o.bestYr}, finishing ${ord(o.best)}.`;
   } else {
-    bits.push(`${esc(o.n)} has ${seasonWord} on the books.`);
+    lead = `${esc(o.n)} has ${seasonWord} on the books.`;
   }
-  bits.push(`The career ledger reads <b>${o.w}&ndash;${o.l}</b> in the regular season (${winPct}%)${
-    pg ? ` and <b>${o.pw}&ndash;${o.pl}</b> once the winner's bracket starts` : `, with no winner's-bracket games yet`}.`);
   const ppgRank = RB.rank("ppg", me.ppg), winRank = RB.rank("winPct", me.winPct);
-  if(ppg && me.hasPts){
-    bits.push(`At <b>${ppg}</b> points a game they rank <b>${ord(ppgRank)}</b> of the ${RB.poolSize("ppg")} ${
-      pfIsGraded(o.n) ? "graded managers" : "managers with points on file"}, and ${ord(winRank)} of ${RB.poolSize("winPct")} in win rate &mdash; ${
-      ppgRank < winRank ? "so the points have shown up more reliably than the wins" :
-      ppgRank > winRank ? "meaning they have squeezed more wins out of the points than most" :
-      "the two line up almost exactly"}.`);
-  }
-  if(o.papp) bits.push(`They have reached the playoffs <b>${o.papp}</b> time${o.papp===1?"":"s"} in ${o.seasons}${postPct ? `, winning ${postPct}% of the games once there` : ""}.`);
+  const facts = [];
+  facts.push(["Regular season", `<b>${o.w}&ndash;${o.l}</b> &middot; ${winPct}%`]);
+  facts.push(["Winner's bracket", pg ? `<b>${o.pw}&ndash;${o.pl}</b>` : "no games yet"]);
+  if(ppg && me.hasPts)
+    facts.push(["Points per game", `<b>${ppg}</b> &middot; ${ord(ppgRank)} of ${RB.poolSize("ppg")}`]);
+  if(o.papp)
+    facts.push(["Playoffs", `<b>${o.papp}</b> trip${o.papp===1?"":"s"} in ${o.seasons}${postPct ? ` &middot; ${postPct}% won` : ""}`]);
   if(bestRiv && worstRiv && bestRiv.o !== worstRiv.o){
-    bits.push(`They own <b>${esc(bestRiv.o)}</b> at ${bestRiv.w}&ndash;${bestRiv.l}, while <b>${esc(worstRiv.o)}</b> has had their number at ${worstRiv.l}&ndash;${worstRiv.w}.`);
+    facts.push(["Owns", `<b>${esc(bestRiv.o)}</b>, ${bestRiv.w}&ndash;${bestRiv.l}`]);
+    facts.push(["Owned by", `<b>${esc(worstRiv.o)}</b>, ${worstRiv.l}&ndash;${worstRiv.w}`]);
   }
-  if(!me.hasPts) bits.push(`Scoring, roster moves and draft records only begin in 2016, so parts of this profile are blank for these seasons.`);
-  if(o.seasons <= 2) bits.push(`With only ${o.seasons === 1 ? "one season" : o.seasons + " seasons"} on file, the grade leans toward the middle of the league &mdash; a hot start isn&rsquo;t yet treated as proof of a great manager.`);
-  if(topPos) bits.push(`At the draft table they lean <b>${topPos[0]}</b> (${topPos[1]} career picks)${
-    faveName ? `, and keep coming back to <b>${esc(faveName)}</b> &mdash; drafted ${faveCount} separate times` : ""}.`);
-  const breakdown = bits.map(b => `<p>${b}</p>`).join("");
+  if(topPos) facts.push(["Drafts most", `<b>${topPos[0]}</b> &middot; ${topPos[1]} career picks`]);
+  if(faveName) facts.push(["Keeps drafting", `<b>${esc(faveName)}</b>, ${faveCount} times`]);
+  const notes = [];
+  if(ppg && me.hasPts && ppgRank !== winRank)
+    notes.push(ppgRank < winRank
+      ? "The points have shown up more reliably than the wins."
+      : "They have squeezed more wins out of the points than most.");
+  if(!me.hasPts) notes.push("Scoring, roster moves and draft records only begin in 2016, so parts of this profile are blank for these seasons.");
+  if(o.seasons <= 2) notes.push(`With only ${seasonWord} on file, the grade leans toward the middle of the league &mdash; a hot start isn&rsquo;t yet treated as proof of a great manager.`);
+  const breakdown = `<p class="pflead">${lead}</p>`
+    + `<div class="pffacts">${facts.map(([k,v]) => `<div><span class="k">${k}</span><span class="v">${v}</span></div>`).join("")}</div>`
+    + notes.map(n => `<p class="pffactnote">${n}</p>`).join("");
 
   const teamList = o.names.length > 1 ? o.names.map(esc).join(" &middot; ") : esc(o.names[0] || "");
   const seed = owners.findIndex(x => x.n === o.n) + 1;
