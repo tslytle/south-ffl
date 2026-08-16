@@ -542,6 +542,57 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
 @media print{.ticker{display:none}}
 
 
+/* ── One chip, every row ─────────────────────────────────────────────────
+   Nine rows on this site do the same job — a strip of small controls, most
+   of them behind an uppercase caption — and every one had been drawn on its
+   own terms: five heights (25, 29, 31, 33 and 39px), three radii (8px, 12px
+   and a pill), two font sizes, two weights, and two hovers, one of which
+   flipped to a full accent fill and so read as an active state on a chip
+   that was not active.
+
+   Stacked, that needs no measuring to see. #matchups prints SEASON at 39px
+   directly above JUMP TO WEEK at 31px; Draft Night prints its four pills at
+   33px directly above nine 25px division chips; the Managers view prints
+   IN HERE at 31px a hundred pixels above SORT BY at 29px. Nothing about
+   those pairs differs in kind, so nothing about them should differ in size.
+
+   Geometry and states are set once, here. 12.5px is what six of the nine
+   already used, and it is a step on the ADR 0013 scale — 13px would not be.
+   min-height rather than padding alone is what makes the height a promise:
+   the week bar's numbers and IN HERE's longest label land on the same 32px
+   whatever they contain, and the ≤760px touch rule now only has to raise
+   one number. The per-row rules below keep what is genuinely local — the
+   gap, whether the row is sticky, the week bar's min-width, and the fact
+   that a chip inside the (--surface) records bar has to sit on --raise to
+   be seen at all. Order carries the overrides: this block is first, and
+   every local rule matches it at (0,1,1) and therefore wins. */
+.allctl button,.subnav button,.mgrsort button,.recjump button,.rpick button,
+.yearpick button,.wkbar button,.drtabs button,.drdivsel button{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:32px;padding:6px 12px;
+  font-family:var(--sans);font-size:var(--t-fine);font-weight:600;letter-spacing:0;
+  background:var(--surface);color:var(--muted);
+  border:1px solid var(--line);border-radius:var(--r-sm);cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,color .15s ease}
+/* Hover tints the edge and the text; it never fills. A fill is what "on"
+   means, and .allctl used to spend it on hover alone. */
+.allctl button:not(.on):hover,.subnav button:not(.on):hover,.mgrsort button:not(.on):hover,
+.recjump button:not(.on):hover,.rpick button:not(.on):hover,.yearpick button:not(.on):hover,
+.wkbar button:not(.on):hover,.drtabs button:not(.on):hover,.drdivsel button:not(.on):hover{
+  border-color:var(--accent);color:var(--accent)}
+/* One selected state. --accent on the border too, not transparent: a chip
+   that drops its edge when chosen is the one chip in the row with no edge. */
+.allctl button.on,.subnav button.on,.mgrsort button.on,.recjump button.on,.rpick button.on,
+.yearpick button.on,.wkbar button.on,.drtabs button.on,.drdivsel button.on{
+  background:var(--accent);border-color:var(--accent);color:var(--on-chip)}
+/* And one caption. These were split two ways — 700/.11em/--muted on the two
+   jump bars, 600/.08em/--faint on the four pickers — which is a difference
+   nobody chose. Typography only; whether a caption sits inline or on its own
+   line above the row stays with the row, since the sticky bars depend on it. */
+.subnav .rlab,.recjump .rlab,.rpick .rlab,.yearpick .rlab,.wkbar .rlab,.mgrsort .rlab{
+  font-size:var(--t-micro);font-weight:700;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--muted)}
+
 /* sections */
 /* Top-level sections need to out-space the nested boards inside them
    (26px), or the hierarchy reads flat — a new major section should be
@@ -551,9 +602,7 @@ section{margin-top:56px;scroll-margin-top:calc(var(--navh) + 12px)}
 h2.sec{font-family:var(--serif);font-size:var(--t-h2);font-weight:650;margin:0 0 6px;color:var(--ink);letter-spacing:-.015em;line-height:1.1}
 .sec-note{color:var(--muted);font-size:var(--t-base);line-height:1.6;max-width:72ch;margin:0}
 .allctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin-top:22px;padding:0 2px}
-.allctl button{font-size:var(--t-fine);font-weight:700;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
-  padding:7px 13px;color:var(--muted);cursor:pointer;transition:background .15s ease,border-color .15s ease,color .15s ease}
-.allctl button:hover{border-color:var(--accent);color:var(--on-chip);background:var(--accent)}
+/* geometry, hover and selected state come from the chip block above */
 details.sect > summary{cursor:pointer;list-style:none;display:flex;align-items:flex-start;justify-content:space-between;
   gap:16px;padding:18px 6px 16px;border-bottom:2px solid var(--accent);
   transition:background .15s ease}
@@ -666,14 +715,9 @@ details.how > summary:hover .howmark{color:var(--accent);border-color:var(--acce
 details.how .sshow{margin-bottom:0}
 
 /* the group's own table of contents */
-.subnav{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:0 2px 20px;
+.subnav{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 2px 20px;
   padding:10px 11px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--raise)}
-.subnav .rlab{flex:none;font-size:var(--t-micro);font-weight:700;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--muted);padding:0 4px 0 3px}
-.subnav button{font-size:var(--t-fine);font-weight:600;background:var(--surface);
-  border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 12px;color:var(--muted);
-  cursor:pointer;transition:border-color .15s,color .15s}
-.subnav button:hover{border-color:var(--accent);color:var(--accent)}
+.subnav .rlab{flex:none;padding:0 4px 0 3px}
 
 /* Every link on the page carries a class that colours it — except the
    handful of ordinary prose links in the footnotes, which had nothing at
@@ -865,11 +909,8 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .dnlink:hover .dnlink-go{background:var(--accent);color:var(--on-chip);transform:translateX(3px)}
 
 /* draft resources: depth charts + PPR cheat sheets, live on the page */
-.drtabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.drtabs button{padding:8px 16px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--surface);
-  color:var(--body);font-size:var(--t-fine);font-weight:700;letter-spacing:.02em;cursor:pointer;transition:background .15s,color .15s}
-.drtabs button.on{background:var(--accent);color:var(--on-chip);border-color:transparent}
-.drtabs button:not(.on):hover{border-color:var(--accent)}
+.drtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+/* was a pill at 33px over a 25px division chip; both are chips now */
 .drlegend{display:none;flex-wrap:wrap;gap:6px 16px;margin:-2px 0 16px;font-size:var(--t-tiny);color:var(--muted)}
 .drlegend.on{display:flex}
 .drlegend span{display:inline-flex;align-items:center;gap:6px}
@@ -879,9 +920,6 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .drlegend i.lg-value{background:var(--pos)}
 .drlegend i.lg-reach{background:var(--neg)}
 .drdivsel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
-.drdivsel button{padding:5px 12px;border-radius:var(--r-md);border:1px solid var(--line);background:var(--surface);
-  color:var(--muted);font-size:var(--t-tiny);font-weight:700;cursor:pointer}
-.drdivsel button.on{background:var(--accent);color:var(--on-chip);border-color:transparent}
 .drteams{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
 .drteam{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--sh)}
 .drteam-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);position:relative}
@@ -1488,11 +1526,7 @@ a.nflgame:hover .nflside b{color:var(--accent)}
   padding:7px 10px;border-top:1px solid var(--soft);background:var(--raise)}
 
 /* drafts */
-.yearpick{display:flex;flex-wrap:wrap;gap:7px;padding:0 2px}
-.yearpick button{font-size:var(--t-base);font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
-  padding:9px 15px;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,background .15s}
-.yearpick button:hover{border-color:var(--accent);color:var(--accent)}
-.yearpick button.on{background:var(--accent);border-color:var(--accent);color:var(--on-chip)}
+.yearpick{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px}
 .draftempty{font-size:var(--t-base);color:var(--faint);margin:16px 2px 0}
 .draftmeta{font-size:var(--t-fine);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:16px 2px 10px}
 .dnote{display:block;text-transform:none;letter-spacing:0;color:var(--neg);font-weight:500;margin-top:4px}
@@ -1735,18 +1769,11 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 @media print{ .backpill{display:none} }
 /* ---- managers grid ---- */
 .mgrsort{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:14px}
-/* One caption style for every picker. Two of them (the draft year list and
-   the matchup week bar) had no rule at all and were rendering as 15px body
-   text, and the other two differed slightly from each other. */
-.rpick .rlab,.yearpick .rlab,.wkbar .rlab,.mgrsort .rlab{
-  font-size:var(--t-tiny);font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+/* Caption placement, not caption type — the type is set once in the chip
+   block. These three put it on its own line above a row that can be twelve
+   chips long; the jump bars keep theirs inline. */
 .rpick .rlab,.yearpick .rlab,.wkbar .rlab{width:100%;padding:2px 2px 0}
 .mgrsort .rlab{margin-right:4px}
-.mgrsort button{font-family:var(--sans);font-size:var(--t-fine);font-weight:600;background:var(--surface);
-  border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 11px;color:var(--muted);cursor:pointer;
-  transition:background .15s,color .15s,border-color .15s}
-.mgrsort button:hover{border-color:var(--accent);color:var(--accent)}
-.mgrsort button.on{background:var(--accent);border-color:var(--accent);color:var(--on-chip)}
 .mgrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:12px}
 .mgrcard{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:20px 14px 16px;
@@ -2174,12 +2201,10 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
   background:var(--surface);
   background:color-mix(in srgb,var(--surface) 92%,transparent);
   backdrop-filter:saturate(1.4) blur(8px);box-shadow:var(--sh)}
-.recjump .rlab{flex:none;font-size:var(--t-micro);font-weight:700;letter-spacing:.11em;
-  text-transform:uppercase;color:var(--muted);padding:0 4px 0 3px}
-.recjump button{font-size:var(--t-fine);font-weight:600;background:var(--raise);
-  border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 11px;color:var(--muted);
-  cursor:pointer;transition:border-color .15s,color .15s,background .15s}
-.recjump button:hover{border-color:var(--accent);color:var(--accent);background:var(--surface)}
+.recjump .rlab{flex:none;padding:0 4px 0 3px}
+/* the only local fill: this bar is itself --surface, so a --surface chip on
+   it would have no edge but its border. --raise is the one step up available */
+.recjump button{background:var(--raise)}
 .recjump button.top{color:var(--accent)}
 @media (max-width:640px){
   .recjump{position:static;backdrop-filter:none}
@@ -2401,17 +2426,12 @@ table.h2 td.ev{color:var(--faint)}
 }
 
 /* rosters */
-.rpick{display:flex;flex-wrap:wrap;gap:7px;padding:0 2px 12px}
-.rpick button{font-size:var(--t-base);font-weight:600;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);
-  padding:9px 15px;color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,background .15s}
-.rpick button:hover{border-color:var(--accent);color:var(--accent)}
-.rpick button.on{background:var(--accent);border-color:var(--accent);color:var(--on-chip)}
+.rpick{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px 12px}
 
-.wkbar{display:flex;flex-wrap:wrap;gap:5px;padding:0 2px 4px}
-.wkbar button{min-width:38px;font-size:var(--t-small);font-weight:600;background:var(--surface);border:1px solid var(--line);
-  border-radius:var(--r-sm);padding:7px 6px;color:var(--muted);cursor:pointer}
-.wkbar button:hover{border-color:var(--accent);color:var(--accent)}
-.wkbar button.on{background:var(--accent);border-color:var(--accent);color:var(--on-chip)}
+.wkbar{display:flex;flex-wrap:wrap;gap:6px;padding:0 2px 4px}
+/* the one local size: a week number is 1-2 digits, so the chips are set to a
+   common width and read as a grid rather than as ragged text */
+.wkbar button{min-width:38px;padding-left:6px;padding-right:6px}
 .wkbar button.chg::after{content:"";display:block;width:4px;height:4px;border-radius:50%;background:var(--rust);margin:3px auto 0}
 .rmeta{font-size:var(--t-fine);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:14px 2px 10px}
 .rgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -2563,8 +2583,12 @@ table.h2 td.ev{color:var(--faint)}
 .rstatic{font-size:var(--t-small);color:var(--body);background:var(--soft);border-radius:var(--r-sm);padding:10px 12px;margin:0 2px 12px}
 @media (max-width:760px){
   .rgrid{grid-template-columns:1fr;gap:10px}
-  .rpick button{padding:10px 14px;font-size:var(--t-base)}
-  .wkbar button{min-width:34px;padding:8px 5px}
+  /* the phone used to re-inflate these two back to 15px and a fatter pad,
+     which is where the desktop unevenness got copied onto the small screen.
+     The 44px touch rule above already gives the thumb what it needs, so the
+     only thing still worth saying here is that eighteen week chips have to
+     fit a 375px row. */
+  .wkbar button{min-width:34px}
 }
 
 footer{margin-top:52px;padding:26px 2px 64px;border-top:1px solid var(--line);position:relative;color:var(--muted);font-size:var(--t-small)}
@@ -2742,7 +2766,6 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
   /* drafts */
   #aptable{min-width:0}
   #aptable td.rdc{display:none}
-  .yearpick button{padding:10px 14px;font-size:var(--t-base)}
   .records{grid-template-columns:1fr}
   footer{padding-bottom:48px}
 }
@@ -2804,9 +2827,12 @@ a,button,summary,.pick,.sslrow{-webkit-tap-highlight-color:color-mix(in srgb, va
 @media (max-width:760px){
   .wrap{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
   /* Comfortable thumb targets on every picker without changing their look:
-     the pills grow to a 44px tap height via centred flex, not extra bulk. */
-  .yearpick button,.rpick button,.wkbar button,.mgrsort button,.slink,.clear,.allctl button,
-  .drtabs button,.drdivsel button,.subnav button,.recjump button,.nflstep,.h2grid-wrap>summary{
+     the pills grow to a 44px tap height via centred flex, not extra bulk.
+     Every chip is centred flex at 32px on the desktop side now, so for those
+     this is one number; the four non-chips still need the whole treatment. */
+  .yearpick button,.rpick button,.wkbar button,.mgrsort button,.allctl button,
+  .drtabs button,.drdivsel button,.subnav button,.recjump button{min-height:44px}
+  .slink,.clear,.nflstep,.h2grid-wrap>summary{
     min-height:44px;display:inline-flex;align-items:center;justify-content:center}
   .yearnav a{min-height:44px;display:flex;align-items:center;justify-content:center}
   /* Sticky bars sit flush under the nav (offset now derives from --navh). */
