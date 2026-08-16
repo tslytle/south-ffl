@@ -42,8 +42,44 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15 (latest): one replacement line for both boards (`0003ae6`, live)
-*Read this first. The sections below are the same day's earlier steps, and the one directly below
+## WHERE THIS STANDS — 2026-08-15 (latest): one chip, every row (ADR 0020)
+*Read this first. The sections below are earlier steps.*
+
+Reported as "the tabs look uneven and not clean", with a screenshot of the Managers view. It is
+not one row — **nine rows do the same job and every one was drawn on its own terms**: five heights
+(25, 29, 31, 33 and 39px), three radii (8px, 12px and a pill), two font sizes, two weights, two
+caption styles, and a phone rule that re-inflated two of them back to 15px.
+
+**The complaint lands where the rows stack, which is why it reads as "uneven" rather than as any
+one thing being wrong.** `#matchups` printed SEASON at 39px directly above JUMP TO WEEK at 31px.
+Draft Night printed four 33px pills above nine 25px division chips. Managers printed IN HERE at
+31px above SORT BY at 29px. Also found on the way: `.allctl` was the only row whose hover filled
+with accent, so an unselected chip wore the selected treatment.
+
+One shared rule now sets geometry and all three states; each row keeps only what is local to it
+(gap, sticky, the week bar's `min-width`, `.recjump`'s `--raise` fill). See ADR 0020 for the size
+choice, the ordering trick that lets locals win without extra specificity, and what it costs.
+
+### The check worth reusing
+
+**Do not verify this by reading the nine rules.** Sweep every route, group every visible chip by
+`(height, fontSize, weight, radius, family)`, and count the variants — it should be **1 across
+208 chips**, and captions **1 across 16**. That query is the test for ADR 0020 and it fails
+loudly the moment a tenth row arrives with its own geometry. In dark it returns three border
+colours on that one variant, all intended: `--line`, `--accent` for the selected chip, and the
+50% gold marking playoff weeks on `.mwkbar .po`.
+
+ADR 0005 sweep re-run after: **zero in all four** — {375px, 2048px} × {dark, light}, two passes
+each, `gradientSkipped` 325/311, unmoved from baseline.
+
+**Still open, deliberately:** `.subnav` is a jump bar, not a tab bar — it scrolls to a panel and
+never marks which one you are in. The `.on` hook now exists and is shared, so giving it a
+current-panel state is a script change rather than a CSS one.
+
+---
+
+## 2026-08-15: one replacement line for both boards (`0003ae6`, live)
+*The sections below are the same day's earlier steps, and the one directly below
 is **partly superseded** — read its ADR 0019 annotation before trusting its numbers.*
 
 Asked to "add kickers to Steals & Busts too". **They were already there** — ADR 0015 put them on
