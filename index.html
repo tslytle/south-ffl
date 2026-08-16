@@ -1516,6 +1516,11 @@ a.nflgame:hover .nflside b{color:var(--accent)}
 .stand .team{font-family:var(--sans);font-size:var(--t-fine);font-weight:500;color:var(--muted);margin-top:1px;letter-spacing:0}
 .tag{display:inline-block;font-size:var(--t-micro);font-weight:700;letter-spacing:.07em;text-transform:uppercase;
   border-radius:var(--r-pill);padding:2.5px 8px;margin-left:6px;vertical-align:middle;white-space:nowrap}
+/* The standings badge slot: present on every row so a badge never decides a
+   row's height (ADR 0022 port). Sized to the tag it may hold; tags inside it
+   drop the inline left-margin since the slot owns the geometry. */
+.stand .bslot{display:block;min-height:22px;margin-top:2px}
+.stand .bslot .tag{margin-left:0;margin-right:6px}
 .tag.alma{color:var(--gold-ink);background:var(--gold-soft);box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--gold) 35%, transparent)}
 .tag.emily{color:var(--muted);background:var(--soft)}
 /* Was --pos text on --accent-soft: mint on a mint tint, on a chip nobody can
@@ -4899,10 +4904,14 @@ function seasonRows(s){
     const pr = prec(s.y, n);
     const ppg = hasPts ? pf/g : null;
     const diff = hasPts ? pf/g - pa/g : null;
-    const tags = (i === 0 ? '<span class="tag alma">Alma Bowl Champion</span>' : "")
+    /* The slot is emitted on EVERY row, empty or not (ADR 0022 port): with
+       the badge deciding the height, tagged rows ran 112px against 89.7 for
+       everyone else, and the table read as ragged rather than as honoured. */
+    const tags = '<span class="bslot">'
+      + (i === 0 ? '<span class="tag alma">Alma Bowl Champion</span>' : "")
       + (i === s.t.length-1 ? '<span class="tag emily">Emily Bowl Champion</span>' : "")
       + (best.has(n) ? '<span class="tag best">Best record</span>' : "")
-;
+      + '</span>';
     const v = { rank:i+1, reg:w/(w+l), post: pr ? pr[0]/(pr[0]+pr[1]) : -1,
       pf: hasPts ? pf : null, ppg, pa: hasPts ? pa : null, diff,
       div: hasSplits ? parseWL(div).w : null, home: hasSplits ? parseWL(home).w : null,
