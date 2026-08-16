@@ -42,8 +42,41 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15 (latest): one chip, every row (ADR 0020)
-*Read this first. The sections below are earlier steps.*
+## WHERE THIS STANDS — 2026-08-15 (latest): every board bar the same length (ADR 0021)
+*Read this first. The section below it is the same day's earlier step and still current.*
+
+Follow-up to the chip work: "I want the bars to be the same length and for everything to match",
+with a screenshot of The Managers group view. **Champions was 720px wide against 1040 for the
+other three.**
+
+That cap was deliberate — ADR 0014 put it there so the year, name and record read as one plaque
+line, and moved it onto the disclosure so header and list would share both edges. **It was right
+about edges and wrong about which state to optimise.** Eleven of twelve boards are collapsed by
+default, so a group view is almost always four header bars and nothing else, and the cap made
+Champions the one bar that did not line up.
+
+Cap deleted. Every top-level board is now full width. **The measure rule itself stands and now
+has no instance** — see ADR 0021 for why the three obvious alternatives (720 centred, 720
+left-aligned, full-width header over a 720 body) are each worse, and for what the plaque line
+costs at 1040.
+
+**The other half of that report was not a bug.** The mint title and mint frame on Manager Profiles
+in the screenshot is the hover state — `details.sub:has(> summary.subhead:hover)` tints the whole
+outline, so the thing that lights up is the thing that opens. Working as designed; checked before
+changing anything.
+
+### The check worth reusing
+
+Group every top-level `summary.subhead` by its `(x, right)` pair across all routes: **one pair
+over 16 panels** (172→1212 at 1265px). Same shape as ADR 0020's chip-variant count, and it fails
+the moment a board re-narrows itself.
+
+ADR 0005 sweep re-run after — layout width changed, so it had to be: **zero in all four**,
+`gradientSkipped` 325/311, unmoved.
+
+---
+
+## 2026-08-15: one chip, every row (ADR 0020)
 
 Reported as "the tabs look uneven and not clean", with a screenshot of the Managers view. It is
 not one row — **nine rows do the same job and every one was drawn on its own terms**: five heights
