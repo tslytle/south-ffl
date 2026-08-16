@@ -1080,6 +1080,10 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
   .drsecs-top{--drlab:84px}
   .drsecs-pos{--drlab:66px}
   .drrow,.drcols{gap:5px;padding-left:8px;padding-right:8px}
+  /* the TEAM label overflows the ~32px track a 3-char club sets, and reads
+     as "TEAMBYE" against its neighbour - the label must fit the track it
+     names, so the header steps down where the track does */
+  .drcols{font-size:10px;letter-spacing:.03em}
   .drrow-ranked,.drcols-ranked{grid-template-columns:var(--drlab,44px) minmax(0,1fr) 30px 28px 26px 20px}
   .drteam-name{font-size:var(--t-fine)}
 }
