@@ -2377,6 +2377,9 @@ body:has(.backpill.on){padding-bottom:86px}
   .rline{grid-column:1/-1}
 }
 
+/* same [hidden] guard as .subnav: both bars author display:flex, which
+   silently beats the hidden attribute */
+.wkbar[hidden],.statkey[hidden]{display:none}
 .statkey{display:flex;flex-wrap:wrap;gap:4px 12px;margin:0 2px 16px;padding:11px 14px;
   background:var(--raise);border:1px solid var(--line);border-radius:var(--r-sm)}
 .statkey span{font-size:var(--t-fine);color:var(--muted);white-space:nowrap}
@@ -5915,7 +5918,16 @@ document.getElementById("mbody").addEventListener("toggle",
 function drawMatchups(){
   const p = document.getElementById("mpanel"), e = document.getElementById("mempty");
   document.querySelectorAll("#myears button").forEach(b => b.classList.toggle("on", +b.dataset.my === mY));
-  if(mY === null){ p.hidden = true; e.hidden = false; return; }
+  if(mY === null){
+    p.hidden = true; e.hidden = false;
+    /* the empty state must disarm the furniture too: toggling a season off
+       used to leave the previous season's week bar fully clickable above
+       "Choose a season", and the stat legend explaining stats that were not
+       on screen */
+    document.getElementById("mweeks").hidden = true;
+    document.getElementById("statkey").hidden = true;
+    return;
+  }
   document.getElementById("mbody").innerHTML = matchupsHTML(mY);
   // week nav bar
   const wkset = [...new Set(ARCH.G[mY].map(g => g[0]))].sort((a,b) => a-b);
@@ -5924,6 +5936,8 @@ function drawMatchups(){
     `<span class="rlab">Jump to week</span>` + wkset.map(w =>
       `<button data-mw="${w}" class="${postWeeks.has(w) ? "po" : ""}">${w}</button>`).join("");
   p.hidden = false; e.hidden = true;
+  document.getElementById("mweeks").hidden = false;
+  document.getElementById("statkey").hidden = false;
 }
 lazyBoard("matchups", () => {
 document.getElementById("myears").innerHTML =
