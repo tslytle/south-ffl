@@ -77,13 +77,21 @@ throttles rAF and the run silently stalls); `__runAll()` is synchronous — `awa
 30s tool timeout, so kick it and read a global; the pane screenshots composite at scroll 0,
 so bring a section to the top instead of scrolling to it.
 
-**Still to port, surface by surface, all gated by the same floors:** the closed-state fact on
-all 16 bars (+ one masthead per screen, per-panel kickers deduped) · conditional `IN HERE`
-with current-panel state · **then** the `.backpill` deletion (contingent on the jump bar
-landing first — the pill is its replacement's inferior twin, not dead code today) · the
-manager grid (name leads, grade at fact-weight) · the profile rebuild (bare figures, lead +
-structured facts) · standings badge slot (every row reserves it; a badge must never decide a
-row's height). The prototype is the reference for all of it.
+**The port landed the same day, four commits, each swept to 0 before the next began:**
+
+| commit | what it was |
+|---|---|
+| `bc7ad03` | **A closed board states a fact.** All 16 bars: prose → panel body, fact chip in its place. One bar height by construction — 81.2px × 16 desktop, 136.3 × 16 phone (a zero-height pseudo flex item forces the chip onto its own row; natural wrapping left three bars tall and one short). The one kicker that duplicated its group's (Manager Profiles) is gone. |
+| `e0dbb61` | **The jump bar earns its place.** Hidden while every panel is shut, appears on open, marks the panel you are IN on scroll (ADR 0020's shared `.on`, nothing new drawn). **And the `.backpill` deletion is REVERSED** — the session decision rested on my wrong reading. It is a cross-view *return stack* (jump from Record Book to a roster; pill takes you back), not scroll-to-top, and no per-view index can do that job. Its real offence — an opaque mint control sitting on table rows — is fixed with `body:has(.backpill.on){padding-bottom:86px}`. |
+| `d46e9d6` | **The name leads on a manager card.** The grade left its absolute top-right mint pill (loudest thing on the card, by accident) for the footer at the record's own weight: `12 seasons · 90–71 · 96.4`. `fillGradeCells()` untouched — same `[data-grade]` hook. Footer atoms are nowrap at t-tiny; at t-fine the record broke mid-number ("88–"/"75"). Phone: grade takes its own row on every card — natural wrap left 12 of 17 two-line. |
+| `90e6d89` | **A badge never decides a standings row's height.** Tagged rows ran 112px vs 89.7. The slot is on every row now; the table pays ~24px/row, weighed against widening the pinned OWNER column (which would cost a phone its second data column) and taken. |
+
+**Still to port:** the **profile rebuild** — bare figures for the career tiles (`90–71` currently
+wraps inside its tile at some widths), THE BREAKDOWN's six paragraphs → lead + structured
+facts, rank rails restyled. It is the deepest surface and deserves its own session; the
+prototype's surface 5 (`_spine-preview.html`, untracked) is the approved reference. Also
+still open: the ADR 0022 note to re-run the desktop sweep at 2048 (all sweeps this day ran
+at 1580), and the prototype files' deletion once the port is done.
 
 ---
 
