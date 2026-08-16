@@ -1805,6 +1805,12 @@ table.board{table-layout:fixed;min-width:1478px;width:1478px;border-collapse:sep
 .backpill b{font-weight:700}
 @media (max-width:560px){ .backpill{bottom:14px;font-size:var(--t-small);padding:9px 15px} }
 @media print{ .backpill{display:none} }
+/* While the pill is up, the page reserves its landing strip — an opaque mint
+   control was sitting directly on table rows, with nothing keeping the last
+   content clear of it. (A 2026-08-15 session nearly deleted this pill outright
+   on the theory that the jump bar covers it; it doesn't — the pill returns you
+   across views to where you jumped FROM, which no per-view index can do.) */
+body:has(.backpill.on){padding-bottom:86px}
 /* ---- managers grid ---- */
 .mgrsort{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:14px}
 /* Caption placement, not caption type — the type is set once in the chip
@@ -6522,6 +6528,45 @@ document.getElementById("recordcards").innerHTML =
       const d = sec.querySelector("details"); if(d) d.open = true;
       sec.scrollIntoView({ behavior: "smooth", block: "start" });
     });
+
+    /* The bar earns its place (ADR 0022 port). Closed, a group view is four
+       header bars — an index of four names 40px above the same four names is
+       furniture. The bar appears when a panel opens and the view gets long,
+       and it marks the panel you are IN, because a jump bar that never says
+       where you are is half a control. */
+    const subs = panels.map(p => {
+      const sec = document.getElementById(p.id);
+      return sec && sec.querySelector("details.sub");
+    }).filter(Boolean);
+    const markCurrent = () => {
+      const fold = scrollYNow() + 120;
+      let cur = null;
+      panels.forEach(p => {
+        const sec = document.getElementById(p.id);
+        if(!sec) return;
+        const d = sec.querySelector("details.sub");
+        if(!d || !d.open) return;
+        const top = sec.getBoundingClientRect().top + scrollYNow();
+        if(top <= fold && (!cur || top > cur.top)) cur = { top, id: p.id };
+      });
+      bar.querySelectorAll("button[data-goto]").forEach(b => {
+        const on = !!cur && b.dataset.goto === cur.id;
+        b.classList.toggle("on", on);
+        if(on) b.setAttribute("aria-current", "true");
+        else b.removeAttribute("aria-current");
+      });
+    };
+    const sync = () => {
+      bar.hidden = !subs.some(d => d.open);
+      if(!bar.hidden) markCurrent();
+    };
+    subs.forEach(d => d.addEventListener("toggle", sync));
+    let raf = 0;
+    window.addEventListener("scroll", () => {
+      if(bar.hidden || !bar.offsetParent || raf) return;
+      raf = requestAnimationFrame(() => { raf = 0; markCurrent(); });
+    }, { passive: true });
+    sync();
   });
 })();
 
