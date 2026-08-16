@@ -7895,7 +7895,9 @@ function currentSpotLabel(){
     if(top <= y && (!best || top > best.top)) best = { top, sec };
   });
   if(!best) return "the top";
-  const hd = best.sec.querySelector("h2.sec");
+  /* panel headings too: a jump that starts inside Start & Sit used to label
+     its return "the top" because only group headings were consulted */
+  const hd = best.sec.querySelector("h2.sec, h3.sec2");
   return hd ? hd.textContent.trim() : "the top";
 }
 
