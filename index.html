@@ -907,26 +907,60 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
 .dnwhen{margin-bottom:4px}
 
 .dnorder{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-/* overflow:hidden clips the ghost numeral; the hover lift matches .dnlink so the
-   grid moves like the rest of the section, just without anywhere to go */
+/* overflow:hidden keeps the seat rail inside the rounded corners and crops the
+   crest where it bleeds off the trailing one; the hover lift matches .dnlink so
+   the grid moves like the rest of the section, just without anywhere to go */
 .dnpick{display:flex;align-items:center;gap:13px;padding:15px 16px;background:var(--surface);
   border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh);position:relative;
   overflow:hidden;transition:border-color .15s,box-shadow .15s,transform .15s}
 .dnpick:hover{border-color:var(--accent);box-shadow:var(--sh-lg);transform:translateY(-1px)}
+/* An accent rail down the leading edge, fading out as it falls. It and the crest
+   opposite share the job the ghost numeral used to do — give the card something
+   you can read across the grid — without printing the seat number a second time,
+   since one card only ever needs to say "4" once. */
+.dnpick::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;opacity:.55;
+  background:linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 12%, transparent));
+  transition:opacity .15s}
+.dnpick:hover::before{opacity:1}
 /* the seat number sits in the same chip as the countdown units above it
-   (.dnunit): accent-soft plate, accent serif figure, hairline mixed border */
-.dnpick .dnnum{flex:0 0 auto;width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+   (.dnunit): accent-soft plate, accent serif figure, hairline mixed border —
+   with a raked gradient and a lit top edge, since it is now the card's only
+   figure and can afford to be the thing worth looking at */
+.dnpick .dnnum{flex:0 0 auto;width:36px;height:36px;display:flex;align-items:center;justify-content:center;
   font-family:var(--serif);font-size:var(--t-lead);font-weight:700;color:var(--accent);
-  background:var(--accent-soft);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  border-radius:var(--r-sm);font-variant-numeric:tabular-nums}
+  background:linear-gradient(155deg, var(--accent-soft), color-mix(in srgb, var(--accent-soft) 30%, transparent));
+  border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+  border-radius:var(--r-sm);font-variant-numeric:tabular-nums;transition:box-shadow .15s}
+.dnpick:hover .dnnum{box-shadow:inset 0 1px 0 color-mix(in srgb, var(--accent) 18%, transparent),
+  0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent)}
 /* first overall is the one seat everyone covets, so it alone wears gold */
-.dnpick.dnfirst .dnnum{color:var(--gold);background:var(--gold-soft);
-  border-color:color-mix(in srgb, var(--gold) 35%, transparent)}
-/* oversized seat number bleeding off the card's right edge — decoration only,
-   faint enough to survive both themes since it borrows --ink */
-.dnghost{position:absolute;right:4px;top:50%;transform:translateY(-46%);font-family:var(--serif);
-  font-size:58px;font-weight:700;line-height:1;color:var(--ink);opacity:.055;
-  pointer-events:none;user-select:none;font-variant-numeric:tabular-nums}
+.dnpick.dnfirst::before{background:linear-gradient(180deg, var(--gold), color-mix(in srgb, var(--gold) 12%, transparent))}
+.dnpick.dnfirst .dnnum{color:var(--gold);
+  background:linear-gradient(155deg, var(--gold-soft), color-mix(in srgb, var(--gold-soft) 30%, transparent));
+  border-color:color-mix(in srgb, var(--gold) 35%, transparent);
+  box-shadow:inset 0 1px 0 color-mix(in srgb, var(--gold) 22%, transparent)}
+.dnpick.dnfirst:hover .dnnum{box-shadow:inset 0 1px 0 color-mix(in srgb, var(--gold) 22%, transparent),
+  0 0 0 3px color-mix(in srgb, var(--gold) 15%, transparent)}
+/* The manager's own crest, blown up and bled off the trailing edge — the device
+   a club uses behind a player's headshot. It fills the space the ghost numeral
+   left with something that says whose seat this is instead of repeating the
+   number. It keeps its own colours: silhouetting each mark to --ink was tried
+   first and turned twelve distinct crests into twelve identical grey blobs. */
+.dnmark{position:absolute;z-index:0;right:-14px;top:50%;transform:translateY(-50%);
+  width:86px;height:86px;object-fit:contain;opacity:.13;
+  pointer-events:none;user-select:none;transition:opacity .15s}
+.dnpick:hover .dnmark{opacity:.2}
+/* a mark at 13% over a dark surface is barely there, so the dark themes take more */
+:root:not([data-theme="light"]) .dnmark,:root[data-theme="dark"] .dnmark{opacity:.17}
+:root:not([data-theme="light"]) .dnpick:hover .dnmark,
+:root[data-theme="dark"] .dnpick:hover .dnmark{opacity:.24}
+/* Alen's is a photograph rather than a cut-out: contained it would sit there as
+   a pale rectangle, so it fills a disc the way that same photo does wherever
+   else the file shows it — the .tlogo:not(.tlogo-bare) rule, one size up. */
+.dnmark.dnmark-photo{width:76px;height:76px;right:-8px;object-fit:cover;border-radius:50%}
+/* the crest is positioned, so without this it would paint over the row it backs */
+.dnpick .dnnum,.dnpick .tlogo,.dnpick .dnwho{position:relative;z-index:1}
 .dnpick .tlogo{flex:0 0 auto}
 .dnpick .tlogo-md{width:34px;height:34px}
 .dnwho{min-width:0}
@@ -3113,10 +3147,12 @@ a,button,summary,.pick,.sslrow{-webkit-tap-highlight-color:color-mix(in srgb, va
   details > *,details.sect > .sectbody,.h2grid-wrap > *,.bracket > *{display:revert!important}
   details.sect > .sectbody{display:block!important}
 
-  /* Screen-only furniture: navigation, pickers, overlays, swipe hints. */
+  /* Screen-only furniture: navigation, pickers, overlays, swipe hints, and the
+     blown-up crest behind each draft seat — a tint that reads as depth on a
+     screen prints as a smudge under the name it sits behind. */
   .topnav,.yearnav,.mwkbar,.spotbar,.yearpick,.rpick,.recjump,.wkbar,.mgrsort,.allctl,
   .chev,.chev-s,.subnav,.backpill,.pfmask,.pfwrap,.swipe,.slink,.season-links,.clear,
-  .draftempty,.howmark{display:none!important}
+  .draftempty,.howmark,.dnmark{display:none!important}
   details.sub > .subbody{display:block!important}
   details.sub > summary{cursor:auto}
   details.sub{border-top:1px solid #C9D0DE}
@@ -8535,8 +8571,18 @@ const DRAFT_2026 = {
      directly above the grid already explains how the snake runs; a reader who
      wants their round-two slot can count it from their seat faster than they
      can work out which of three numbers is which round. */
+  /* The crest a second time, at size and bled off the card's trailing edge.
+     Decoration, so it is hidden from the reading order — the plate beside the
+     name already carries the same mark for anyone who wants to look at it.
+     A manager with no logo on file wears the monogram and the rail alone. */
+  const mark = name => {
+    const src = OWNER_LOGO[name];
+    if(!src) return "";
+    return `<img class="dnmark${PHOTO_LOGO.has(name) ? " dnmark-photo" : ""}" src="${src}" alt="" aria-hidden="true">`;
+  };
+
   wrap.innerHTML = DRAFT_2026.order.map((name, i) => `<div class="dnpick${i === 0 ? " dnfirst" : ""}"${i === 0 ? ' title="First overall"' : ""}>
-      <span class="dnghost" aria-hidden="true">${i + 1}</span>
+      ${mark(name)}
       <span class="dnnum">${i + 1}</span>${logoImg(name, "tlogo-md")}
       <span class="dnwho"><b>${esc(name)}</b></span>
     </div>`).join("");
