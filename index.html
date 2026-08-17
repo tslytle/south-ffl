@@ -962,6 +962,11 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
    a pale rectangle, so it fills a disc the way that same photo does wherever
    else the file shows it — the .tlogo:not(.tlogo-bare) rule, several sizes up. */
 .dnmark.dnmark-photo{width:106px;height:106px;right:-18px;object-fit:cover;border-radius:50%}
+/* Two marks are drawn tall and lose more than the others to the crop: the bull
+   and the boater both carry their shape in the vertical, where a fist or a
+   monogram carries it across. They come back far enough that the card's 68px
+   window holds two thirds of the mark rather than half. */
+.dnmark.dnmark-tall{width:102px;height:102px;right:-18px}
 /* the crest is positioned, so without this it would paint over the row it backs */
 .dnpick .dnnum,.dnpick .dnwho{position:relative;z-index:1}
 .dnwho{min-width:0}
@@ -8576,10 +8581,15 @@ const DRAFT_2026 = {
      reading order: it is a backdrop for the name, and the name is the thing
      being read — a screen reader announcing a logo here would only repeat what
      it is about to say. A manager with no logo on file wears the rail alone. */
+  /* Whose artwork needs the crop eased. Kept as a list of names rather than
+     worked out from the file, because "this mark reads badly cut in half" is
+     a judgement about the drawing, and nothing in a PNG says it. */
+  const TALL_MARK = new Set(["Braxton Hill", "Adam Boggess"]);
   const mark = name => {
     const src = OWNER_LOGO[name];
     if(!src) return "";
-    return `<img class="dnmark${PHOTO_LOGO.has(name) ? " dnmark-photo" : ""}" src="${src}" alt="" aria-hidden="true">`;
+    const fit = PHOTO_LOGO.has(name) ? " dnmark-photo" : TALL_MARK.has(name) ? " dnmark-tall" : "";
+    return `<img class="dnmark${fit}" src="${src}" alt="" aria-hidden="true">`;
   };
 
   wrap.innerHTML = DRAFT_2026.order.map((name, i) => `<div class="dnpick${i === 0 ? " dnfirst" : ""}"${i === 0 ? ' title="First overall"' : ""}>
