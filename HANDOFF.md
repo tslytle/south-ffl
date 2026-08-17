@@ -42,8 +42,99 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-15 (latest): the elevation ladder is live (ADR 0022)
-*Read this first. The sections below are the same day's earlier work and still current.*
+## WHERE THIS STANDS — 2026-08-17 (latest): every manager owns a hue, and the nineteenth board
+*Read this first. The sections below are earlier work and still current.*
+
+Two batches, built from a handoff written against the **wrong `index.html`**. The decisions in
+that document survived; the code was re-derived from scratch against this file, and the
+re-derivation reproduced the handoff's own numbers to the decimal — offset 11.5° really does
+clear mint by 9.74° and gold by 9.32°, and the four extractions it said were wrong are wrong
+here in exactly the ways it described.
+
+**Batch 1 — per-manager accent colours.** Seventeen managers shared one mint accent, so identity
+was carried entirely by the name. `logoImg()` is the chokepoint every manager mark passes
+through, so the pair is written there and every placement in the document gets it from one edit.
+
+- **Palette.** Dominant ink measured off each embedded mark (most-common quantised pixel for
+  rasters, most-common saturated hex for SVGs, ≥30% saturation, 14–88% lightness), 17 slots
+  21.18° apart, assigned by Hungarian **global optimum on squared error**. Plain distance ties —
+  greedy and optimal both score 222.1° — and spends the tie by parking 73.2° on one man; squared
+  breaks it and caps the worst at 61.7° (Σerr² optimum 8,264 vs greedy 8,781). **Even spacing
+  beat logo fidelity**: six of fourteen marks are red/orange clip-art, and honouring them all
+  would defeat the only purpose. Christian and Abbas overflow to purple and magenta, knowingly.
+- **Four hand corrections, all four confirmed against the real artwork**: Alen's photo returns
+  skin/backdrop brown (his second bin, 404px, is the Eagles jersey teal — that is what the mark
+  is *of*); Justin's `#786bad` missed the saturation gate by two points; Adam's straw cream
+  weighted to gold; Tate's mark is monochrome and its `#f0f` is a placeholder, so Who Dey →
+  Bengals burnt orange.
+- **The worst ground is not the obvious one.** The old handoff said gate the light value on
+  white. White is the *easiest* ground it ever sits on. Gated on `--soft #EAEEF5` (light) and
+  `--raise #2D3A59` (dark) instead, 3.25:1 with headroom over ADR 0022's floor. Measured live in
+  the browser afterwards: worst spine/line 3.63 dark, 3.78 light; worst ring-on-plate 4.50.
+- **`--own-d` does double duty.** Anything drawn on the avatar plate uses it in *both* themes,
+  because the plate is dark in both and has no light value to switch to. The theme-resolved
+  `--own` is for things on `--surface`: the awards-wall spine, the profile hero band, the chart.
+- **Resolved on the elements** (`[data-own]{--own:var(--own-d)}`), never at `:root` — the
+  single easiest thing here to get wrong, and it would paint all seventeen the same colour.
+- **Placements**: plate ring (replacing the flat hairline) everywhere including the masthead's
+  overlapping row at every breakpoint, a 3px spine on awards cards (a full coloured border made
+  the grid a fruit salad), the profile hero band where the accent replaces mint, and a 14% wash
+  behind bare vector marks. Print takes the light value via one rule inside `@media print`.
+- **One defect surfaced by colouring the ring, and fixed**: three leftover `.pfid .tlogo` rules
+  from the old profile header were beating `.pfavatar .tlogo` at equal specificity, so the
+  profile alone drew a **72px rounded square inside its own 96px circular plate**. Invisible
+  while the inner edge was a 16% white hairline. Gone; the hero is one circle now.
+
+**Batch 2 — Power Curve (`#power`), the nineteenth board.** Elo computed in-browser from
+`ARCH.G`/`ARCH.T` — the same 940 regular-season games Matchups draws, so **no new data enters
+the document**. Ratings key to the **owner**, never the team name.
+
+- **Margin counts, scaled to the season** (`log(1 + 10·margin/mean)`), which is what makes the
+  2021 half-PPR change harmless — this board needs no era dagger, and that is arithmetic rather
+  than an omission. **Regress 25% toward 1500 each September**, and *only for managers about to
+  play*: regressing the departed is exactly what walks them back to 1500 and hides that they
+  left. **The line stops when the manager does** — five men have left, and the table says
+  "left 2015" where a rating would be.
+- **K=24, carry=0.75, and they barely matter.** Swept K ∈ {20,24,28} × carry ∈ {0.70,0.75,0.80,
+  0.85}: below third place nothing reorders in any of the twelve, and the only movement anywhere
+  is Tate and Leo trading first and second **1.7 points apart**. Re-run the sweep after any data
+  change (`scratchpad/elo-proto.js` shape) rather than trusting the two numbers.
+- **Results agree with the old handoff's sanity check**: Leo, Tate, Michael lead; Michael's 2016
+  peak (1643) is the highest anyone has reached. Confirms the owner mapping.
+- **Two geometries, not one.** A viewBox scales the *labels* too: at 375px the 960-wide box
+  renders at 322 and 11-unit type came out at **3.7 real pixels**. `ELO_WIDE` (960×440) and
+  `ELO_TALL` (520×560, larger type, heavier stroke) with a `matchMedia` **change** listener —
+  which fires on the crossing, i.e. a rotation, not on every resize step.
+- **One interaction, and it is a tap**: the name in the table isolates that line and dims the
+  *group*, so axes and season rules keep their weight. The table is the colour key — the marks
+  in it already wear the same ring — so there is no second legend to keep in step.
+- **Registered in all six places**, not five: `<section>` in `#history`, hub door, `MAP`,
+  `lazyBoard`, hub headline count (eighteen → nineteen), **and the search `SECTIONS` list**,
+  which the old checklist missed.
+
+**Verified, all of it re-runnable from `scratchpad/`:** every `<script>` block `node --check`ed
+(10 blocks, 0 failing); the board's own source **extracted from the file and executed against
+real `ARCH` with DOM stubs** — 17 paths, 17 dots, 17 distinct accents, 12 season rules, 17 rows,
+5 departed, no `NaN|undefined`, every path point inside its box in both geometries; tag
+open/close **deltas** against `HEAD` (never absolutes — `<div>` and `<a>` are off by one in the
+original) all balancing; **ADR 0005 sweep 0 fails in all four combinations, two passes each**
+({375, 1266} × {dark, light}); ADR 0021's invariant holds (all five History bars 81.2×1040
+desktop, 136.3 phone); line endings CRLF end to end.
+
+**The sweep earned its place again**: it found one real failure on the first run — the peak-year
+`<i>` at `--faint` measured **3.94 against a required 4.5** on the zebra rows, where it composites
+against `--panel-2` over the surface. Now `--muted`.
+
+**One thing could not be checked here and is worth a look on a real browser**: the Browser pane
+in this session never composited frames, so **nothing was seen, only measured**. Every number
+above is a computed style or a parsed attribute. And neither `resize` nor `matchMedia` change
+events fire under the pane's viewport override, so the Power Curve's rotation redraw was proved
+by calling the handler's body at each width, not by an actual rotation.
+
+---
+
+## WHERE THIS STANDS — 2026-08-15: the elevation ladder is live (ADR 0022)
+*Same day's earlier work, still current.*
 
 A `/grill-with-docs` session on "a lot of stuff doesn't look right" found one number under
 most of it: **`--surface` at 1.08:1 against `--bg`** — no container visibly on anything, and

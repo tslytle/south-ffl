@@ -502,8 +502,10 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
 .masthead-avatars .mavatar:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .masthead-avatars .tlogo{width:38px;height:38px;border-radius:50%;overflow:hidden;background:var(--plate);
   /* outer ring in the page ground separates the overlap; inner ring is the
-     same plate edge every other avatar carries */
-  box-shadow:0 0 0 3px var(--bg),inset 0 0 0 1px var(--plate-ring);display:block}
+     same plate edge every other avatar carries, in the manager's own hue —
+     seventeen overlapping circles in one row is the placement the palette
+     pays for most */
+  box-shadow:0 0 0 3px var(--bg),inset 0 0 0 1.5px var(--own-d, var(--plate-ring));display:block}
 /* :not(.tlogo-bare) — cover is for PHOTOGRAPHS, which carry their own
    background and are meant to fill the circle. It was landing on the cut-out
    marks too, and since .tlogo-bare already insets them to 82%, cover then
@@ -520,7 +522,11 @@ h1 em{font-style:italic;font-weight:600;color:var(--gold)}
 }
 @media (max-width:400px){
   .masthead-avatars .mavatar{margin-left:-7px}
-  .masthead-avatars .tlogo{width:29px;height:29px;box-shadow:0 0 0 2px var(--bg)}
+  /* the outer ring thins with the tile; the hue ring stays — dropping it
+     here would make the palette a desktop-only feature on a page half this
+     league reads on a phone */
+  .masthead-avatars .tlogo{width:29px;height:29px;
+    box-shadow:0 0 0 2px var(--bg),inset 0 0 0 1.5px var(--own-d, var(--plate-ring))}
 }
 @media print{.masthead-avatars,.masthead-caption{display:none}}
 .years{font-size:var(--t-fine);font-weight:600;letter-spacing:.17em;color:var(--muted);margin-top:18px;text-transform:uppercase}
@@ -1901,7 +1907,13 @@ body:has(.backpill.on){padding-bottom:86px}
 .mgrcard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .mgrcard .mgravatar{width:78px;height:78px;border-radius:50%;overflow:hidden;display:flex;align-items:center;
   justify-content:center;background:var(--plate);box-shadow:inset 0 0 0 1px var(--plate-ring),0 2px 8px rgba(0,0,0,.10)}
-.mgrcard .mgravatar .tlogo{width:100%;height:100%;border-radius:50%;background:none;box-shadow:none}
+/* The hue ring is drawn by the .tlogo, not by the .mgravatar wrapper around
+   it, because logoImg() is the only thing that knows a manager's colour and
+   the wrapper is built by the card. The two are coincident — the mark is
+   100% of the wrapper and shares its rounding — so a 2px inset ring here
+   simply covers the wrapper's 1px plate hairline rather than doubling it. */
+.mgrcard .mgravatar .tlogo{width:100%;height:100%;border-radius:50%;background:none;
+  box-shadow:inset 0 0 0 2px var(--own-d, transparent)}
 .mgrcard .mgravatar .tlogo:not(.tlogo-bare) img{object-fit:cover}
 .mgrcard .mgravatar .tlogo.tmono{font-size:var(--t-h3);border-radius:50%;
   background:var(--plate);color:var(--plate-ink)}
@@ -1948,8 +1960,14 @@ body:has(.backpill.on){padding-bottom:86px}
 }
 /* ---- owner profile overlay ---- */
 /* ---- profile: player-card layout ---- */
+/* The band's rule was mint on every profile, which spent the interaction
+   colour on the one piece of a manager's page that is purely about who he
+   is. It is his own hue now — the widest single line of colour anywhere in
+   the document, and the reason the palette had to clear a contrast floor
+   rather than merely differ. Mint remains the fallback for a manager with
+   no accent. */
 .pfheroband{display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:14px 22px 12px;border-bottom:2px solid var(--accent);
+  padding:14px 22px 12px;border-bottom:2px solid var(--own, var(--accent));
   background:var(--surface)}
 .pfseed{font-family:var(--serif);font-size:var(--t-h4);font-weight:700;letter-spacing:.02em;color:var(--ink)}
 .pfbandnote{font-size:var(--t-tiny);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
@@ -1968,7 +1986,10 @@ body:has(.backpill.on){padding-bottom:86px}
   display:flex;align-items:center;justify-content:center;overflow:hidden}
 /* 66% keeps a wide crest inside the disc's inscribed square */
 .pfteam img{max-width:66%;max-height:66%;width:auto;height:auto;object-fit:contain;display:block}
-.pfavatar .tlogo{width:100%;height:100%;border-radius:50%;background:none;box-shadow:none}
+/* same arrangement as the manager card: the ring rides the mark, not the
+   wrapper, and covers the wrapper's hairline instead of sitting inside it */
+.pfavatar .tlogo{width:100%;height:100%;border-radius:50%;background:none;
+  box-shadow:inset 0 0 0 2px var(--own-d, transparent)}
 .pfavatar .tlogo:not(.tlogo-bare) img{object-fit:cover}
 .pfavatar .tlogo.tmono{font-size:var(--t-h2);border-radius:50%}
 .pfheromain .pfname{font-family:var(--serif);font-size:var(--t-h3);font-weight:700;color:var(--ink);line-height:1.1;letter-spacing:-.01em}
@@ -2007,9 +2028,19 @@ body:has(.backpill.on){padding-bottom:86px}
 @media (max-width:1010px){.awardswall{--cols:3}}
 @media (max-width:759px){.awardswall{--cols:2}}
 @media (max-width:479px){.awardswall{--cols:1}}
-.awardcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;
+/* A 3px spine in the manager's hue, and a spine rather than a coloured
+   border: seventeen fully outlined cards in a four-column grid turned the
+   wall into a fruit salad, with the colour reading as the card's own
+   importance instead of as whose card it is. One edge says the same thing
+   and says it quietly. The left padding gives back the 2px the thicker
+   edge takes, so the marks stay on the grid's own line. */
+.awardcard{background:var(--surface);border:1px solid var(--line);
+  border-left:3px solid var(--own, var(--line));border-radius:var(--r-md);padding:14px 14px 14px 12px;
   display:flex;flex-direction:column;gap:10px;box-shadow:var(--sh);transition:box-shadow .2s ease,transform .2s ease}
-.awardcard:hover{background:var(--raise);box-shadow:var(--sh-lg);transform:translateY(-1px);border-color:var(--accent)}
+/* hover is INTERACTION and stays mint on the three neutral edges; the spine
+   is identity and doesn't change because you pointed at it */
+.awardcard:hover{background:var(--raise);box-shadow:var(--sh-lg);transform:translateY(-1px);
+  border-color:var(--accent);border-left-color:var(--own, var(--line))}
 .awardcard-hd{display:flex;align-items:center;gap:10px;min-width:0}
 .awardcard-hd .tlogo{width:32px;height:32px}
 .awardcard-hd b{font-size:var(--t-small);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2144,10 +2175,16 @@ body:has(.backpill.on){padding-bottom:86px}
 .pfhero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
   background:var(--line)}
 .pfid{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.pfid .tlogo{width:72px;height:72px;border-radius:var(--r-md);background:var(--plate);
-  box-shadow:inset 0 0 0 1px var(--plate-ring)}
-.pfid .tlogo.tmono{background:var(--plate);font-size:var(--t-h3);color:var(--plate-ink)}
-.pfid .tlogo.tlogo-bare{background:var(--plate);box-shadow:inset 0 0 0 1px var(--plate-ring)}
+/* The three `.pfid .tlogo` rules that sized the mark to 72px and rounded it
+   to --r-md are GONE, along with their 58px phone override further down.
+   They date from the old header, where the mark sat directly inside .pfid;
+   in the rebuilt hero it sits two levels down, inside .pfavatar, and at
+   equal specificity (0,2,0) and earlier source position `.pfavatar .tlogo`
+   was losing to them. The profile alone was therefore drawing a 72px
+   rounded SQUARE inside its own 96px circular plate — invisible while the
+   inner edge was a 16% white hairline, and the one placement in the
+   document that broke ADR's one-mask rule. Colouring that hairline is what
+   surfaced it: an accent ring floating inside the plate rather than on it. */
 .pfnames{min-width:0}
 .pfname{font-family:var(--serif);font-size:clamp(28px,4.4vw,40px);font-weight:600;line-height:1.06;letter-spacing:-.015em}
 .pfsub{font-size:var(--t-small);color:rgba(255,255,255,.72);margin-top:7px;line-height:1.5}
@@ -2248,19 +2285,36 @@ body:has(.backpill.on){padding-bottom:86px}
   .pfcard{border-radius:0;min-height:100%;max-height:none;overflow-y:visible}
   .pfhero{padding:24px 18px 20px}
   .pfbody{padding:20px 18px 30px}
-  .pfid .tlogo{width:58px;height:58px}
+  /* the 58px `.pfid .tlogo` override went with the three rules it belonged
+     to; .pfavatar's own 74px phone size (below) is what the hero uses */
   .pfyr{grid-template-columns:44px 1fr auto;gap:9px;padding:8px}
 }
 
 
 /* ---- owner logos ---- */
+/* One manager, one hue. logoImg() writes the pair — --own-d and --own-l —
+   onto every mark it builds; these two rules pick which one is live, and
+   they do it ON THE ELEMENT. Declared once at :root instead, --own would
+   resolve against :root for every manager alike and the whole palette
+   would collapse to one colour. Dark is the design's home, so the bare
+   selector carries the dark value and light is the override.
+   --own-d is used directly, never through --own, by anything drawn on the
+   avatar plate: the plate is dark in both themes (ADR-protected), so it
+   has no light-mode value to switch to.
+   Both rules use a fallback — var(--own-d, …) — so a mark with no accent
+   (an owner not in OWNER_ACCENT) keeps exactly what it had before. */
+[data-own]{--own:var(--own-d)}
+:root[data-theme="light"] [data-own]{--own:var(--own-l)}
 .tlogo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
   /* One mask. The manager grid and the profile already used circles; rows and
      the awards wall used rounded squares, and the unplated logos showed the
      raw image, which is itself circular — so the same manager appeared as a
      circle in one place and a square in another. Circle everywhere. */
   border-radius:50%;overflow:hidden;background:var(--plate);vertical-align:middle;
-  box-shadow:inset 0 0 0 1px var(--plate-ring)}
+  /* The hairline was the same rgba white on all seventeen marks. It is the
+     manager's own hue now, at the same weight — the ring was already the
+     one edge every mark shares, so it costs no new furniture. */
+  box-shadow:inset 0 0 0 1px var(--own-d, var(--plate-ring))}
 .tlogo img{width:100%;height:100%;object-fit:contain;display:block}
 /* Was: strip the plate from every non-photograph. Only three managers have a
    photo, so fourteen of seventeen marks were floating with no ground and no
@@ -2274,8 +2328,20 @@ body:has(.backpill.on){padding-bottom:86px}
    the plate to 125px. The image's containing block IS the plate, so a
    percentage there scales correctly at every avatar size. */
 .tlogo-bare img{width:82%;height:82%}
+/* A 14% wash of the manager's hue behind the bare vector marks, and only
+   those: inset to 82% they leave a ring of empty plate between artwork and
+   edge, which is where the colour goes. Photographs are excluded by the
+   selector — they fill the plate, so there is no gap to fill and a tint
+   over a face would be a filter, not a ground. 14% is where the wash still
+   reads as the same plate every other mark sits on; at 20% the plate stops
+   being shared, which is the one thing it exists to be. */
+.tlogo-bare,
+.masthead-avatars .tlogo.tlogo-bare,
+.pfavatar .tlogo.tlogo-bare,
+.mgrcard .mgravatar .tlogo.tlogo-bare{
+  background:color-mix(in srgb, var(--own-d, var(--plate)) 14%, var(--plate))}
 .tlogo.tmono{font-weight:800;color:var(--plate-ink);background:var(--plate);
-  box-shadow:inset 0 0 0 1px var(--plate-ring);letter-spacing:.02em}
+  box-shadow:inset 0 0 0 1px var(--own-d, var(--plate-ring));letter-spacing:.02em}
 .tlogo-sm{width:22px;height:22px}
 .tlogo-sm.tmono{font-size:var(--t-micro)}
 .tlogo-md{width:28px;height:28px;border-radius:var(--r-sm)}
@@ -2604,6 +2670,50 @@ table.h2 td.ev{color:var(--faint)}
 .h2legend i.up{background:var(--enc-soft);box-shadow:inset 0 0 0 1px var(--enc)}
 .h2legend i.dn{background:var(--rust-soft);box-shadow:inset 0 0 0 1px var(--rust)}
 .h2legend i.self{background:var(--soft);box-shadow:inset 0 0 0 1px var(--line)}
+
+/* ── Power Curve ──────────────────────────────────────────────────────
+   Inline SVG with a viewBox and width:100%, so it fits whatever column it
+   is given and needs no resize listener — a chart drawn to measured pixels
+   would have to redraw on every rotation, and this one is built once.
+   Each line is its manager's own hue; the marks in the table beneath it
+   wear the same ring, so the table IS the colour key and there is no
+   second legend to keep in step with it. */
+.elowrap{padding:4px 2px 0}
+.elosvg{display:block;width:100%;height:auto;overflow:visible}
+/* font-size and stroke-width are in viewBox units, and the two geometries
+   set them per box — see ELO_WIDE / ELO_TALL. The literals here are the
+   wide box's, so an SVG that somehow arrives without the pair still reads. */
+.elosvg text{font-family:var(--sans);fill:var(--faint);font-size:var(--elofs,11px)}
+.elosvg .eloyr{text-anchor:middle}
+.elosvg .elort{text-anchor:end;dominant-baseline:middle}
+.elosvg .elogrid{stroke:var(--line);stroke-width:1}
+/* 1500 is the whole scale's meaning — where a manager who has beaten
+   exactly as often as he was beaten sits — so it is the one rule drawn
+   in ink rather than in furniture */
+.elosvg .elomid{stroke:var(--muted);stroke-width:1;stroke-dasharray:4 4}
+.elosvg .eloseason{stroke:var(--line);stroke-width:1;opacity:.5}
+.eloline path{fill:none;stroke:var(--own, var(--accent));stroke-width:var(--elosw,2.2);
+  stroke-linejoin:round;stroke-linecap:round}
+.eloline circle{fill:var(--own, var(--accent))}
+/* Isolation dims the GROUP, not the paths: the axes, the season rules and
+   the 1500 line live outside .elolines, so they keep their weight while
+   sixteen careers step back. Fading the paths themselves would have taken
+   the frame down with them and left the reader following a line across a
+   chart that had also gone quiet. */
+.elolines .eloline{transition:opacity .18s ease}
+.elolines.iso .eloline{opacity:.13}
+.elolines.iso .eloline.on{opacity:1}
+/* Tap, never hover: half this league reads the page on a phone, and a
+   phone cannot hover. The name in the table is the target — it is already
+   a control there, so nothing new is drawn to carry the interaction. */
+#elotable tbody tr.on td{background:var(--accent-soft)}
+#elotable tbody tr.on td.l{background:var(--accent-soft)}
+.elogone{color:var(--faint);font-weight:600;font-size:var(--t-small)}
+/* --muted, not --faint. The peak year sits in an unpinned cell, so on the
+   zebra rows it is read against --panel-2 composited over the surface, and
+   --faint measured 3.94 there against a required 4.5 — the ADR 0005 sweep
+   caught it on the first run of this board. */
+.elopeak i{font-style:normal;color:var(--muted);font-weight:600;margin-left:4px}
 
 @media (max-width:760px){
   .mgrid{grid-template-columns:1fr}
@@ -3148,6 +3258,13 @@ a,button,summary,.pick,.sslrow{-webkit-tap-highlight-color:color-mix(in srgb, va
     --paper-1:#FFFFFF; --paper-2:#F7F9FC; --paper-3:#EFF2F7;
     --panel-2:rgba(20,26,40,.03);
   }
+  /* Manager accents print on paper, so they take their light value whatever
+     the on-screen theme says — the same argument as the token block above,
+     but it cannot be made there: the pair resolves on each element, not at
+     :root. Two selectors of specificity (0,1,0), so source order decides,
+     and this block is below the screen rule. Anything drawn on the avatar
+     plate keeps --own-d untouched: the plate prints dark too. */
+  [data-own]{--own:var(--own-l)}
   /* Force every collapsed panel open so the printed document is complete. */
   details,details.sect,.h2grid-wrap,.bracket{display:block!important}
   details > *,details.sect > .sectbody,.h2grid-wrap > *,.bracket > *{display:revert!important}
@@ -3309,7 +3426,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   line-height:1.04;letter-spacing:-.02em;color:var(--ink);margin:0}
 @media (max-width:520px){ .uhero h1,.uhero h2{font-size:var(--t-h3)} }
 
-/* ── the hub itself: eighteen doors, six groups ────────────────────────── */
+/* ── the hub itself: nineteen doors, six groups ────────────────────────── */
 .uhub{margin:var(--sp-6) 0}
 .uhubgroups{display:flex;flex-direction:column;gap:var(--sp-5);margin-top:var(--sp-5)}
 /* These label the groups they sit above, and at --t-micro/--muted they were
@@ -3841,7 +3958,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="uhead uhero">
     <p class="ueyebrow" id="hubphase">Twelve seasons &middot; 1,138 games</p>
     <h2 id="hubtitle">The whole archive, one tap away</h2>
-    <p>Eighteen boards, six groups. Every number on them is worked out in your browser from the league&rsquo;s own record.</p>
+    <p>Nineteen boards, six groups. Every number on them is worked out in your browser from the league&rsquo;s own record.</p>
   </div>
   <div class="uhubgroups">
 
@@ -3862,6 +3979,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
       <a class="ucard uhubdoor" href="#matchups"><b>Matchups</b><span>Every game</span></a>
       <a class="ucard uhubdoor" href="#h2h"><b>Head-to-head</b><span>Rivalries</span></a>
       <a class="ucard uhubdoor" href="#allplay"><b>All-Play</b><span>Schedule &amp; luck</span></a>
+      <a class="ucard uhubdoor" href="#power"><b>Power Curve</b><span>Career form</span></a>
     </div></div>
 
     <div class="uhubgroup"><h3>Drafts</h3><div class="ugrid">
@@ -4005,6 +4123,12 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="rpick" id="apyears"></div>
   <div class="card"><div class="tw"><table class="ledger" id="aptable"></table></div></div>
   <p class="pfnote" id="apnote"></p>
+</div></details></section>
+<section id="power"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Career form</p><h3 class="sec2">Power Curve</h3></div><span class="subfact">940 games rated · 17 careers</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">Every other board on this site answers what happened in a season. Standings reset in September and the Ledger flattens twelve years into one row, so neither draws the shape of a career. This does: one rating per manager, carried from season to season, moving with every game he has ever played. Tap a name to follow one line.</p>
+  <div class="card"><div class="elowrap" id="elochart"></div></div>
+  <div class="card"><div class="tw"><table class="ledger" id="elotable"></table></div></div>
+  <p class="pfnote" id="elonote"></p>
 </div></details></section>
 </div></details></section>
 <section id="building"><details class="sect"><summary class="sechead"><div><p class="eyebrow">How rosters get made</p><h2 class="sec">Draft, Rosters &amp; Trades</h2>
@@ -4560,14 +4684,110 @@ const ownerInitials = o => (o || "").split(/\s+/).filter(Boolean)
 // transparency: a transparent mark cropped to fill would lose its own edges, and
 // it wants the plate under it and the 82% inset every other bare mark gets.
 const PHOTO_LOGO = new Set(["Alen Huseinbegovic"]);
+/* ── One manager, one hue ──────────────────────────────────────────────
+   Seventeen managers shared a single mint accent, so identity was carried
+   entirely by the name: every avatar, every table row and every profile
+   looked alike. Each manager owns a hue now, and it is set from HERE
+   because logoImg() is the one chokepoint every manager mark in the
+   document passes through — masthead, rows, profiles, awards wall, draft
+   board. One edit colours all of them, and "one manager, one hue" cannot
+   be broken in one placement and not another.
+
+   How the wheel was cut. Each embedded mark's dominant ink was measured
+   (most-common quantised pixel for the rasters, most-common saturated hex
+   for the SVGs, discarding anything under 30% saturation or outside
+   14-88% lightness), then seventeen slots 21.18 degrees apart were handed
+   out by GLOBAL optimum — Hungarian assignment minimising squared
+   distance from each manager's real ink. Two alternatives lost. Greedy
+   let early claimants take the red slots and flung later red-logo
+   managers to magenta: sum of squared error 8,781 against the optimum's
+   8,264, worst single manager 67.8 degrees against 61.7. Plain distance
+   rather than squared TIES — greedy and optimal both score 222.1 — and
+   spends the tie by parking all the error on one man (73.2 degrees)
+   instead of spreading it.
+
+   The decision under all of it: even spacing beat logo fidelity. Six of
+   the fourteen marks are red or orange stock clip-art, so honouring every
+   logo would put six managers inside one narrow band and defeat the only
+   point of the exercise, which is telling them apart at a glance. The
+   four strongest reds do land on red, rose, orange and red-orange; the
+   two that overflow take magenta and purple. That is the cost of the rule
+   and it is paid knowingly.
+
+   Wheel offset 11.5 degrees, which holds every slot at least 9.74 off
+   mint (150) and 9.32 off gold (42) — the two hues this document already
+   spends meaning on, INTERACTION and CEREMONY (ADR 0012). No owner accent
+   should be mistaken for either. Sky and rust were considered as reserved
+   too and dropped: seventeen slots 21.18 apart cannot clear four reserved
+   hues, and those two carry less meaning than the first pair.
+
+   Four extractions were corrected by hand, each checked against the real
+   artwork:
+     Alen Huseinbegovic  photograph — its commonest ink is skin and
+                         backdrop brown. The mark is a man in an Eagles
+                         jersey, so the jersey teal (its second bin, 404
+                         pixels) is what the thing is actually of.
+     Justin DeCesare     grabbed the tan; the ink is #786bad, which missed
+                         the saturation gate by two points
+     Adam Boggess        pale straw cream, weighted to gold
+     Tate Grainger       monochrome mark (its #f0f is a placeholder, not
+                         ink); Who Dey -> Bengals burnt orange
+
+   Two values per manager, [dark, light]. Dark is the design's home and a
+   mid-tone tuned for the navy ground is mud on paper. Each clears 3.25:1
+   against the worst ground IN ITS OWN THEME — --raise #2D3A59 for the
+   dark value, --soft #EAEEF5 for the light — with headroom over ADR
+   0022's 3:1 floor so a later surface tweak can't push it back under.
+   Gating the light value on white is the trap: white is the EASIEST
+   ground it ever sits on, not the worst, and measuring a colour against a
+   ground it doesn't sit on is the one mistake the elevation pass made
+   fourteen times.
+
+   The pair is resolved ON THE ELEMENTS (the --own rules by .tlogo), never
+   once at :root — a custom property that reads another custom property
+   resolves against the element it is declared on, so a single :root rule
+   would paint all seventeen managers the same colour. This is the easiest
+   thing here to get wrong. */
+const OWNER_ACCENT = {
+  /*                       dark       light           slot · hue */
+  "Josh Scott":         ["#E16345","#DB4724"],  /*  0 ·  11.5 red-orange */
+  "Tate Grainger":      ["#DB8824","#B8721E"],  /*  1 ·  32.7 orange */
+  "Ermin Cerimovic":    ["#DBC824","#918418"],  /*  2 ·  53.8 */
+  "Adam Boggess":       ["#ADDB24","#6F8C17"],  /*  3 ·  75.0 */
+  "Gavin Spurrier":     ["#6DDB24","#499318"],  /*  4 ·  96.2 */
+  "Leo Thaweechok":     ["#2CDB24","#1E9719"],  /*  5 · 117.4 */
+  "Michael Boggess":    ["#24DB5C","#199740"],  /*  6 · 138.6 */
+  "Nick Drake":         ["#24DB9D","#18956B"],  /*  7 · 159.7 */
+  "Alen Huseinbegovic": ["#24D9DB","#189193"],  /*  8 · 180.9 jersey teal */
+  "RC Muncy":           ["#2498DB","#208AC8"],  /*  9 · 202.1 */
+  "Ryan Boggess":       ["#6186E5","#2457DB"],  /* 10 · 223.3 shield navy */
+  "Justin DeCesare":    ["#867EEA","#3124DB"],  /* 11 · 244.4 */
+  "Azer Sabanovic":     ["#A573E8","#7224DB"],  /* 12 · 265.6 */
+  "Christian Winn":     ["#C75DE5","#B324DB"],  /* 13 · 286.8 overflow */
+  "Abbas Hussain":      ["#E24BCE","#DB24C3"],  /* 14 · 308.0 overflow */
+  "Braxton Hill":       ["#E4569F","#DB2482"],  /* 15 · 329.2 rose */
+  "Colin Moore":        ["#E55D73","#DB2441"]   /* 16 · 350.3 red */
+};
+/* Anything wearing a manager's colour carries the PAIR and the name, and
+   the CSS picks which of the two is live. --own-d does double duty: it is
+   also the value for anything sitting on the avatar plate, which is dark
+   in BOTH themes and so has no light-mode value to switch to.
+   `attr` is declared a few lines below; every caller runs at render time,
+   long after this whole block has been evaluated. */
+const ownAttrs = owner => {
+  const a = OWNER_ACCENT[owner];
+  return a ? ` data-own="${attr(owner)}" style="--own-d:${a[0]};--own-l:${a[1]}"` : "";
+};
+
 // returns a small logo <img> if we have one, else a clean initials monogram.
 // `cls` lets each placement size it (tlogo-sm / tlogo-md / tlogo-lg).
 function logoImg(owner, cls){
   const bare = OWNER_LOGO[owner] && !PHOTO_LOGO.has(owner) ? " tlogo-bare" : "";
   const c = "tlogo " + (cls || "tlogo-sm") + bare;
   const src = OWNER_LOGO[owner];
-  if(src) return `<span class="${c}"><img src="${src}" alt="" loading="lazy"></span>`;
-  return `<span class="${c} tmono" aria-hidden="true">${ownerInitials(owner)}</span>`;
+  const own = ownAttrs(owner);
+  if(src) return `<span class="${c}"${own}><img src="${src}" alt="" loading="lazy"></span>`;
+  return `<span class="${c} tmono"${own} aria-hidden="true">${ownerInitials(owner)}</span>`;
 }
 
 /* String() first: every call site passes a string today, but a future
@@ -7505,7 +7725,7 @@ function pfBuild(o){
   const seed = owners.findIndex(x => x.n === o.n) + 1;
 
   return `<button class="pfclose" aria-label="Close">&times;</button>
-  <div class="pfhero">
+  <div class="pfhero"${ownAttrs(o.n)}>
     <div class="pfheroband">
       <span class="pfseed">${String(seed).padStart(2,"0")}</span>
       <span class="pfbandnote">Manager profile</span>
@@ -7574,7 +7794,7 @@ lazyBoard("awards", function(){
   if(!el) return;
   const rows = owners.map(o => ({o, traits: computeTraits(o)}));
   rows.sort((a,b) => b.traits.length - a.traits.length || (b.o.best <= a.o.best ? 1 : -1));
-  el.innerHTML = rows.map(({o, traits}) => `<button type="button" class="awardcard pfopen" data-profile="${esc(o.n)}">
+  el.innerHTML = rows.map(({o, traits}) => `<button type="button" class="awardcard pfopen" data-profile="${esc(o.n)}"${ownAttrs(o.n)}>
     <div class="awardcard-hd">${logoImg(o.n, "tlogo-md")}<b>${esc(o.n)}</b></div>
     <div class="awardbadges">${traits.map(([t]) => `<span class="awardbadge${BADGE_TONE[t] || ""}">${esc(t)}</span>`).join("")}</div>
   </button>`).join("");
@@ -7610,7 +7830,7 @@ function ssOpenLosses(owner){
     </button>`;
 
   PF.card.innerHTML = `<button class="pfclose" aria-label="Close">&times;</button>
-    <div class="pfheroband">
+    <div class="pfheroband"${ownAttrs(owner)}>
       <span class="pfseed">${esc(owner)}</span>
       <span class="pfbandnote">Winnable losses</span>
     </div>
@@ -8128,6 +8348,253 @@ document.getElementById("apyears").addEventListener("click", ev => {
   apY = +b.dataset.ap; drawAllPlay();
 });
 lazyBoard("allplay", () => { drawAllPlay(); });
+
+/* ================= Power Curve (Elo) =================================
+   The nineteenth board, and the only one that draws a line THROUGH the
+   seasons rather than inside one. Standings reset every September, the
+   Ledger flattens twelve years into a single row, and neither can show
+   the shape of a career — a rating that carries across seasons is the one
+   thing on the page that can.
+
+   No new data enters the document. This is computed in the browser from
+   ARCH.G and ARCH.T, the same 940 regular-season games Matchups draws,
+   which is what keeps the hub's claim — every number worked out in your
+   browser from the league's own record — true.
+
+   Ratings are keyed to the OWNER, never the team name: team names change
+   constantly here (Christian Winn alone has six), and a rating keyed to
+   the name would restart every time a manager got bored of his.
+
+   Three model choices that are not the textbook, each for a reason this
+   league gives:
+
+   1. MARGIN COUNTS, SCALED TO THE SEASON. The update is multiplied by
+      log(1 + 10 * margin / that season's mean score). Beating a man by
+      forty is not the same evidence as beating him by one, and dividing by
+      the season's own mean is what makes the 2021 half-PPR change
+      harmless: a 2014 standard margin and a half-PPR margin both become a
+      dimensionless fraction of a typical week. Every other board spanning
+      both eras carries the dagger (ERA_TIP); this one does not need it,
+      and that is a property of the arithmetic rather than a decision to
+      leave the warning off.
+
+   2. REGRESS 25% TOWARD 1500 EACH SEPTEMBER. This is a redraft league:
+      rosters are torn up every August and almost nothing but the manager
+      survives. A full reset would throw away the only thing being
+      measured, and no reset at all would credit a manager in 2025 for a
+      roster he last saw in 2016. Partial, because the manager IS the
+      continuity. Only managers about to play are regressed — see the line
+      that does it for why.
+
+   3. THE LINE STOPS WHEN THE MANAGER DOES. Five men have left. Regress
+      them anyway and their ratings crawl back to exactly 1500, where they
+      sit looking like perfectly average ACTIVE managers; the table shows
+      "left 2015" where their rating would be, and the curve simply ends.
+
+   K = 24 AND CARRY = 0.75 BARELY MATTER, WHICH IS THE USEFUL FACT. Swept
+   over K in {20, 24, 28} and carry in {0.70, 0.75, 0.80, 0.85} — twelve
+   combinations — the table below third place does not reorder in ANY of
+   them, and the only movement anywhere is Tate and Leo trading first and
+   second, who finish 1.7 points apart. The ranking is a property of the
+   record, not of the tuning. Re-run that sweep after any data change
+   rather than trusting these two numbers. */
+const ELO_K = 24, ELO_CARRY = 0.75, ELO_START = 1500;
+let ELO_DATA = null;
+function eloData(){
+  if(ELO_DATA) return ELO_DATA;
+  const years = A_YEARS.slice().sort((a,b) => a-b);
+  const R = {}, track = {}, first = {}, last = {};
+  const played = [];
+  years.forEach(y => {
+    const gs = (ARCH.G[y] || []).filter(g => g[5] === 0);   // regular season only
+    if(!gs.length) return;
+    played.push(y);
+    const own = tid => TEAM(y, tid).o;
+    /* the season's own mean score, which is what every margin this year is
+       measured against */
+    let sum = 0, n = 0;
+    gs.forEach(g => { sum += g[2] + g[4]; n += 2; });
+    const mean = sum / n || 1;
+    /* September. Only the managers about to play are pulled back toward
+       1500 — a man who has left the league is not re-drafting, and
+       regressing him every year anyway is precisely what would walk a
+       departed manager's rating to dead average and hide that he left. */
+    const active = [];
+    gs.forEach(g => { [own(g[1]), own(g[3])].forEach(o => {
+      if(o && o !== "?" && active.indexOf(o) < 0) active.push(o); }); });
+    active.forEach(o => { if(R[o] !== undefined) R[o] = ELO_START + ELO_CARRY * (R[o] - ELO_START); });
+    gs.slice().sort((a,b) => a[0]-b[0]).forEach(([wk, at, ap, bt, bp]) => {
+      const A = own(at), B = own(bt);
+      if(!A || !B || A === "?" || B === "?" || A === B) return;
+      if(R[A] === undefined) R[A] = ELO_START;
+      if(R[B] === undefined) R[B] = ELO_START;
+      const margin = Math.abs(ap - bp);
+      const mult = Math.log(1 + 10 * margin / mean);
+      /* Level on points. The tiebreak rulebook, not the scoring, picked
+         that winner, so the margin is zero and so is the evidence: nobody
+         moves. Ties are rare and belong to 2014's whole-number scoring. */
+      if(!(mult > 0)) return;
+      const s = ap > bp ? 1 : 0;
+      const exp = 1 / (1 + Math.pow(10, (R[B] - R[A]) / 400));
+      /* Damp the update by the winner's rating edge, so beating a man you
+         were always going to beat moves less than an upset does. Negative
+         edge — the underdog won — pushes the multiplier above 1, which is
+         the same statement read from the other end. */
+      const edge = s === 1 ? R[A] - R[B] : R[B] - R[A];
+      const damp = 2.2 / (edge * 0.001 + 2.2);
+      const d = ELO_K * mult * damp * (s - exp);
+      R[A] += d; R[B] -= d;
+    });
+    active.forEach(o => {
+      (track[o] = track[o] || []).push([y, R[o]]);
+      if(first[o] === undefined) first[o] = y;
+      last[o] = y;
+    });
+  });
+  const latest = played[played.length - 1];
+  const rows = Object.keys(track).map(o => {
+    const pk = track[o].reduce((a,b) => b[1] > a[1] ? b : a);
+    return { o, r: R[o], peak: pk[1], peakY: pk[0], seasons: track[o].length,
+             first: first[o], last: last[o], gone: last[o] < latest, pts: track[o] };
+  });
+  /* Active managers rank; the departed are listed after them however well
+     they were doing when they left. A single hot season in 2014 would
+     otherwise top a table of careers. */
+  rows.sort((a,b) => (a.gone - b.gone) || (a.gone ? b.last - a.last : 0) || b.r - a.r);
+  const all = rows.flatMap(r => r.pts.map(p => p[1]));
+  ELO_DATA = { rows, years: played,
+               min: Math.min(...all), max: Math.max(...all), latest };
+  return ELO_DATA;
+}
+
+/* The chart is one viewBox at width:100%, so it fits whatever column it is
+   handed and nothing recomputes on scroll or on a rotation. Everything
+   below is in viewBox UNITS, which are pixels at exactly one width.
+
+   That last sentence is the whole phone problem, and it is worth stating
+   because the first build shipped past it: a viewBox scales the LABELS too.
+   At 375px the 960-wide box renders at 322, so 11-unit type came out at
+   3.7 real pixels — a chart with no readable axis, on the device half this
+   league reads the page on. So there are two geometries. Not two charts:
+   the same builder, given a taller box, larger type and a heavier stroke,
+   all of which are units in the same viewBox. The media query is asked once
+   at draw time and again only if it actually changes, which is a rotation —
+   twice in a session, against a resize listener's hundreds. */
+const ELO_WIDE = { W:960, H:440, L:46, RGT:14, TOP:14, BOT:26, fs:11, sw:2.2, dot:3.2 };
+const ELO_TALL = { W:520, H:560, L:52, RGT:10, TOP:12, BOT:28, fs:15, sw:3, dot:4 };
+const eloNarrow = () => window.matchMedia("(max-width:560px)").matches;
+function eloChart(d){
+  const P = eloNarrow() ? ELO_TALL : ELO_WIDE;
+  const W = P.W, H = P.H, L = P.L, RGT = P.RGT, TOP = P.TOP, BOT = P.BOT;
+  const xs = {}, span = d.years.length > 1 ? d.years.length - 1 : 1;
+  d.years.forEach((y,i) => { xs[y] = L + (i / span) * (W - L - RGT); });
+  const lo = Math.floor((d.min - 12) / 25) * 25, hi = Math.ceil((d.max + 12) / 25) * 25;
+  const Y = r => (TOP + (1 - (r - lo) / (hi - lo || 1)) * (H - TOP - BOT)).toFixed(1);
+  const X = y => xs[y].toFixed(1);
+
+  let frame = "";
+  /* The grid is anchored ON 1500 and stepped outward, not started at the
+     bottom of the range: begun at `lo` the rungs land wherever the lowest
+     career happens to sit, and the run that found this had gridlines at
+     1425 and 1475 and no line at 1500 at all — the one value on the axis
+     that means anything. */
+  for(let g = 1500 - Math.floor((1500 - lo) / 50) * 50; g <= hi; g += 50){
+    frame += `<line class="${g === 1500 ? "elomid" : "elogrid"}" x1="${L}" y1="${Y(g)}" x2="${W - RGT}" y2="${Y(g)}"/>`
+           + `<text class="elort" x="${L - 8}" y="${Y(g)}">${g}</text>`;
+  }
+  d.years.forEach(y => {
+    frame += `<line class="eloseason" x1="${X(y)}" y1="${TOP}" x2="${X(y)}" y2="${H - BOT}"/>`
+           + `<text class="eloyr" x="${X(y)}" y="${H - BOT + P.fs + 5}">${String(y).slice(2)}</text>`;
+  });
+
+  const lines = d.rows.map(r => {
+    let path = "", prev = null;
+    r.pts.forEach(([y, v]) => {
+      const joined = prev !== null && d.years[d.years.indexOf(prev) + 1] === y;
+      path += `${joined ? "L" : "M"}${X(y)} ${Y(v)} `;
+      prev = y;
+    });
+    const end = r.pts[r.pts.length - 1];
+    /* the dot is the whole line for a man who played one season: a lone
+       moveto strokes nothing */
+    return `<g class="eloline" data-elo="${slug(r.o)}"${ownAttrs(r.o)}>`
+         + `<path d="${path.trim()}"/>`
+         + `<circle cx="${X(end[0])}" cy="${Y(end[1])}" r="${P.dot}"/></g>`;
+  }).join("");
+
+  return `<svg class="elosvg" viewBox="0 0 ${W} ${H}" role="img" preserveAspectRatio="xMidYMid meet"
+      style="--elofs:${P.fs}px;--elosw:${P.sw}"
+      aria-label="Every manager's rating after each season from ${d.years[0]} to ${d.latest}. The table below carries the same numbers.">
+      <g class="eloframe">${frame}</g><g class="elolines" id="elolines">${lines}</g></svg>`;
+}
+
+let eloOn = null;
+function eloFocus(key){
+  eloOn = key;
+  const g = document.getElementById("elolines");
+  if(g){
+    g.classList.toggle("iso", !!key);
+    g.querySelectorAll(".eloline").forEach(el => el.classList.toggle("on", el.dataset.elo === key));
+  }
+  document.querySelectorAll("#elotable tbody tr").forEach(tr => {
+    const on = tr.dataset.elo === key;
+    tr.classList.toggle("on", on);
+    const b = tr.querySelector("button[data-elo]");
+    if(b) b.setAttribute("aria-pressed", String(on));
+  });
+}
+function drawPowerCurve(){
+  const d = eloData();
+  const chart = document.getElementById("elochart");
+  const t = document.getElementById("elotable");
+  if(!chart || !t) return;
+  chart.innerHTML = eloChart(d);
+  const R0 = n => Math.round(n);
+  t.innerHTML =
+    `<colgroup><col style="width:44px"><col style="width:250px"><col style="width:96px">
+      <col style="width:120px"><col style="width:92px"></colgroup>
+     <thead><tr><th class="rdc"></th><th class="l">Manager</th><th>Rating</th><th>Peak</th><th>Seasons</th></tr></thead><tbody>` +
+    d.rows.map((r,i) => `<tr data-elo="${slug(r.o)}">
+        <td class="rdc">${r.gone ? "" : i+1}</td>
+        <td class="l" data-l=""><div class="nm haslogo">${logoImg(r.o, "tlogo-md")}<div class="nmwrap"><button class="pick" type="button" data-elo="${slug(r.o)}" aria-pressed="false">${esc(r.o)}</button><span class="team">${r.first}&ndash;${r.last}</span></div></div></td>
+        <td data-l="Rating">${r.gone ? `<span class="elogone">left ${r.last}</span>` : R0(r.r)}</td>
+        <td data-l="Peak" class="elopeak">${R0(r.peak)}<i>${r.peakY}</i></td>
+        <td data-l="Seasons">${r.seasons}</td>
+      </tr>`).join("") + "</tbody>";
+  const peak = d.rows.reduce((a,b) => b.peak > a.peak ? b : a);
+  const best = d.rows.find(r => !r.gone);
+  const atPeak = d.rows.filter(r => !r.gone && Math.abs(r.r - r.peak) < 0.5).map(r => r.o);
+  const names = atPeak.map(o => `<b>${esc(o)}</b>`);
+  const peakLine = !names.length ? ""
+    : names.length === 1
+      ? ` ${names[0]} is the only manager sitting at his own career peak.`
+      : ` ${names.slice(0,-1).join(", ")} and ${names[names.length-1]} are sitting at their own career peaks.`;
+  document.getElementById("elonote").innerHTML =
+    `Everyone starts at <b>1500</b> and takes points off the man he beats &mdash; more for a heavy win than a narrow one, and more for an upset than for a result everyone saw coming. `
+    + `Margins are measured against that season&rsquo;s own average score, so the 2021 scoring change doesn&rsquo;t tilt the line. `
+    + `Every September each rating is pulled a quarter of the way back to 1500: this is a redraft league, and the manager is the only thing that carries over. `
+    + `<b>${esc(peak.o)}</b> holds the highest rating anyone has reached, ${R0(peak.peak)} in ${peak.peakY}, and <b>${esc(best.o)}</b> leads today on ${R0(best.r)}.`
+    + peakLine
+    + ` Regular-season games only, ${d.years[0]}&ndash;${d.latest}.`;
+  if(eloOn) eloFocus(eloOn);
+}
+document.getElementById("elotable").addEventListener("click", ev => {
+  const b = ev.target.closest("button[data-elo]"); if(!b) return;
+  /* Exactly one interaction on this board, and it is a TAP. Nothing hides
+     behind a hover, because a phone cannot hover and the reader who most
+     needs one line out of seventeen is the one holding a phone. */
+  eloFocus(b.dataset.elo === eloOn ? null : b.dataset.elo);
+});
+/* Rotate the phone and the geometry the chart was built for stops being the
+   right one. This fires on the CROSSING, not on every resize step — and only
+   redraws a board that has actually been drawn, so an unopened panel still
+   costs nothing at load. drawPowerCurve() re-applies any isolated line, so
+   the reader's selection survives the rotation. */
+window.matchMedia("(max-width:560px)").addEventListener("change", () => {
+  const c = document.getElementById("elochart");
+  if(c && c.firstChild) drawPowerCurve();
+});
+lazyBoard("power", () => { drawPowerCurve(); });
 
 /* Changes to how points were awarded, taken from the league's scoring
    settings season by season. Kept separate from RULES, which covers format.
@@ -10622,7 +11089,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
   const MAP = {
     "#ahead":    [["#draft2026","Draft Night"],["#nflsched","NFL Schedule"]],
     "#people":   [["#managers","Manager Profiles"],["#board","Champions"],["#owners","The Ledger"]],
-    "#history":  [["#seasons","Standings"],["#matchups","Matchups"],["#h2h","Head-to-head"],["#allplay","All-Play"]],
+    "#history":  [["#seasons","Standings"],["#matchups","Matchups"],["#h2h","Head-to-head"],["#allplay","All-Play"],["#power","Power Curve"]],
     "#building": [["#drafts","Drafts"],["#draftranks","Draft Rankings"],["#rosters","Rosters"],["#trades","Trades"],["#startsit","Start &amp; Sit"],["#steals","Steals &amp; Busts"]]
   };
   [...menu.querySelectorAll(":scope > a")].forEach(a => {
@@ -10742,7 +11209,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
   const SECTIONS = [
     ["#ahead","2026 Season"], ["#draft2026","Draft Night"], ["#nflsched","NFL Schedule"],
     ["#people","Managers"], ["#managers","Manager Profiles"], ["#board","Champions"], ["#owners","The Ledger"],
-    ["#history","Seasons"], ["#seasons","Standings"], ["#matchups","Matchups"], ["#h2h","Head-to-head"], ["#allplay","All-Play"],
+    ["#history","Seasons"], ["#seasons","Standings"], ["#matchups","Matchups"], ["#h2h","Head-to-head"], ["#allplay","All-Play"], ["#power","Power Curve"],
     ["#building","Draft, Rosters & Trades"], ["#drafts","Drafts"], ["#draftranks","Draft Rankings"], ["#rosters","Rosters"], ["#trades","Trades"],
     ["#startsit","Start & Sit"], ["#steals","Steals & Busts"],
     ["#records","Record Book"], ["#rules","Rules"]
