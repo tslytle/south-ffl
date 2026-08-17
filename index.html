@@ -942,27 +942,28 @@ details.sub .ssh.dnh:first-of-type{margin-top:34px}
   box-shadow:inset 0 1px 0 color-mix(in srgb, var(--gold) 22%, transparent)}
 .dnpick.dnfirst:hover .dnnum{box-shadow:inset 0 1px 0 color-mix(in srgb, var(--gold) 22%, transparent),
   0 0 0 3px color-mix(in srgb, var(--gold) 15%, transparent)}
-/* The manager's own crest, blown up and bled off the trailing edge — the device
-   a club uses behind a player's headshot. It fills the space the ghost numeral
+/* The manager's crest, blown up and bled off the trailing edge — the device a
+   club uses behind a player's headshot. It fills the space the ghost numeral
    left with something that says whose seat this is instead of repeating the
-   number. It keeps its own colours: silhouetting each mark to --ink was tried
-   first and turned twelve distinct crests into twelve identical grey blobs. */
-.dnmark{position:absolute;z-index:0;right:-14px;top:50%;transform:translateY(-50%);
-  width:86px;height:86px;object-fit:contain;opacity:.13;
+   number. It is the card's only logo: the 34px plate that used to sit between
+   the chip and the name was the same artwork at a fifth the size, and a card
+   showing one mark twice is the fault this whole pass set out to fix.
+   It keeps its own colours — silhouetting each mark to --ink was tried first,
+   and turned twelve distinct crests into twelve identical grey blobs. */
+.dnmark{position:absolute;z-index:0;right:-16px;top:50%;transform:translateY(-50%);
+  width:98px;height:98px;object-fit:contain;opacity:.15;
   pointer-events:none;user-select:none;transition:opacity .15s}
-.dnpick:hover .dnmark{opacity:.2}
-/* a mark at 13% over a dark surface is barely there, so the dark themes take more */
-:root:not([data-theme="light"]) .dnmark,:root[data-theme="dark"] .dnmark{opacity:.17}
+.dnpick:hover .dnmark{opacity:.22}
+/* a mark at 15% over a dark surface is barely there, so the dark themes take more */
+:root:not([data-theme="light"]) .dnmark,:root[data-theme="dark"] .dnmark{opacity:.2}
 :root:not([data-theme="light"]) .dnpick:hover .dnmark,
-:root[data-theme="dark"] .dnpick:hover .dnmark{opacity:.24}
+:root[data-theme="dark"] .dnpick:hover .dnmark{opacity:.28}
 /* Alen's is a photograph rather than a cut-out: contained it would sit there as
    a pale rectangle, so it fills a disc the way that same photo does wherever
-   else the file shows it — the .tlogo:not(.tlogo-bare) rule, one size up. */
-.dnmark.dnmark-photo{width:76px;height:76px;right:-8px;object-fit:cover;border-radius:50%}
+   else the file shows it — the .tlogo:not(.tlogo-bare) rule, several sizes up. */
+.dnmark.dnmark-photo{width:86px;height:86px;right:-8px;object-fit:cover;border-radius:50%}
 /* the crest is positioned, so without this it would paint over the row it backs */
-.dnpick .dnnum,.dnpick .tlogo,.dnpick .dnwho{position:relative;z-index:1}
-.dnpick .tlogo{flex:0 0 auto}
-.dnpick .tlogo-md{width:34px;height:34px}
+.dnpick .dnnum,.dnpick .dnwho{position:relative;z-index:1}
 .dnwho{min-width:0}
 /* wraps now that the pick line is gone: the card is one line of text, the grid
    stretches its rows to match anyway, and "Alen Huseinbegovic" was the one
@@ -8571,10 +8572,10 @@ const DRAFT_2026 = {
      directly above the grid already explains how the snake runs; a reader who
      wants their round-two slot can count it from their seat faster than they
      can work out which of three numbers is which round. */
-  /* The crest a second time, at size and bled off the card's trailing edge.
-     Decoration, so it is hidden from the reading order — the plate beside the
-     name already carries the same mark for anyone who wants to look at it.
-     A manager with no logo on file wears the monogram and the rail alone. */
+  /* The crest, at size and bled off the card's trailing edge. Hidden from the
+     reading order: it is a backdrop for the name, and the name is the thing
+     being read — a screen reader announcing a logo here would only repeat what
+     it is about to say. A manager with no logo on file wears the rail alone. */
   const mark = name => {
     const src = OWNER_LOGO[name];
     if(!src) return "";
@@ -8583,7 +8584,7 @@ const DRAFT_2026 = {
 
   wrap.innerHTML = DRAFT_2026.order.map((name, i) => `<div class="dnpick${i === 0 ? " dnfirst" : ""}"${i === 0 ? ' title="First overall"' : ""}>
       ${mark(name)}
-      <span class="dnnum">${i + 1}</span>${logoImg(name, "tlogo-md")}
+      <span class="dnnum">${i + 1}</span>
       <span class="dnwho"><b>${esc(name)}</b></span>
     </div>`).join("");
 
