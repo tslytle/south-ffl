@@ -3464,7 +3464,6 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
 }
 
 /* ── a routed screen ──────────────────────────────────────────────────── */
-.uview{display:flex;flex-direction:column;gap:var(--sp-5)}
 .uhead{display:flex;flex-direction:column;gap:var(--sp-1)}
 .uhead .ueyebrow{font-family:var(--sans);font-size:var(--t-micro);font-weight:700;
   letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
@@ -3543,34 +3542,6 @@ a.ucard{display:block;color:inherit;text-decoration:none}
 a.ucard:hover{border-color:var(--accent);box-shadow:var(--u-sh-pop)}
 a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-/* ── stat block: a figure and what it is ──────────────────────────────── */
-.ustat{display:flex;flex-direction:column;gap:2px;min-width:0}
-.ustat b{font-family:var(--serif);font-size:var(--t-h3);font-weight:700;
-  line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
-.ustat span{font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;
-  text-transform:uppercase;color:var(--muted)}
-.ustat em{font-style:normal;font-size:var(--t-fine);color:var(--faint)}
-
-/* ── chip ─────────────────────────────────────────────────────────────── */
-.uchip{display:inline-block;padding:2px var(--sp-2);border-radius:var(--r-pill);
-  font-size:var(--t-tiny);font-weight:700;letter-spacing:.04em;
-  background:var(--soft);color:var(--body);white-space:nowrap}
-.uchip.on{background:var(--accent);color:var(--on-chip)}
-
-/* ── table. Sizes to content and scrolls in its own box, never the page. ─ */
-.uwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.utable{width:100%;border-collapse:separate;border-spacing:0;
-  font-size:var(--t-base);font-variant-numeric:tabular-nums}
-.utable th{font-family:var(--sans);font-size:var(--t-tiny);font-weight:700;
-  letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
-  text-align:right;padding:var(--sp-2) 7px;border-bottom:1px solid var(--line);
-  white-space:nowrap}
-.utable td{padding:var(--sp-2) 7px;border-bottom:1px solid var(--soft);
-  text-align:right;color:var(--body)}
-.utable th:first-child,.utable td:first-child{text-align:left;min-width:0}
-.utable tbody tr:last-child td{border-bottom:0}
-.utable tbody tr:hover td{background:var(--soft)}
-
 /* ── responsive grid. Cards shrink rather than forcing a scrollbar. ────── */
 /* Left-aligned remainder. An auto-fill/auto-fit grid fixes its tracks against
    the CONTAINER, so a short last row is pinned to the first tracks — which is
@@ -3593,13 +3564,6 @@ a.ucard:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (max-width:1010px){.ugrid{--cols:3}}
 @media (max-width:759px){.ugrid{--cols:2}}
 @media (max-width:479px){.ugrid{--cols:1}}
-
-/* ── disclosure ───────────────────────────────────────────────────────── */
-.udisc > summary{cursor:pointer;list-style:none;display:flex;align-items:center;
-  gap:var(--sp-2);padding:var(--sp-2) 0;font-size:var(--t-small);
-  font-weight:700;color:var(--accent)}
-.udisc > summary::-webkit-details-marker{display:none}
-.udisc > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* ── Routed views (ADR 0007, Q43/Q44) ──────────────────────────────────────
    One screen at a time. The six top-level sections become the six views; the
