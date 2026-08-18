@@ -42,7 +42,62 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-17 (latest): every board travels
+## WHERE THIS STANDS — 2026-08-17 (latest): the accent trade is REVERSED — fidelity beat spacing
+*Read this first. The sections below are the same day's earlier work and still current.*
+
+Asked for directly: **"I want the team colors to resemble their logos color as close as
+possible."** The evenly-spaced wheel is gone. The rule is now **a manager's accent is his own
+mark's ink**, and it moves only as far as two named things force it.
+
+**Why the old argument lost, and it is worth keeping because it was not stupid.** Even spacing
+bought separation by spending the only thing an accent is FOR. Colin Moore's mark is red and he
+was wearing purple; Gavin's pale-blue mark wore lime; Adam's straw hat wore chartreuse. A
+palette that tells you who someone is NOT has spent its whole budget and bought nothing. Nine of
+seventeen now sit within a few points of their own ink — **Ryan's light value IS his shield
+navy, `#0A1E6E`** — and Ermin's gold, Adam's straw, Gavin's pale blue and Colin's red are all
+near-untouched.
+
+**What is allowed to move a colour, in order:**
+
+1. **The contrast floor.** Unchanged and still the reason two values exist: 3.25:1 against the
+   worst ground in each theme (`--raise #2D3A59` dark, `--soft #EAEEF5` light). This is what
+   lightens a deep ink in dark mode and nothing else does — Eagles midnight green and shield
+   navy are both too dark to sit on a navy ground, so dark mode gets a teal and a periwinkle at
+   the same hue and **light mode gets the ink itself**.
+2. **Two men cannot wear one colour.** Eight marks fall in the red-to-gold arc and **three of
+   them are literally the same stock clip-art**. So that one family fans out around its own
+   centre, 11 degrees between neighbours, and **no manager drifts more than 14 degrees off his
+   own ink**. The drift is spent inside the family that caused it rather than charged to the
+   whole league — which is the precise difference from the old scheme, where one crowded band
+   moved all seventeen. Where hue still cannot separate a pair, **chroma** does, and that turns
+   out to be faithful too: `#BB2B38` really is the duller of the two identical reds, so Braxton
+   gets the duller accent.
+
+**Five managers have no ink to honour** — three marks are black-and-white, two men never had a
+mark. They take the emptiest hues left, placed one at a time by **farthest-point insertion**, so
+each lands as far from every colour already spoken for as the wheel allows. They are the only
+managers wearing a colour chosen rather than measured, and the code says so.
+
+**The source sample changed too, and this is the reusable bit.** Ranking a raster's pixels by
+count alone gives you what a mark is mostly MADE of; ranking by **count × saturation** gives you
+what it is ABOUT. Alen's commonest ink is skin and backdrop brown; his Eagles jersey is 447
+pixels and wins under the second rule. `scratchpad/logo-sample.py` if it is ever needed again.
+
+**Measured after:** closest pair in the whole document **dE 14.6 dark, 14.2 light** against a
+just-noticeable difference of about 2; every value clears the floor (worst 3.25 dark, 3.25
+light, ring-on-plate 4.50); **ADR 0005 sweep 0 fails in all four combinations, two passes each**.
+Judged by looking, too — a comparison sheet was generated putting each real mark beside its ink,
+its old accent and its new one, which is the only way this trade can honestly be assessed. It is
+deleted; regenerate from `palette4.py` + the sheet builder if the question comes up again.
+
+**The one thing that cannot be fixed by any palette:** Abbas, Braxton and Christian share one
+piece of red clip-art. Nothing measured off those marks can tell them apart, so two of the three
+are drifted into rose and hot pink — the only three accents in the document that are noticeably
+NOT their mark's colour. The real fix is a re-cut asset, not a better algorithm.
+
+---
+
+## WHERE THIS STANDS — 2026-08-17 (earlier): every board travels
 *Read this first. The sections below are the same day's earlier work and still current.*
 
 The handoff's own top remaining item — "**Sharing. Highest value remaining**: it makes every

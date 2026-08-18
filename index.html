@@ -4706,89 +4706,95 @@ const ownerInitials = o => (o || "").split(/\s+/).filter(Boolean)
 // transparency: a transparent mark cropped to fill would lose its own edges, and
 // it wants the plate under it and the 82% inset every other bare mark gets.
 const PHOTO_LOGO = new Set(["Alen Huseinbegovic"]);
-/* ── One manager, one hue ──────────────────────────────────────────────
+/* ── One manager, one hue, and the hue is his own ───────────────────
    Seventeen managers shared a single mint accent, so identity was carried
-   entirely by the name: every avatar, every table row and every profile
-   looked alike. Each manager owns a hue now, and it is set from HERE
+   entirely by the name. Each owns a colour now, and it is set from HERE
    because logoImg() is the one chokepoint every manager mark in the
    document passes through — masthead, rows, profiles, awards wall, draft
    board. One edit colours all of them, and "one manager, one hue" cannot
    be broken in one placement and not another.
 
-   How the wheel was cut. Each embedded mark's dominant ink was measured
-   (most-common quantised pixel for the rasters, most-common saturated hex
-   for the SVGs, discarding anything under 30% saturation or outside
-   14-88% lightness), then seventeen slots 21.18 degrees apart were handed
-   out by GLOBAL optimum — Hungarian assignment minimising squared
-   distance from each manager's real ink. Two alternatives lost. Greedy
-   let early claimants take the red slots and flung later red-logo
-   managers to magenta: sum of squared error 8,781 against the optimum's
-   8,264, worst single manager 67.8 degrees against 61.7. Plain distance
-   rather than squared TIES — greedy and optimal both score 222.1 — and
-   spends the tie by parking all the error on one man (73.2 degrees)
-   instead of spreading it.
+   THE RULE IS FIDELITY: a manager's accent is his own mark's ink. It moves
+   only as far as two things force it, and both are named below. An earlier
+   cut of this file did the opposite — seventeen slots evenly spaced 21.18
+   degrees apart, assigned by Hungarian optimum — on the argument that six
+   red marks inside one narrow band cannot be told apart. That trade is
+   REVERSED and the reasoning is worth keeping, because the objection was
+   real and had to be answered rather than ignored. Even spacing bought
+   separation by spending the only thing an accent is FOR: Colin Moore's
+   mark is red and he was wearing purple, which tells you who he is not.
+   Nine of the seventeen now sit within a few points of their own ink
+   (Ryan's light value IS his shield navy, #0A1E6E), and the crowd is
+   handled where it actually lives rather than by moving everyone.
 
-   The decision under all of it: even spacing beat logo fidelity. Six of
-   the fourteen marks are red or orange stock clip-art, so honouring every
-   logo would put six managers inside one narrow band and defeat the only
-   point of the exercise, which is telling them apart at a glance. The
-   four strongest reds do land on red, rose, orange and red-orange; the
-   two that overflow take magenta and purple. That is the cost of the rule
-   and it is paid knowingly.
+   WHAT MOVES A COLOUR, in order:
 
-   Wheel offset 11.5 degrees, which holds every slot at least 9.74 off
-   mint (150) and 9.32 off gold (42) — the two hues this document already
-   spends meaning on, INTERACTION and CEREMONY (ADR 0012). No owner accent
-   should be mistaken for either. Sky and rust were considered as reserved
-   too and dropped: seventeen slots 21.18 apart cannot clear four reserved
-   hues, and those two carry less meaning than the first pair.
+   1. THE CONTRAST FLOOR. Every value clears 3.25:1 against the worst
+      ground in its own theme — --raise #2D3A59 dark, --soft #EAEEF5 light
+      — with headroom over ADR 0022's 3:1. Gating the light value on white
+      is the trap: white is the EASIEST ground it ever sits on. This is
+      what lightens a deep ink in dark mode and nothing else does: Eagles
+      midnight green and shield navy are both too dark to sit on a navy
+      ground, so dark mode gets a teal and a periwinkle of the same hue,
+      and light mode gets the ink itself.
+
+   2. TWO MEN CANNOT WEAR ONE COLOUR. Eight marks fall in the red-to-gold
+      arc and three of them are literally the same stock clip-art. So that
+      one family fans out around its own centre, 11 degrees between
+      neighbours, and NO manager drifts more than 14 degrees off his own
+      ink — a red stays a red, and the drift is spent inside the family
+      that caused it rather than charged to the whole league. Where hue
+      still cannot separate a pair, chroma does, and that turns out to be
+      faithful too: #BB2B38 really is the duller of the two identical
+      reds, so Braxton gets the duller accent. Measured after: the closest
+      pair in the document is dE 14.6 dark, 14.2 light, against a
+      just-noticeable difference of about 2.
+
+   FIVE MANAGERS HAVE NO INK TO HONOUR — three marks are black-and-white
+   and two men have no mark at all. Faithfulness has nothing to say about
+   them, so they take the emptiest hues left, placed one at a time by
+   farthest-point insertion so that each new one lands as far from every
+   colour already spoken for as the wheel allows. They are the only
+   managers here wearing a colour chosen rather than measured.
 
    Four extractions were corrected by hand, each checked against the real
-   artwork:
-     Alen Huseinbegovic  photograph — its commonest ink is skin and
-                         backdrop brown. The mark is a man in an Eagles
-                         jersey, so the jersey teal (its second bin, 404
-                         pixels) is what the thing is actually of.
+   artwork, and the first is why the source sample is ranked by count x
+   saturation rather than by count:
+     Alen Huseinbegovic  photograph. Its commonest ink is skin and
+                         backdrop brown; the mark is a man in an Eagles
+                         jersey and that green is 447 pixels of it.
      Justin DeCesare     grabbed the tan; the ink is #786bad, which missed
                          the saturation gate by two points
-     Adam Boggess        pale straw cream, weighted to gold
-     Tate Grainger       monochrome mark (its #f0f is a placeholder, not
-                         ink); Who Dey -> Bengals burnt orange
-
-   Two values per manager, [dark, light]. Dark is the design's home and a
-   mid-tone tuned for the navy ground is mud on paper. Each clears 3.25:1
-   against the worst ground IN ITS OWN THEME — --raise #2D3A59 for the
-   dark value, --soft #EAEEF5 for the light — with headroom over ADR
-   0022's 3:1 floor so a later surface tweak can't push it back under.
-   Gating the light value on white is the trap: white is the EASIEST
-   ground it ever sits on, not the worst, and measuring a colour against a
-   ground it doesn't sit on is the one mistake the elevation pass made
-   fourteen times.
+     Adam Boggess        the straw hat, not the paper behind it
+     Tate Grainger       monochrome mark, its #f0f a placeholder rather
+                         than ink; Who Dey -> Bengals burnt orange
 
    The pair is resolved ON THE ELEMENTS (the --own rules by .tlogo), never
    once at :root — a custom property that reads another custom property
    resolves against the element it is declared on, so a single :root rule
    would paint all seventeen managers the same colour. This is the easiest
-   thing here to get wrong. */
+   thing here to get wrong.
+
+   Ordered by hue, which is the order the wheel puts them in; the comment
+   on each line is the ink it came from. */
 const OWNER_ACCENT = {
-  /*                       dark       light           slot · hue */
-  "Josh Scott":         ["#E16345","#DB4724"],  /*  0 ·  11.5 red-orange */
-  "Tate Grainger":      ["#DB8824","#B8721E"],  /*  1 ·  32.7 orange */
-  "Ermin Cerimovic":    ["#DBC824","#918418"],  /*  2 ·  53.8 */
-  "Adam Boggess":       ["#ADDB24","#6F8C17"],  /*  3 ·  75.0 */
-  "Gavin Spurrier":     ["#6DDB24","#499318"],  /*  4 ·  96.2 */
-  "Leo Thaweechok":     ["#2CDB24","#1E9719"],  /*  5 · 117.4 */
-  "Michael Boggess":    ["#24DB5C","#199740"],  /*  6 · 138.6 */
-  "Nick Drake":         ["#24DB9D","#18956B"],  /*  7 · 159.7 */
-  "Alen Huseinbegovic": ["#24D9DB","#189193"],  /*  8 · 180.9 jersey teal */
-  "RC Muncy":           ["#2498DB","#208AC8"],  /*  9 · 202.1 */
-  "Ryan Boggess":       ["#6186E5","#2457DB"],  /* 10 · 223.3 shield navy */
-  "Justin DeCesare":    ["#867EEA","#3124DB"],  /* 11 · 244.4 */
-  "Azer Sabanovic":     ["#A573E8","#7224DB"],  /* 12 · 265.6 */
-  "Christian Winn":     ["#C75DE5","#B324DB"],  /* 13 · 286.8 overflow */
-  "Abbas Hussain":      ["#E24BCE","#DB24C3"],  /* 14 · 308.0 overflow */
-  "Braxton Hill":       ["#E4569F","#DB2482"],  /* 15 · 329.2 rose */
-  "Colin Moore":        ["#E55D73","#DB2441"]   /* 16 · 350.3 red */
+  "Colin Moore":        ["#F45441","#E84C39"], /* #F24646  the mark's only ink */
+  "Josh Scott":         ["#EC5F25","#E0571F"], /* #F04E37  the mark's only ink */
+  "Tate Grainger":      ["#FB7802","#D06401"], /* #FB4F14  HAND: monochrome mark, #f0f a placeholder. Who Dey = Bengals */
+  "Ermin Cerimovic":    ["#F6AD3F","#BA7305"], /* #FAAF42  gold, near untouched */
+  "Adam Boggess":       ["#FCE797","#9B7F1A"], /* #FAE696  the straw hat, near untouched */
+  "RC Muncy":           ["#97DB24","#5B9100"], /* —        no ink in the mark */
+  "Leo Thaweechok":     ["#2CDB24","#0A9803"], /* —        no ink in the mark */
+  "Nick Drake":         ["#24DB87","#009651"], /* —        no mark at all */
+  "Alen Huseinbegovic": ["#1198AC","#074B54"], /* #004C54  HAND: photo. Eagles green, 447px of it */
+  "Gavin Spurrier":     ["#B0CAD6","#5389A2"], /* #B1C8D4  the one colour in a grey mark */
+  "Ryan Boggess":       ["#6C84E4","#0A1E6E"], /* #0A1E6E  shield navy, 2,510px */
+  "Justin DeCesare":    ["#8E80C6","#7C6EB4"], /* #786BAD  HAND: two points under the saturation gate */
+  "Azer Sabanovic":     ["#B85EFD","#8C24DB"], /* —        no mark at all */
+  "Michael Boggess":    ["#E23AEE","#CF24DB"], /* —        no ink in the mark */
+  "Abbas Hussain":      ["#FF3878","#E30049"], /* #E63545  shares one clip-art red with Braxton */
+  "Braxton Hill":       ["#EC577D","#B2153D"], /* #BB2B38  the duller of that same red */
+  "Christian Winn":     ["#F54D59","#BE232E"]  /* #BE202E  the same family again */
 };
 /* Anything wearing a manager's colour carries the PAIR and the name, and
    the CSS picks which of the two is live. --own-d does double duty: it is
