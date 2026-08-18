@@ -2732,6 +2732,33 @@ table.h2 td.ev{color:var(--faint)}
 .elopeak i{display:block;font-style:normal;font-size:var(--t-tiny);font-weight:600;
   color:var(--muted);margin-top:2px;letter-spacing:.01em}
 
+/* ── Other Universes ─────────────────────────────────────────
+   The bar is a histogram made of table cells rather than an SVG: one cell
+   per finishing place, twelve of them, each inked in the manager's own hue
+   at the share of ten thousand seasons he finished there. At this size a
+   chart element would cost a viewBox, a scale and a redraw for something a
+   row of divs does exactly as well. */
+.luckbar{display:flex;gap:2px;align-items:stretch;height:22px;min-width:150px}
+/* The share is carried in the FILL's alpha, not in the element's opacity.
+   Opacity fades everything the element draws, marker included, so the
+   playoff line vanished on exactly the managers whose last playoff place
+   was rare — which is the one place a reader needs to see it. */
+.luckbar i{flex:1;border-radius:2px;min-width:3px;
+  background:color-mix(in srgb, var(--own, var(--accent)) calc(var(--f, 0) * 1%), transparent)}
+/* The last playoff place, marked on the bar rather than named beside it:
+   the reader has to know which side of the line each block sits on, and a
+   legend two rows down cannot tell him. */
+.luckbar i.cut{box-shadow:1px 0 0 var(--ink)}
+.luckodds b{font-weight:700;color:var(--ink)}
+.luckodds .sub,.ledger td .sub{display:block}
+/* A season that missed reads a shade quieter, and the tint is the row’s own
+   colour rather than a grey — this is the one table where the manager’s
+   colour is the subject. */
+.luckout .luckodds b{color:var(--muted)}
+@media (max-width:760px){
+  .luckbar{min-width:0;height:18px}
+}
+
 @media (max-width:760px){
   .mgrid{grid-template-columns:1fr}
   table.h2 thead th{height:80px}
@@ -3170,8 +3197,13 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
      number floating above the name with a gap under it. All-Play already
      dropped it here; the Power Curve is the same table in the same layout,
      and the cards are in rank order anyway. */
-  #aptable td.rdc,#elotable td.rdc{display:none}
-  #elotable{min-width:0}
+  #aptable td.rdc,#elotable td.rdc,#lucktable td.rdc{display:none}
+  #elotable,#lucktable{min-width:0}
+  /* The histogram gets its own row on a phone rather than a quarter of one.
+     Squeezed into a 4-column card grid it came out 69px wide -- twelve
+     finishing places in 69 pixels is a smear, and the bar IS the board. */
+  #lucktable tbody td[data-l="Where they finished"]{grid-column:1/-1}
+  #lucktable .luckbar{height:26px}
   .records{grid-template-columns:1fr}
   footer{padding-bottom:48px}
 }
@@ -3448,7 +3480,7 @@ button,summary,.tbtn,.pick{-webkit-touch-callout:none}
   line-height:1.04;letter-spacing:-.02em;color:var(--ink);margin:0}
 @media (max-width:520px){ .uhero h1,.uhero h2{font-size:var(--t-h3)} }
 
-/* ── the hub itself: nineteen doors, six groups ────────────────────────── */
+/* ── the hub itself: twenty doors, six groups ────────────────────────── */
 .uhub{margin:var(--sp-6) 0}
 .uhubgroups{display:flex;flex-direction:column;gap:var(--sp-5);margin-top:var(--sp-5)}
 /* These label the groups they sit above, and at --t-micro/--muted they were
@@ -3980,7 +4012,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="uhead uhero">
     <p class="ueyebrow" id="hubphase">Twelve seasons &middot; 1,138 games</p>
     <h2 id="hubtitle">The whole archive, one tap away</h2>
-    <p>Nineteen boards, six groups. Every number on them is worked out in your browser from the league&rsquo;s own record.</p>
+    <p>Twenty boards, six groups. Every number on them is worked out in your browser from the league&rsquo;s own record.</p>
   </div>
   <div class="uhubgroups">
 
@@ -4001,6 +4033,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
       <a class="ucard uhubdoor" href="#matchups"><b>Matchups</b><span>Every game</span></a>
       <a class="ucard uhubdoor" href="#h2h"><b>Head-to-head</b><span>Rivalries</span></a>
       <a class="ucard uhubdoor" href="#allplay"><b>All-Play</b><span>Schedule &amp; luck</span></a>
+      <a class="ucard uhubdoor" href="#luck"><b>Other Universes</b><span>The schedule re-drawn</span></a>
       <a class="ucard uhubdoor" href="#power"><b>Power Curve</b><span>Career form</span></a>
     </div></div>
 
@@ -4145,6 +4178,12 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
   <div class="rpick" id="apyears"></div>
   <div class="card"><div class="tw"><table class="ledger" id="aptable"></table></div></div>
   <p class="pfnote" id="apnote"></p>
+</div></details></section>
+<section id="luck"><details class="sub"><summary class="subhead"><div><p class="eyebrow">The schedule re-drawn</p><h3 class="sec2">Other Universes</h3></div><span class="subfact">12 seasons &middot; 10,000 re-draws each</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
+  <p class="subnote">The season you had, dealt again. Every weekly score stays exactly where it fell &mdash; nobody scores a point more or less than he really did &mdash; and only the fixtures change, ten thousand times over. What comes back is how much of a season was the schedule: who was going to make the playoffs almost however the draw fell, and who needed it.</p>
+  <div class="rpick" id="luckyears"></div>
+  <div class="card"><div class="tw"><table class="ledger" id="lucktable"></table></div></div>
+  <p class="pfnote" id="lucknote"></p>
 </div></details></section>
 <section id="power"><details class="sub"><summary class="subhead"><div><p class="eyebrow">Career form</p><h3 class="sec2">Power Curve</h3></div><span class="subfact">940 games rated · 17 careers</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <p class="subnote">Every other board on this site answers what happened in a season. Standings reset in September and the Ledger flattens twelve years into one row, so neither draws the shape of a career. This does: one rating per manager, carried from season to season, moving with every game he has ever played. Tap a name to follow one line.</p>
@@ -8412,6 +8451,221 @@ function allPlayFor(y){
   }).sort((a,b) => (b.aw / (b.aw + b.al || 1)) - (a.aw / (a.aw + a.al || 1)));
 }
 
+/* ================= Other Universes: the schedule re-drawn ==============
+   All-Play asks what the record would be if you played the whole league
+   every week. That is the limit case, and it deletes the schedule
+   entirely. This asks the question a manager actually asks in November:
+   the season you had, dealt again. Every weekly score stays exactly where
+   it fell -- nobody scores a point more or less than he really did -- and
+   only the fixtures are re-drawn, ten thousand times.
+
+   WHAT VARIES IS THE SCHEDULE AND NOTHING ELSE. Resampling the scores was
+   the other option and it answers a different question: how good the team
+   was. That is what Franchise Grade and the Power Curve are for. Holding
+   every score fixed is what makes the number here mean "the draw", and it
+   is why the sentence it produces is worth reading -- a man who missed the
+   playoffs in the season he actually played made them in 68% of the
+   seasons he could have played, off the same fourteen scores.
+
+   THE SEED RULE IS MEASURED, NOT ASSUMED, and the first guess was wrong.
+   "Best record, then points" reproduces the real seeding in three seasons
+   of the ten with a bracket on file. This league seeds its DIVISION
+   WINNERS first: that rule reproduces the exact order in nine of ten, and
+   in 10 OF 10 it names the same six teams -- which is the only claim this
+   board actually makes, since it reports who reached the field rather than
+   who was seeded where. The lone miss is 2016. Each season's own tiebreak
+   is honoured (RULES[y][3]) rather than one rule imposed on twelve
+   seasons; that is what took it from eight to nine.
+
+   THE RE-DRAW IS A ROUND ROBIN, NOT A COIN FLIP. Pairing the league at
+   random each week is easier and wrong -- it lets one man draw the
+   champion five times, which is not a schedule anybody was ever handed.
+   Each universe is built the way a real one is: a circle-method rotation
+   off a shuffled order, reshuffled when the rotation runs out of rounds.
+   Divisions are deliberately NOT weighted in the draw, because the real
+   schedules do not follow a clean division pattern either -- measured,
+   they run from every division pair once to some pairs three times -- so
+   there is no format here to preserve, only a draw to vary.
+
+   TEN THOUSAND UNIVERSES, AND THE SAME TEN THOUSAND EVERY TIME. The
+   generator is seeded off the season, so the number this page shows you is
+   the number it shows everyone, today and next August. A board whose
+   headline is "12% of universes" cannot afford to say 13% on reload, and
+   Math.random() would have it do exactly that -- which would also make the
+   figure unshareable, which is the point of the batch before this one. */
+const LUCK_RUNS = 10000;
+/* mulberry32. Four lines, no dependency, and good enough for a coin flip
+   that only has to be fair and repeatable. */
+function luckRng(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function luckSeason(y){
+  const gs = (ARCH.G[y] || []).filter(g => g[5] === 0);
+  if(!gs.length) return null;
+  const ids = [...new Set(gs.reduce((a,g) => a.concat([g[1], g[3]]), []))];
+  const idx = {}; ids.forEach((t,i) => idx[t] = i);
+  const weeks = [...new Set(gs.map(g => g[0]))].sort((a,b) => a-b);
+  const S = ids.map(() => new Array(weeks.length).fill(null));
+  gs.forEach(([wk,a,ap,b,bp]) => {
+    const w = weeks.indexOf(wk); S[idx[a]][w] = ap; S[idx[b]][w] = bp;
+  });
+  const div = ids.map(t => DIV_OF(y, TEAM(y,t).n) || "-");
+  const n = ids.length;
+  const real = {w:new Array(n).fill(0), dw:new Array(n).fill(0), dl:new Array(n).fill(0)};
+  gs.forEach(([wk,a,ap,b,bp]) => {
+    const A = idx[a], B = idx[b], same = div[A] === div[B] && div[A] !== "-";
+    if(ap > bp){ real.w[A]++; if(same){ real.dw[A]++; real.dl[B]++; } }
+    else if(bp > ap){ real.w[B]++; if(same){ real.dw[B]++; real.dl[A]++; } }
+    else { real.w[A] += 0.5; real.w[B] += 0.5; }
+  });
+  /* division membership never varies between universes, so the grouping
+     is built once here rather than ten thousand times in the ranker */
+  const groups = [], seen = {};
+  div.forEach((d,i) => { if(!(d in seen)){ seen[d] = groups.length; groups.push([]); } groups[seen[d]].push(i); });
+  return { y: y, ids: ids, n: n, weeks: weeks, S: S, div: div, real: real, groups: groups,
+           pf: S.map(r => r.reduce((a,v) => a + (v || 0), 0)),
+           owners: ids.map(t => TEAM(y,t).o), names: ids.map(t => TEAM(y,t).n),
+           spots: (RULES[y] && RULES[y][2]) || 6,
+           byPoints: !!(RULES[y] && RULES[y][3] === "Total points") };
+}
+/* Every week's fixtures, built the way a real scheduler builds them.
+
+   The circle method's PATTERN never changes -- round r always pairs the
+   same SEATS -- so it is computed once per season, and the only thing a
+   universe re-draws is which manager sits in which seat. The inner loop
+   then does two typed-array reads and allocates nothing. It matters
+   because this runs ten thousand times on whatever phone the reader has:
+   the first version built 840,000 little arrays and took 181ms a season
+   on a desktop, which is a second and change on a mid-range handset, and
+   the whole lazy-board architecture exists to avoid exactly that.
+
+   The random draw is untouched -- same generator, same calls, same order,
+   one shuffle at the head of each rotation -- so every number this board
+   reports is identical to the version that allocated. That was checked
+   rather than assumed. */
+function luckPattern(n, weeks){
+  const per = n >> 1, m = n - 1;
+  const pat = new Int32Array(weeks * per * 2);
+  let at = 0;
+  for(let k=0;k<weeks;k++){
+    const r = k % m;                     /* seat 0 sits still; the rest rotate */
+    pat[at++] = 0; pat[at++] = 1 + r;
+    for(let i=1;i<=per-1;i++){
+      pat[at++] = 1 + ((r + i) % m);
+      pat[at++] = 1 + ((r - i + m) % m);
+    }
+  }
+  return pat;
+}
+/* Division winners first, then everyone else, each block ordered by the
+   season's own tiebreak. Returns team indexes in seed order. */
+function luckRank(sn, w, dw, dl, out){
+  const n = sn.n, groups = sn.groups;
+  const dpct = i => (dw[i]+dl[i]) ? dw[i]/(dw[i]+dl[i]) : 0;
+  const better = (a,b) => {
+    const d = w[a] - w[b];
+    if(d) return d > 0;
+    if(sn.byPoints) return sn.pf[a] >= sn.pf[b];
+    const p = dpct(a) - dpct(b);
+    if(p) return p > 0;
+    return sn.pf[a] >= sn.pf[b];
+  };
+  /* Each division's best, then those two by the same rule, then everyone
+     else. Insertion sort on twelve entries, into an array that already
+     exists: a comparator-driven .sort() here allocated a closure and a
+     result array ten thousand times for a list a phone can order by hand. */
+  let at = 0;
+  for(let g=0; g<groups.length; g++){
+    const grp = groups[g];
+    let best = grp[0];
+    for(let i=1;i<grp.length;i++) if(better(grp[i], best)) best = grp[i];
+    let j = at;
+    while(j > 0 && better(best, out[j-1])){ out[j] = out[j-1]; j--; }
+    out[j] = best; at++;
+  }
+  const champs = at;
+  for(let i=0;i<n;i++){
+    let isChamp = false;
+    for(let c=0;c<champs;c++) if(out[c] === i){ isChamp = true; break; }
+    if(isChamp) continue;
+    let j = at;
+    while(j > champs && better(i, out[j-1])){ out[j] = out[j-1]; j--; }
+    out[j] = i; at++;
+  }
+  return out;
+}
+const LUCK_CACHE = {};
+function luckRun(y){
+  if(LUCK_CACHE[y]) return LUCK_CACHE[y];
+  const sn = luckSeason(y);
+  if(!sn) return null;
+  const n = sn.n, W = sn.weeks.length, N = LUCK_RUNS;
+  const made = new Array(n).fill(0);
+  const hist = sn.ids.map(() => new Array(n).fill(0));
+  const rnd = luckRng(y * 2654435761);
+  const w = new Float64Array(n), dw = new Int32Array(n), dl = new Int32Array(n);
+  const seats = new Int32Array(n), order = new Int32Array(n);
+  const pat = luckPattern(n, W), per = n >> 1, m = n - 1;
+  /* the weekly scores as one flat row per week, so the inner loop reads a
+     number rather than walking two arrays to find one */
+  const score = new Float64Array(n * W);
+  for(let i=0;i<n;i++) for(let k=0;k<W;k++) score[k*n + i] = sn.S[i][k] == null ? -1 : sn.S[i][k];
+  const sameDiv = new Uint8Array(n * n);
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++)
+    sameDiv[i*n + j] = (sn.div[i] === sn.div[j] && sn.div[i] !== "-") ? 1 : 0;
+  for(let u=0; u<N; u++){
+    w.fill(0); dw.fill(0); dl.fill(0);
+    for(let k=0;k<W;k++){
+      /* a fresh seating at the head of every rotation, exactly as the
+         allocating version did, so the generator is consumed identically */
+      if(k % m === 0){
+        for(let i=0;i<n;i++) seats[i] = i;
+        for(let i=n-1;i>0;i--){ const j = (rnd()*(i+1))|0, t = seats[i]; seats[i] = seats[j]; seats[j] = t; }
+      }
+      const base = k * per * 2, row = k * n;
+      for(let p=0;p<per;p++){
+        const A = seats[pat[base + p*2]], B = seats[pat[base + p*2 + 1]];
+        const a = score[row + A], b = score[row + B];
+        if(a < 0 || b < 0) continue;
+        const same = sameDiv[A*n + B];
+        if(a > b){ w[A]++; if(same){ dw[A]++; dl[B]++; } }
+        else if(b > a){ w[B]++; if(same){ dw[B]++; dl[A]++; } }
+        else { w[A] += 0.5; w[B] += 0.5; }
+      }
+    }
+    luckRank(sn, w, dw, dl, order);
+    for(let s=0;s<n;s++){ const t = order[s]; hist[t][s]++; if(s < sn.spots) made[t]++; }
+  }
+  const realOrder = luckRank(sn, sn.real.w, sn.real.dw, sn.real.dl, new Int32Array(n));
+  const seedOf = new Array(n); realOrder.forEach((t,s) => seedOf[t] = s+1);
+  /* The 10th and 90th percentile, never the extremes: over ten thousand
+     draws somebody finishes last once, and reporting that as his range
+     says only that the run was long. */
+  const band = h => {
+    let acc = 0, lo = 1, hi = n, mid = 1, seenLo = false, seenMid = false;
+    for(let s=0;s<n;s++){
+      acc += h[s];
+      if(!seenLo && acc >= N*0.10){ lo = s+1; seenLo = true; }
+      if(!seenMid && acc >= N*0.50){ mid = s+1; seenMid = true; }
+      if(acc >= N*0.90){ hi = s+1; break; }
+    }
+    return [lo, mid, hi];
+  };
+  const rows = sn.ids.map((t,i) => {
+    const b = band(hist[i]);
+    return { owner: sn.owners[i], name: sn.names[i], w: sn.real.w[i],
+             l: W - sn.real.w[i], pf: sn.pf[i], seed: seedOf[i],
+             odds: made[i]/N, lo: b[0], med: b[1], hi: b[2],
+             hist: hist[i], made: seedOf[i] <= sn.spots };
+  }).sort((a,b) => a.seed - b.seed);
+  return (LUCK_CACHE[y] = { y: y, rows: rows, n: n, weeks: W, spots: sn.spots, runs: N });
+}
+
 let apY = A_YEARS[0];
 function drawAllPlay(){
   const rows = allPlayFor(apY);
@@ -8456,6 +8710,72 @@ document.getElementById("apyears").addEventListener("click", ev => {
   apY = +b.dataset.ap; drawAllPlay();
 });
 lazyBoard("allplay", () => { drawAllPlay(); });
+
+let luckY = A_YEARS[0];
+function drawLuck(){
+  const d = luckRun(luckY);
+  const t = document.getElementById("lucktable");
+  const btns = document.getElementById("luckyears");
+  if(btns) btns.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.luck === luckY));
+  if(!t) return;
+  if(!d){ t.innerHTML = ""; return; }
+  const pc = n => (n > 0 && n*100 < 0.5) ? "&lt;1%" : (n*100).toFixed(0) + "%";
+  const rec = n => (n % 1 ? n.toFixed(1) : String(n));
+  /* One bar per manager: a cell per finishing place, inked in his own
+     colour at the share of universes he landed there, with the last
+     playoff place marked. The number says 68%; the bar says where the
+     other 32% went. */
+  const bar = r => {
+    let max = 1;
+    for(let i=0;i<r.hist.length;i++) if(r.hist[i] > max) max = r.hist[i];
+    return '<span class="luckbar" aria-hidden="true">' + r.hist.map((c,i) =>
+      '<i class="' + (i+1 === d.spots ? "cut" : "") + '" style="--f:' +
+      (c/max*100).toFixed(1) + '"></i>').join("") + '</span>';
+  };
+  t.innerHTML =
+    `<colgroup><col style="width:40px"><col style="width:210px"><col style="width:84px">
+      <col style="width:96px"><col style="width:auto"><col style="width:124px"></colgroup>
+     <thead><tr><th class="rdc"></th><th class="l">Manager</th><th>Record</th>
+      <th>Made it</th><th>Where they finished</th><th>Usual place</th></tr></thead><tbody>` +
+    /* class first, then the accent pair: a tag whose name is followed
+       straight by an interpolation reads as "<tr$" to the open/close tag
+       counter used before every commit, and a false alarm there is worth
+       avoiding for the price of one always-present attribute. */
+    d.rows.map(r => `<tr class="${r.made ? "" : "luckout"}"${ownAttrs(r.owner)}>
+        <td class="rdc">${r.seed}</td>
+        <td class="l" data-l=""><div class="nm haslogo">${logoImg(r.owner, "tlogo-md")}<div class="nmwrap"><span class="nmname">${esc(r.owner)}</span><span class="team">${esc(r.name)}</span></div></div></td>
+        <td data-l="Record">${rec(r.w)}&ndash;${rec(r.l)}</td>
+        <td data-l="Made it" class="luckodds"><b>${pc(r.odds)}</b><span class="sub">${r.made ? "made it" : "missed"}</span></td>
+        <td data-l="Where they finished">${bar(r)}</td>
+        <td data-l="Usual place">${ord(r.med)}<span class="sub">${ord(r.lo)}&ndash;${ord(r.hi)} in most</span></td>
+      </tr>`).join("") + "</tbody>";
+  /* The sentence this board exists to produce. */
+  const IN = d.rows.filter(r => r.made), OUT = d.rows.filter(r => !r.made);
+  const lucky = IN.length ? IN.reduce((a,b) => b.odds < a.odds ? b : a) : null;
+  const robbed = OUT.length ? OUT.reduce((a,b) => b.odds > a.odds ? b : a) : null;
+  const runs = d.runs.toLocaleString();
+  const note = document.getElementById("lucknote");
+  if(note) note.innerHTML =
+    (robbed ? `<b>${esc(robbed.owner)}</b> reached the playoffs in <b>${pc(robbed.odds)}</b> of ${runs} re-drawn ${d.y} seasons, and missed in the one that counted. ` : "")
+    + (lucky ? `<b>${esc(lucky.owner)}</b> got in here on ${pc(lucky.odds)}. ` : "")
+    + `Every weekly score is exactly what it was &mdash; only the fixtures are re-dealt, ${runs} times, each schedule drawn the way a real one is. `
+    + `The bar is where a manager finished across all of them: the brighter the cell the more often he landed there, and the marked cell is the last playoff place. `
+    + `Seeding follows this league&rsquo;s own rule, division winners first, which names the same six teams as the real bracket in every season with one on file.`;
+}
+lazyBoard("luck", () => {
+  const b = document.getElementById("luckyears");
+  if(b) b.innerHTML = `<span class="rlab">Season</span>` +
+    A_YEARS.map(y => `<button data-luck="${y}">${y}</button>`).join("");
+  drawLuck();
+});
+{
+  const b = document.getElementById("luckyears");
+  if(b) b.addEventListener("click", ev => {
+    const t = ev.target.closest("button[data-luck]"); if(!t) return;
+    luckY = +t.dataset.luck; drawLuck();
+  });
+}
+
 
 /* ================= Power Curve (Elo) =================================
    The nineteenth board, and the only one that draws a line THROUGH the
@@ -11197,7 +11517,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
   const MAP = {
     "#ahead":    [["#draft2026","Draft Night"],["#nflsched","NFL Schedule"]],
     "#people":   [["#managers","Manager Profiles"],["#board","Champions"],["#owners","The Ledger"]],
-    "#history":  [["#seasons","Standings"],["#matchups","Matchups"],["#h2h","Head-to-head"],["#allplay","All-Play"],["#power","Power Curve"]],
+    "#history":  [["#seasons","Standings"],["#matchups","Matchups"],["#h2h","Head-to-head"],["#allplay","All-Play"],["#luck","Other Universes"],["#power","Power Curve"]],
     "#building": [["#drafts","Drafts"],["#draftranks","Draft Rankings"],["#rosters","Rosters"],["#trades","Trades"],["#startsit","Start &amp; Sit"],["#steals","Steals &amp; Busts"]]
   };
   [...menu.querySelectorAll(":scope > a")].forEach(a => {
@@ -11317,7 +11637,7 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
   const SECTIONS = [
     ["#ahead","2026 Season"], ["#draft2026","Draft Night"], ["#nflsched","NFL Schedule"],
     ["#people","Managers"], ["#managers","Manager Profiles"], ["#board","Champions"], ["#owners","The Ledger"],
-    ["#history","Seasons"], ["#seasons","Standings"], ["#matchups","Matchups"], ["#h2h","Head-to-head"], ["#allplay","All-Play"], ["#power","Power Curve"],
+    ["#history","Seasons"], ["#seasons","Standings"], ["#matchups","Matchups"], ["#h2h","Head-to-head"], ["#allplay","All-Play"], ["#luck","Other Universes"], ["#power","Power Curve"],
     ["#building","Draft, Rosters & Trades"], ["#drafts","Drafts"], ["#draftranks","Draft Rankings"], ["#rosters","Rosters"], ["#trades","Trades"],
     ["#startsit","Start & Sit"], ["#steals","Steals & Busts"],
     ["#records","Record Book"], ["#rules","Rules"]

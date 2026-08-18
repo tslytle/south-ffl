@@ -42,7 +42,67 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-17 (latest): the accent trade is REVERSED — fidelity beat spacing
+## WHERE THIS STANDS — 2026-08-17 (latest): Other Universes, the twentieth board
+*Read this first. The sections below are the same day's earlier work and still current.*
+
+Item 2 off the remaining list. Each season's schedule is re-drawn ten thousand times with
+**every weekly score held exactly where it fell**, and what comes back is how much of a season
+was the draw. The sentence the handoff predicted is there: **Alen Huseinbegovic reached the 2025
+playoffs in 71% of re-drawn seasons and missed in the one that counted.** Ryan Boggess was the
+5 seed at 8–6 and made it in 96%, median finish 2nd — the schedule cost him nothing but seeding.
+Abbas made it for real on 45%.
+
+**Four modelling decisions, and one of them was wrong first:**
+
+1. **Only the schedule varies.** Resampling scores answers a different question — how good the
+   team was — and that is what Franchise Grade and the Power Curve are for. Holding every score
+   fixed is what makes this number mean *the draw*.
+2. **THE SEED RULE IS MEASURED, AND THE FIRST GUESS WAS WRONG.** "Best record, then points"
+   reproduces the real seeding in **3 of the 10** seasons with a bracket on file. This league
+   seeds **division winners first**: that rule gets the exact order in **9 of 10**, and the same
+   six teams in **10 of 10** — which is the only claim the board makes, since it reports who
+   reached the field, not who was seeded where. Honouring each season's own tiebreak
+   (`RULES[y][3]`, "Total points" in 2014 and 2025, "Division record" otherwise) is what took it
+   from eight to nine. The lone miss is 2016. This check is `scratchpad`-grade but trivial to
+   rebuild: rank every season four ways, diff against `BRACKETS`.
+3. **The re-draw is a round robin, not a coin flip.** Uniform weekly pairings let one man draw
+   the champion five times, which is not a schedule anyone was handed. Each universe is a
+   circle-method rotation off a shuffled order, reshuffled when the rotation runs out of rounds.
+   Divisions are deliberately **not** weighted in the draw — measured, the real schedules run
+   from every division pair once to some pairs three times, so there is no format to preserve.
+4. **Seeded PRNG (mulberry32), keyed to the season.** A board whose headline is "12% of
+   universes" cannot say 13% on reload, and it certainly cannot after the last batch made every
+   board shareable. `Math.random()` would have done exactly that.
+
+**The optimisation is the part worth carrying.** The first version allocated 840,000 small
+arrays per season and took **181ms** in the browser — which is a second and change on the phone
+this league reads on, and the entire lazy-board architecture exists to avoid that. The circle
+method's *pattern* never changes, only who sits in which seat, so the pattern is computed once
+per season and the inner loop became two typed-array reads with no allocation: **181ms → 30ms**,
+and 918ms → 551ms for all twelve seasons in node. The rewrite was held to one invariant — **not
+one number may change** — checked by running the extracted board from both copies of the file
+and diffing the full result set. Identical.
+
+**Verified**: 11 script blocks parse; the board extracted and run against real `ARCH` with DOM
+stubs (12 seasons, every field exactly `spots` teams, seeds 1..n with no gaps, medians inside
+their own bands, playoff field matching the bracket 10/10); tag deltas balance; **ADR 0005 sweep
+0 fails in all four combinations, two passes each**; CRLF throughout. Registered in all six
+places, hub count nineteen → twenty.
+
+**Two defects found by looking, both the same shape as last time:**
+
+1. **The playoff-cut marker was invisible on exactly the rows that needed it.** The bar carried
+   its share in the element's `opacity`, which fades everything the element draws — marker
+   included — so the line vanished for any manager whose sixth place was rare. The share is in
+   the **fill's alpha** now (`color-mix`), and the marker stays solid.
+2. **The stray `.rdc` rank and its dead space, again**, this time on the phone cards — and the
+   histogram was being squeezed into a quarter-width grid cell, 69px for twelve finishing
+   places. Both fixed; the bar takes its own full-width row on a phone, because the bar IS the
+   board.
+
+---
+
+## WHERE THIS STANDS — 2026-08-17 (earlier): the accent trade is REVERSED — fidelity beat spacing
 *Read this first. The sections below are the same day's earlier work and still current.*
 
 Asked for directly: **"I want the team colors to resemble their logos color as close as
