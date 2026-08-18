@@ -42,8 +42,85 @@ measurement, not a trend, but it shrinks the window a collision can happen in. V
 
 ---
 
-## WHERE THIS STANDS — 2026-08-17 (latest): every manager owns a hue, and the nineteenth board
-*Read this first. The sections below are earlier work and still current.*
+## WHERE THIS STANDS — 2026-08-17 (latest): every board travels
+*Read this first. The sections below are the same day's earlier work and still current.*
+
+The handoff's own top remaining item — "**Sharing. Highest value remaining**: it makes every
+board you already have travel" — built as it described, including the prerequisite it named.
+
+**A manager has a URL now.** Profiles opened through `data-profile` and nothing else, so the one
+surface a leaguemate most wants to send was the one surface that could not be sent. The
+convention is **`#mgr-<slug>`**, prefixed rather than bare: every other hash on this page names
+an element id, and a bare name sits one collision away from a section. Nothing in the document
+has an id beginning `mgr-`, so the router can recognise the namespace *before* it goes looking
+for an element that was never going to exist — which matters, because `viewFor`'s miss path
+**draws every board** hunting for the id.
+
+- **replaceState, never push.** Opening a profile already costs one history entry (`jump()`
+  pushes it, which is what makes Back close the overlay and land you where you were). Pushing
+  the URL as well would make leaving one card take two presses. The address is written onto the
+  entry that already exists.
+- **Closing drops the hash on every path, including the pop.** The pop usually restores the URL
+  itself — but not for a reader who ARRIVED on `#mgr-...`, where the entry behind the overlay
+  carries that same address. That reader closed the card and kept its link in the address bar,
+  ready to be handed out by the next Copy link.
+
+**One share implementation, two controls.** `Copy link` sits in the view bar beside Expand all
+and the PDF; `SHARE` sits in the profile's hero band, set at the note's weight rather than as a
+page control (a 32px chip there outranks the manager's own name two rows below it).
+
+- **WHICH board, not which view.** `#history` is five boards. The jump bar already tracks which
+  panel you are in on scroll for its own purposes (ADR 0020's shared `.on`), so the share
+  control asks it. It cannot drift from what the reader sees highlighted, because it *is* what
+  the reader sees highlighted. Fallbacks narrow: the marked panel, then the one open panel, then
+  the view, then the hub — every one of them still a link that lands somewhere true.
+- **Three mechanisms, best first**: `navigator.share` (the phone gets the OS sheet, straight
+  into the chat), the clipboard, then `execCommand` on an offscreen textarea for an insecure
+  context where *both* of the first two are undefined. Pages is https so the third path is for a
+  leaguemate opening the file some other way; it costs eleven lines and is the difference
+  between a working button and a dead one.
+- **The button is the status.** Its label becomes "Link copied" and it carries `aria-live` —
+  the `.backpill` pattern — rather than this document inventing a toast it would then have to
+  position and dismiss.
+- **A cancelled share sheet is not a failure** and is not reported as one; any *other* rejection
+  falls through to the clipboard rather than leaving the reader nothing.
+
+**PER-ROUTE OG IMAGES CANNOT BE DONE THIS WAY, and the handoff's list should say so.** A URL
+fragment is never sent to the server and no crawler runs the router, so `#power` and `#mgr-leo`
+are the same document to every preview card that will ever be generated. One site-wide image is
+not a shortcut here, it is the only thing hash routing can express. The way out is
+**path-based stubs**: one ~600-byte HTML file per board carrying its own `og:title` and
+redirecting into `index.html#board`. Worth knowing before anyone costs it — the *title* is what
+a chat client shows largest, so nineteen stubs sharing the ONE existing image already buy most
+of the effect, and no new artwork is needed. Left unbuilt on purpose: the link landing in the
+right place is the bigger half of the value and is now done.
+
+**Verified**: 11 script blocks `node --check`ed; the Elo harness still passes in both
+geometries; tag deltas balance; **ADR 0005 sweep 0 fails in all four combinations, two passes
+each** ({375, 1266} × {dark, light}); CRLF throughout. Behaviour proved in the pane — a cold
+`#mgr-tate-grainger` opens the card over the Managers view; close returns `#managers` in one
+press; a click-opened profile takes exactly one Back; the view-bar control copied
+`http://localhost:8765/#power` while standing on the Power Curve; `navigator.share` (stubbed)
+received `South FFL — Abbas Hussain` with `#mgr-abbas-hussain`, and pressing it did not close
+the overlay underneath.
+
+**Two traps this batch produced, both worth carrying:**
+
+1. **TDZ took down the whole site, twice, from one line.** `openFor()` runs on the load pass,
+   forty lines above where `MGR_HASH` and `NAME_OF` are initialised. Calling a helper that
+   touches either one threw, and the throw took out the rest of the script block — no boards,
+   no router, no profile, on every route. The guard is a **literal** prefix test now, with a
+   comment saying why it may not be tidied into a function call. **Nothing that runs during the
+   load pass may depend on anything declared below it.**
+2. **The tag-delta check counts prose.** A comment that mentioned `<details>` in passing
+   registered as an unbalanced open tag. It is a false positive, but the fix is to reword the
+   comment rather than to learn to ignore the check — an alarm you have taught yourself to
+   ignore is not an alarm.
+
+---
+
+## WHERE THIS STANDS — 2026-08-17 (earlier): every manager owns a hue, and the nineteenth board
+*Same day, earlier. Still current.*
 
 Two batches, built from a handoff written against the **wrong `index.html`**. The decisions in
 that document survived; the code was re-derived from scratch against this file, and the

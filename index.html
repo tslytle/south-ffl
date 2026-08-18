@@ -1970,6 +1970,18 @@ body:has(.backpill.on){padding-bottom:86px}
   padding:14px 22px 12px;border-bottom:2px solid var(--own, var(--accent));
   background:var(--surface)}
 .pfseed{font-family:var(--serif);font-size:var(--t-h4);font-weight:700;letter-spacing:.02em;color:var(--ink)}
+/* The band still has two children, so it still lays out as two ends — the
+   note and the control travel together as the right one. */
+.pfbandright{display:flex;align-items:center;gap:12px;min-width:0}
+/* Set like the note beside it rather than like a page control: this is a
+   caption-weight affordance on a caption-weight line, and a 32px chip here
+   would outrank the manager's own name two rows below it. */
+.sharebtn{font-family:var(--sans);font-size:var(--t-micro);font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--line);
+  border-radius:var(--r-pill);padding:5px 12px;cursor:pointer;white-space:nowrap;
+  transition:color .15s ease,border-color .15s ease}
+.sharebtn:hover,.sharebtn.on{color:var(--accent);border-color:var(--accent)}
+@media print{.sharebtn{display:none}}
 .pfbandnote{font-size:var(--t-tiny);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .pfheromain{display:grid;grid-template-columns:1fr auto 1.15fr;gap:26px;align-items:center;
   padding:26px 22px;border-bottom:1px solid var(--line);
@@ -4014,7 +4026,7 @@ body[data-route]:not([data-route="hub"]) .uback{display:inline-flex}
 
 <div class="viewbar">
 <button class="uback" type="button" id="uback">&larr; All sections</button>
-<div class="allctl"><button data-all="1">Expand all</button><button data-all="0">Collapse all</button><button id="printBtn" type="button">Download as PDF</button></div>
+<div class="allctl"><button data-all="1">Expand all</button><button data-all="0">Collapse all</button><button id="shareBtn" type="button" aria-live="polite">Copy link</button><button id="printBtn" type="button">Download as PDF</button></div>
 </div>
 <section id="ahead"><details class="sect" open><summary class="sechead"><div><p class="eyebrow">Next up</p><h2 class="sec">The 2026 Season</h2>
   <p class="sec-note">Everything before a ball is thrown &mdash; when the draft is, who you are picking against, and the NFL slate it all runs on.</p></div><span class="chev" aria-hidden="true"></span></summary><div class="sectbody">
@@ -7086,6 +7098,15 @@ function openFor(hash){
   let id = "";
   try{ id = hash ? decodeURIComponent(String(hash).replace(/^#/, "")) : ""; }
   catch(e){ return; }
+  /* `#mgr-` is a person, not a panel: nothing to open, since the overlay is
+     not a `details` element. Tested against a LITERAL rather than by
+     calling ownerFromHash(), on purpose — this function runs on the load
+     pass, forty lines above where MGR_HASH and NAME_OF are initialised, and
+     touching either one inside its temporal dead zone threw. That throw
+     took out the rest of the script block, which is most of the site: no
+     boards, no router, no profile. Nothing in here may depend on anything
+     declared below it. */
+  if(id.slice(0, 4) === "mgr-") return;
   const el = id && document.getElementById(id);
   if(!el) return;
   openUp(el);
@@ -7145,10 +7166,44 @@ const PF = {
   mask: document.getElementById("pfmask"),
   wrap: document.getElementById("pfwrap"),
   card: document.getElementById("pfcard"),
-  lastFocus: null
+  lastFocus: null,
+  owner: null          /* whose card is open, for the share control */
 };
 
 function pfOrdinal(n){ return ord(n); }
+
+/* ── A manager has a URL ───────────────────────────────────────
+   Profiles opened through `data-profile` and nothing else, so the one
+   surface a leaguemate most wants to send — "look at your own page" — was
+   the one surface that could not be sent. The convention is `#mgr-<slug>`,
+   deliberately NOT a bare slug: every other hash on this page names an
+   element id, and a bare name would sit one collision away from a section.
+   Nothing in the document has an id beginning `mgr-`, so the prefix is a
+   namespace the router can recognise BEFORE it goes looking for an element
+   that was never going to exist. */
+const MGR_HASH = "mgr-";
+const mgrHash = owner => "#" + MGR_HASH + slug(owner);
+function ownerFromHash(hash){
+  let id = "";
+  try{ id = hash ? decodeURIComponent(String(hash).replace(/^#/, "")) : ""; }
+  catch(e){ return null; }
+  if(id.slice(0, MGR_HASH.length) !== MGR_HASH) return null;
+  return NAME_OF[id.slice(MGR_HASH.length)] || null;
+}
+/* The address bar is a DISPLAY here, not a trigger: the overlay is already
+   open by the time this runs, and replaceState is the one way to write a URL
+   without waking the router. Guarded because a browser that refuses it should
+   cost the reader a shareable link, not the page. */
+function pfSyncHash(hash){
+  try{ history.replaceState(history.state, "", hash || location.pathname + location.search); }
+  catch(e){}
+}
+/* Leaving a profile leaves its address behind too, or the next Copy link
+   hands out a card the reader has already closed. Only ever rewrites a
+   `#mgr-` URL: anything else is a hash the reader navigated to themselves. */
+function pfDropHash(){
+  if(ownerFromHash(location.hash)) pfSyncHash("#managers");
+}
 
 function pfOpen(owner){
   const rec = owners.find(o => o.n === owner);
@@ -7166,11 +7221,25 @@ function pfOpen(owner){
   PF.wrap.classList.add("on");
   document.body.style.overflow = "hidden";
   PF.wrap.scrollTop = 0;
+  PF.owner = rec.n;
+  /* REPLACE, never push. Opening a profile already costs one history entry —
+     jump() pushes it, which is what makes Back close the overlay and land you
+     where you were — and pushing the URL as well would make leaving one card
+     take two presses. This writes the address onto the entry that already
+     exists. */
+  pfSyncHash(mgrHash(rec.n));
   const btn = PF.card.querySelector(".pfclose");
   if(btn) btn.focus();
 }
 function pfClose(fromPop){
   if(!fromPop && PF.wrap.classList.contains("on") && BACKSTACK.length){ history.back(); return; }
+  PF.owner = null;
+  /* Unconditional, including on the pop path. The pop usually restores the
+     URL by itself — but not for a reader who ARRIVED on `#mgr-...`, where the
+     entry behind the overlay carries that same address, so Back closed the
+     card and left its link in the address bar. pfDropHash only rewrites a URL
+     that still names a manager, so on every other path this does nothing. */
+  pfDropHash();
   PF.mask.classList.remove("on");
   PF.wrap.classList.remove("on");
   document.body.style.overflow = "";
@@ -7182,10 +7251,23 @@ function pfClose(fromPop){
    stack and fired history.back() — undoing the jump that had just been made,
    so the link appeared to do nothing. */
 function pfDismiss(){
+  PF.owner = null;
+  pfDropHash();
   PF.mask.classList.remove("on");
   PF.wrap.classList.remove("on");
   document.body.style.overflow = "";
 }
+/* A pasted `#mgr-` link opens the card it names. Registered here, below
+   pfOpen, and fired on `load` rather than inline: a link arriving cold from a
+   group chat is the entire point of the convention, and the listener covers
+   the same link followed from inside the page. The PF.owner test keeps it
+   idempotent — pfOpen writes the hash it just consumed. */
+function pfFromHash(){
+  const who = ownerFromHash(location.hash);
+  if(who && PF.owner !== who) pfOpen(who);
+}
+window.addEventListener("hashchange", pfFromHash);
+window.addEventListener("load", pfFromHash);
 PF.mask.addEventListener("click", pfClose);
 PF.wrap.addEventListener("click", e => { if(e.target === PF.wrap) pfClose(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && PF.wrap.classList.contains("on")) pfClose(); });
@@ -7738,7 +7820,7 @@ function pfBuild(o){
   <div class="pfhero"${ownAttrs(o.n)}>
     <div class="pfheroband">
       <span class="pfseed">${String(seed).padStart(2,"0")}</span>
-      <span class="pfbandnote">Manager profile</span>
+      <span class="pfbandright"><span class="pfbandnote">Manager profile</span><button class="sharebtn" type="button" data-share="mgr" aria-live="polite">Share</button></span>
     </div>
     <div class="pfheromain">
       <div class="pfid">
@@ -11581,6 +11663,142 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
 </script>
 
 <script>
+/* ── Sharing ──────────────────────────────────────────────────
+   The use case is one man in a group chat on a phone: nineteen boards, and
+   the only way to send someone a particular one was to tell him where to
+   tap. Every board already had an address — the router has run on hashes
+   since ADR 0007 — so nothing here invents a URL scheme. It reads the one
+   the reader is already standing in and hands it over.
+
+   WHICH board, not which view. `#history` is four boards and the Power
+   Curve is one of them, so the jump bar's own "you are in this panel"
+   marker (ADR 0020's shared `.on`) is what answers the question. That bar
+   already tracks it on scroll for its own purposes; asking it costs
+   nothing and cannot drift from what the reader sees highlighted. When it
+   has no answer — bar hidden, nothing open — the fallbacks narrow from
+   "the one open panel" to "the view" to "the hub", in that order, and
+   every one of those is still a link that lands somewhere true.
+
+   THREE MECHANISMS, in order of how good the result is. The phone gets
+   navigator.share, which opens the OS sheet and puts the link straight
+   into the chat the reader had in mind. The desktop gets the clipboard.
+   Anything else — and "anything else" here means an insecure context,
+   where BOTH of those are undefined — gets execCommand on an offscreen
+   textarea, which is ancient and works. GitHub Pages is https, so the
+   third path is for a leaguemate opening the file some other way; it
+   costs eleven lines and is the difference between a working button and a
+   dead one.
+
+   The button says what happened in its own label, and carries aria-live so
+   a screen reader hears it. That is the .backpill's pattern — the control
+   IS the status — and it beats a toast this document would otherwise have
+   to invent, position and dismiss. */
+(function(){
+  const BTN = document.getElementById("shareBtn");
+  const IDLE = navigator.share ? "Share" : "Copy link";
+  if(BTN) BTN.textContent = IDLE;
+
+  const urlFor = hash => location.origin + location.pathname + location.search + (hash || "");
+
+  /* Title for the OS sheet. Only navigator.share uses it; the clipboard
+     paths hand over the bare URL, because a pasted link that arrives with a
+     sentence in front of it is a sentence someone has to delete. */
+  const titleFor = label => label ? "South FFL — " + label : "South FFL";
+
+  function currentTarget(){
+    /* A profile is the most specific thing that can be open, and it floats
+       above whatever view is behind it, so it wins outright. */
+    if(typeof PF !== "undefined" && PF.owner)
+      return { hash: mgrHash(PF.owner), label: PF.owner };
+    const view = document.querySelector("section.uroute.uactive");
+    if(!view) return { hash: "", label: "" };
+    const marked = view.querySelector(".subnav button[data-goto].on");
+    const panels = [...view.querySelectorAll(".sectbody > section[id]")];
+    const open = panels.filter(sec => {
+      const d = sec.querySelector("details.sub");
+      return d && d.open;
+    });
+    const sec = marked ? document.getElementById(marked.dataset.goto)
+              : open.length === 1 ? open[0] : null;
+    if(sec){
+      const h = sec.querySelector("h3.sec2");
+      return { hash: "#" + sec.id, label: h ? h.textContent.trim() : sec.id };
+    }
+    const h2 = view.querySelector("h2.sec");
+    return { hash: "#" + view.id, label: h2 ? h2.textContent.trim() : view.id };
+  }
+
+  function flash(btn, msg, idle){
+    btn.textContent = msg;
+    btn.classList.add("on");
+    clearTimeout(btn._sharet);
+    btn._sharet = setTimeout(() => {
+      btn.textContent = idle;
+      btn.classList.remove("on");
+    }, 1900);
+  }
+
+  function legacyCopy(url){
+    /* Offscreen rather than display:none — a hidden field cannot be
+       selected, and an unselected field cannot be copied. */
+    const ta = document.createElement("textarea");
+    ta.value = url;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch(e){}
+    ta.remove();
+    return ok;
+  }
+
+  function copy(url, btn, idle){
+    const win = () => flash(btn, "Link copied", idle);
+    const lose = () => {
+      if(legacyCopy(url)) return win();
+      /* Last resort, and deliberately a prompt: it puts the link in front of
+         the reader selected and ready, which is worse than a copy and far
+         better than a button that did nothing. */
+      try { window.prompt("Copy this link", url); } catch(e){}
+      flash(btn, "Link ready", idle);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(url).then(win, lose);
+    else lose();
+  }
+
+  function doShare(btn, idle){
+    const t = currentTarget();
+    const url = urlFor(t.hash);
+    if(navigator.share){
+      navigator.share({ title: titleFor(t.label), url: url }).then(function(){}, err => {
+        /* The reader closing the sheet is not a failure and must not be
+           reported as one. Anything else means the sheet never worked, so
+           fall through to the clipboard rather than leaving them nothing. */
+        if(err && err.name === "AbortError") return;
+        copy(url, btn, idle);
+      });
+      return;
+    }
+    copy(url, btn, idle);
+  }
+
+  if(BTN) BTN.addEventListener("click", () => doShare(BTN, IDLE));
+
+  /* The profile's control is rebuilt with every card, so it is delegated
+     rather than bound. Its idle label is its own — the band is too narrow
+     for "Copy link" to sit beside the note on a phone. */
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest(".sharebtn[data-share]");
+    if(!b) return;
+    e.preventDefault();
+    e.stopPropagation();
+    doShare(b, "Share");
+  });
+})();
+</script>
+<script>
 /* ── Router (ADR 0007, Q43/Q44) ───────────────────────────────────────────
    The six top-level sections are the six views; the hub is its own route.
 
@@ -11615,6 +11833,13 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
     try { id = hash ? decodeURIComponent(String(hash).replace(/^#/, "")) : ""; }
     catch(e){ return null; }
     if(!id || id === "hub") return null;
+    /* A manager's hash names a person, not an element, so it has to be
+       answered before the lookup below — which, on a miss, draws EVERY board
+       hunting for an id that by construction does not exist. The profile
+       overlay floats above whichever view is showing; the right one to show
+       under it is the one the reader lands in when they close the card. */
+    if(typeof ownerFromHash === "function" && ownerFromHash(id))
+      return document.getElementById("people");
     let el = document.getElementById(id);
     /* A hash can point at something INSIDE a board rather than at a section —
        #y2025 is a season card, and those only exist once the standings have
