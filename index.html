@@ -6050,6 +6050,14 @@ let mY = null;
 function openSection(id){
   const sec = document.getElementById(id);
   if(!sec) return sec;
+  /* Switch the SPA route first, same as a real <a href="#id"> click does
+     (see window.__routeTo, set by the router at the bottom of the file).
+     Without this, jumping here from a section in a DIFFERENT routed view —
+     Start & Sit (Drafts) linking into Matchups (History), for one — opened
+     these <details> correctly but left the target's whole view hidden
+     behind body[data-route], so the reader's "jump to this game" landed on
+     nothing: no visible section, a scroll to a collapsed element, done. */
+  if(typeof window.__routeTo === "function") window.__routeTo(id);
   /* open the group above it as well as the panel itself */
   for(let d = sec.closest("details"); d; d = d.parentElement && d.parentElement.closest("details"))
     d.open = true;
@@ -12168,6 +12176,13 @@ lazyBoard("drafts", () => { drawDraft(DRAFT_YEARS[0]); });
        nothing, which is the entire point. */
     if(host) drawBoardsIn(host);
   }
+
+  /* The one door out of this closure. openSection() (gotoMatchups,
+     gotoRosters, and their game/week/team variants) needs to switch routes
+     exactly like a real <a href="#id"> click does, or a cross-route jump —
+     Start & Sit into Matchups, a season card into Rosters — opens the right
+     <details> in a view that body[data-route] is still hiding. */
+  window.__routeTo = id => apply(viewFor("#" + id));
 
   /* The header is pointer-events:none inside a view, but a <summary> is still
      focusable and Enter still toggles it. Reopen if that happens on the screen
