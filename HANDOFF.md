@@ -70,8 +70,9 @@ near-untouched.
    own ink**. The drift is spent inside the family that caused it rather than charged to the
    whole league — which is the precise difference from the old scheme, where one crowded band
    moved all seventeen. Where hue still cannot separate a pair, **chroma** does, and that turns
-   out to be faithful too: `#BB2B38` really is the duller of the two identical reds, so Braxton
-   gets the duller accent.
+   out to be faithful too: Abbas and Braxton's marks are the SAME clip-art red
+   (`#E63545` against `#E73545`), so which of the two drifts further is arbitrary and the code
+   says so.
 
 **Five managers have no ink to honour** — three marks are black-and-white, two men never had a
 mark. They take the emptiest hues left, placed one at a time by **farthest-point insertion**, so
@@ -81,14 +82,24 @@ managers wearing a colour chosen rather than measured, and the code says so.
 **The source sample changed too, and this is the reusable bit.** Ranking a raster's pixels by
 count alone gives you what a mark is mostly MADE of; ranking by **count × saturation** gives you
 what it is ABOUT. Alen's commonest ink is skin and backdrop brown; his Eagles jersey is 447
-pixels and wins under the second rule. `scratchpad/logo-sample.py` if it is ever needed again.
+pixels and wins under the second rule. Both rules live in `logo-accents.py` (below).
 
-**Measured after:** closest pair in the whole document **dE 14.6 dark, 14.2 light** against a
+**Measured after:** closest pair in the whole document **dE 14.6 dark, 14.3 light** against a
 just-noticeable difference of about 2; every value clears the floor (worst 3.25 dark, 3.25
 light, ring-on-plate 4.50); **ADR 0005 sweep 0 fails in all four combinations, two passes each**.
 Judged by looking, too — a comparison sheet was generated putting each real mark beside its ink,
 its old accent and its new one, which is the only way this trade can honestly be assessed. It is
-deleted; regenerate from `palette4.py` + the sheet builder if the question comes up again.
+deleted; `logo-accents.py` prints the same ink-against-accent table on every run.
+
+**The derivation is a tool in the repo now, not a session artifact**: `logo-accents.py` reads
+`OWNER_LOGO` straight out of `index.html`, samples, applies the four hand corrections, derives
+both values and prints the block — and `--check` fails if the document has drifted from it. Run
+it when a logo changes, a manager joins or leaves, or the elevation tokens move. It found one
+rule while being written that had been wrong by hand: **shadow is not ink.** Clip art shades by
+darkening the same hue and a hex count counts markup rather than area, so a shadow can outvote
+the colour a mark is drawn in — Christian's `#BE202E` lost to its own `#821429` shading. The
+sampler now takes the lightest member of the winner's hue family, and the shipped palette is
+regenerated from it.
 
 **The one thing that cannot be fixed by any palette:** Abbas, Braxton and Christian share one
 piece of red clip-art. Nothing measured off those marks can tell them apart, so two of the three

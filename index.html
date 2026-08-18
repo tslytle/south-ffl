@@ -4744,11 +4744,21 @@ const PHOTO_LOGO = new Set(["Alen Huseinbegovic"]);
       neighbours, and NO manager drifts more than 14 degrees off his own
       ink — a red stays a red, and the drift is spent inside the family
       that caused it rather than charged to the whole league. Where hue
-      still cannot separate a pair, chroma does, and that turns out to be
-      faithful too: #BB2B38 really is the duller of the two identical
-      reds, so Braxton gets the duller accent. Measured after: the closest
-      pair in the document is dE 14.6 dark, 14.2 light, against a
-      just-noticeable difference of about 2.
+      still cannot separate a pair, chroma does. Abbas and Braxton are the
+      hard case and cannot be solved by any sampling rule: their marks are
+      the SAME clip-art red, #E63545 against #E73545, so which of the two
+      drifts further is arbitrary and is simply the order the fan puts them
+      in. Measured after: the closest pair in the document is dE 14.6 dark
+      and 14.3 light, against a just-noticeable difference of about 2.
+
+      Sampling has one rule worth stating here because it decided three of
+      these: SHADOW IS NOT INK. Clip art shades by darkening the same hue,
+      and counting hex strings counts markup rather than area, so a shadow
+      can outvote the colour a mark is drawn in — Christian's #BE202E lost
+      to its own #821429 shading until the sampler learned to take the
+      lightest member of the winner's hue family. See logo-accents.py,
+      which derives this whole block and can check the document against
+      itself with --check.
 
    FIVE MANAGERS HAVE NO INK TO HONOUR — three marks are black-and-white
    and two men have no mark at all. Faithfulness has nothing to say about
@@ -4778,23 +4788,23 @@ const PHOTO_LOGO = new Set(["Alen Huseinbegovic"]);
    Ordered by hue, which is the order the wheel puts them in; the comment
    on each line is the ink it came from. */
 const OWNER_ACCENT = {
-  "Colin Moore":        ["#F45441","#E84C39"], /* #F24646  the mark's only ink */
-  "Josh Scott":         ["#EC5F25","#E0571F"], /* #F04E37  the mark's only ink */
-  "Tate Grainger":      ["#FB7802","#D06401"], /* #FB4F14  HAND: monochrome mark, #f0f a placeholder. Who Dey = Bengals */
-  "Ermin Cerimovic":    ["#F6AD3F","#BA7305"], /* #FAAF42  gold, near untouched */
-  "Adam Boggess":       ["#FCE797","#9B7F1A"], /* #FAE696  the straw hat, near untouched */
-  "RC Muncy":           ["#97DB24","#5B9100"], /* —        no ink in the mark */
+  "Colin Moore":        ["#F45441","#E84C39"], /* #F24646  sampled ink */
+  "Josh Scott":         ["#EC5F25","#E0571F"], /* #F04E37  sampled ink */
+  "Tate Grainger":      ["#FB7802","#D06401"], /* #FB4F14  HAND: monochrome mark; its #f0f is a placeholder, not ink. Who Dey -> Bengals burnt orange */
+  "Ermin Cerimovic":    ["#F6AD3F","#BA7305"], /* #FAAF42  sampled ink */
+  "Adam Boggess":       ["#FCE797","#9B7F1A"], /* #FAE696  HAND: the straw hat, not the paper behind it */
+  "RC Muncy":           ["#97DB24","#5B9100"], /* —        no mark at all */
   "Leo Thaweechok":     ["#2CDB24","#0A9803"], /* —        no ink in the mark */
   "Nick Drake":         ["#24DB87","#009651"], /* —        no mark at all */
-  "Alen Huseinbegovic": ["#1198AC","#074B54"], /* #004C54  HAND: photo. Eagles green, 447px of it */
-  "Gavin Spurrier":     ["#B0CAD6","#5389A2"], /* #B1C8D4  the one colour in a grey mark */
-  "Ryan Boggess":       ["#6C84E4","#0A1E6E"], /* #0A1E6E  shield navy, 2,510px */
-  "Justin DeCesare":    ["#8E80C6","#7C6EB4"], /* #786BAD  HAND: two points under the saturation gate */
+  "Alen Huseinbegovic": ["#1198AC","#074B54"], /* #004C54  HAND: photo; commonest ink is skin and backdrop. The mark is a man in an Eagles jersey -- 447px of it */
+  "Gavin Spurrier":     ["#B0CAD6","#5389A2"], /* #B1C8D4  sampled ink */
+  "Ryan Boggess":       ["#6C84E4","#0A1E6E"], /* #0A1E6E  sampled ink */
+  "Justin DeCesare":    ["#8E80C6","#7C6EB4"], /* #786BAD  HAND: the purple missed the 30% saturation gate by two points */
   "Azer Sabanovic":     ["#B85EFD","#8C24DB"], /* —        no mark at all */
   "Michael Boggess":    ["#E23AEE","#CF24DB"], /* —        no ink in the mark */
-  "Abbas Hussain":      ["#FF3878","#E30049"], /* #E63545  shares one clip-art red with Braxton */
-  "Braxton Hill":       ["#EC577D","#B2153D"], /* #BB2B38  the duller of that same red */
-  "Christian Winn":     ["#F54D59","#BE232E"]  /* #BE202E  the same family again */
+  "Abbas Hussain":      ["#F05182","#D91655"], /* #E63545  sampled ink */
+  "Braxton Hill":       ["#FE3C6E","#DB063C"], /* #E73545  sampled ink */
+  "Christian Winn":     ["#F54D59","#BC2731"]  /* #BE202E  sampled ink */
 };
 /* Anything wearing a manager's colour carries the PAIR and the name, and
    the CSS picks which of the two is live. --own-d does double duty: it is
