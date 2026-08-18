@@ -2709,11 +2709,16 @@ table.h2 td.ev{color:var(--faint)}
 #elotable tbody tr.on td{background:var(--accent-soft)}
 #elotable tbody tr.on td.l{background:var(--accent-soft)}
 .elogone{color:var(--faint);font-weight:600;font-size:var(--t-small)}
-/* --muted, not --faint. The peak year sits in an unpinned cell, so on the
-   zebra rows it is read against --panel-2 composited over the surface, and
-   --faint measured 3.94 there against a required 4.5 — the ADR 0005 sweep
-   caught it on the first run of this board. */
-.elopeak i{font-style:normal;color:var(--muted);font-weight:600;margin-left:4px}
+/* The peak's year is a sub-line under the peak, not a second number beside
+   it: inline at the same size the cell read "1643 2016", which is one
+   run-on figure and not two facts. Same shape as .ledger .sub, which is
+   how every other value in these tables carries its qualifier.
+   --muted, not .sub's --faint: this cell is unpinned, so on the zebra rows
+   the text composites against --panel-2 over the surface, where --faint
+   measured 3.94 against a required 4.5 — caught by the ADR 0005 sweep on
+   this board's first run. */
+.elopeak i{display:block;font-style:normal;font-size:var(--t-tiny);font-weight:600;
+  color:var(--muted);margin-top:2px;letter-spacing:.01em}
 
 @media (max-width:760px){
   .mgrid{grid-template-columns:1fr}
@@ -3149,7 +3154,12 @@ footer .fn{display:block;font-size:var(--t-fine);font-weight:700;letter-spacing:
 
   /* drafts */
   #aptable{min-width:0}
-  #aptable td.rdc{display:none}
+  /* In the card layout a rank cell becomes its own full-width row: a bare
+     number floating above the name with a gap under it. All-Play already
+     dropped it here; the Power Curve is the same table in the same layout,
+     and the cards are in rank order anyway. */
+  #aptable td.rdc,#elotable td.rdc{display:none}
+  #elotable{min-width:0}
   .records{grid-template-columns:1fr}
   footer{padding-bottom:48px}
 }
@@ -8556,7 +8566,7 @@ function drawPowerCurve(){
      <thead><tr><th class="rdc"></th><th class="l">Manager</th><th>Rating</th><th>Peak</th><th>Seasons</th></tr></thead><tbody>` +
     d.rows.map((r,i) => `<tr data-elo="${slug(r.o)}">
         <td class="rdc">${r.gone ? "" : i+1}</td>
-        <td class="l" data-l=""><div class="nm haslogo">${logoImg(r.o, "tlogo-md")}<div class="nmwrap"><button class="pick" type="button" data-elo="${slug(r.o)}" aria-pressed="false">${esc(r.o)}</button><span class="team">${r.first}&ndash;${r.last}</span></div></div></td>
+        <td class="l" data-l=""><div class="nm haslogo">${logoImg(r.o, "tlogo-md")}<div class="nmwrap"><button class="pick" type="button" data-elo="${slug(r.o)}" aria-pressed="false">${esc(r.o)}</button><span class="team">${r.first === r.last ? r.first : r.first + "&ndash;" + r.last}</span></div></div></td>
         <td data-l="Rating">${r.gone ? `<span class="elogone">left ${r.last}</span>` : R0(r.r)}</td>
         <td data-l="Peak" class="elopeak">${R0(r.peak)}<i>${r.peakY}</i></td>
         <td data-l="Seasons">${r.seasons}</td>

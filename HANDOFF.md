@@ -125,11 +125,27 @@ desktop, 136.3 phone); line endings CRLF end to end.
 `<i>` at `--faint` measured **3.94 against a required 4.5** on the zebra rows, where it composites
 against `--panel-2` over the surface. Now `--muted`.
 
-**One thing could not be checked here and is worth a look on a real browser**: the Browser pane
-in this session never composited frames, so **nothing was seen, only measured**. Every number
-above is a computed style or a parsed attribute. And neither `resize` nor `matchMedia` change
-events fire under the pane's viewport override, so the Power Curve's rotation redraw was proved
-by calling the handler's body at each width, not by an actual rotation.
+**Then the pane was opened and three defects fell out in the first two minutes of LOOKING, none
+of which any of the above could have caught.** All three were live on `main` for the length of
+one commit.
+
+| what | why nothing measured it |
+|---|---|
+| The Peak column read **`1643 2016`** — value and year as one run-on figure | Both were legible, both cleared contrast, and the cell's text content was exactly right. Nothing is wrong with it except that a reader sees one number. It is a `.sub` block line now, the same shape every other qualified value in these tables uses. |
+| A stray rank number and ~60px of dead space above every phone card | `.rdc` becomes its own full-width row in the card layout. All-Play had already hit this and hidden the cell — in a rule keyed to `#aptable`, so the fix did not generalise. Now `#aptable td.rdc,#elotable td.rdc`. |
+| One-season managers read **`2016–2016`** | A range is a range. |
+
+**The lesson, and it is the second time this file has learned it:** the sweep proves nothing is
+*illegible*. It cannot tell you something is *unreadable* — a correct, contrast-passing,
+perfectly aligned cell that a person reads as the wrong thing. Both instruments are needed and
+neither substitutes. Ask for the pane.
+
+**Two things the pane still cannot do**, worth knowing before trusting a check here: neither
+`resize` nor `matchMedia` change events fire under its viewport override (`innerWidth` and
+`matches` both update correctly, which makes this quietly misleading), so the Power Curve's
+rotation redraw was proved by calling the handler's body at each width rather than by an actual
+rotation. And a light-theme sweep at 1266 blocks the renderer long enough to eat two consecutive
+30s tool timeouts before the global is readable — kick it and keep asking.
 
 ---
 
