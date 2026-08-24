@@ -4401,6 +4401,79 @@ h2.rdpf-name{margin:0;font-family:var(--ui);font-size:34px;line-height:1;font-we
   .rdaward{max-width:100%}
   .rdaward-name{font-size:12px}
 }
+
+/* ── Draft night (8b) ──────────────────────────────────────────────────
+   The one surface read under time pressure, so nothing here is clever:
+   when it starts, where you pick, and the two boards you take in with you.
+
+   The section head is the masthead (same reason as 8a — this build routes
+   by group, and Draft Night is one panel of the Season view), so the body
+   opens straight onto the clock. */
+.rddn-when{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;
+  flex-wrap:wrap;padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.rddn-whenmain{display:flex;flex-direction:column;gap:8px;min-width:0}
+.rddn-date{margin:0;font-family:var(--ui);font-size:27px;line-height:1;font-weight:600;
+  letter-spacing:-.018em;color:var(--ink)}
+
+/* The countdown keeps its second-by-second clock here — the hub hero counts
+   in whole days, and this is the surface where the last hour matters. */
+.rddn-when .dncount{gap:8px}
+.rddn-when .dnunit{min-width:60px;padding:9px 10px;border-radius:var(--r-sm);
+  background:var(--surface);border:1px solid var(--line)}
+.rddn-when .dnunit b{font-family:var(--fig);font-size:22px;font-weight:600;color:var(--ink)}
+.rddn-when .dnunit span{font-family:var(--fig);font-size:10.5px;font-weight:500;
+  letter-spacing:.11em;color:var(--body)}
+.rddn-when .dnhere{font-family:var(--ui);font-size:22px;font-weight:600;color:var(--gold-text)}
+
+/* Three figures, per 8b: the ones you need on the night. The other four the
+   old strip carried — snake, total picks, PPR, bench — are reference, and
+   drop to the quiet mono line under them rather than competing at 26px. */
+.rdfigrow{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}
+.rdfigrow > div{flex:1 1 140px;min-width:0;padding:15px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid var(--line);
+  display:flex;flex-direction:column;gap:6px}
+.rdfigrow b{font-family:var(--fig);font-size:26px;line-height:1;font-weight:600;color:var(--ink)}
+.rdfigrow span{font-family:var(--fig);font-size:11px;line-height:1.2;color:var(--muted)}
+.rdfigline{display:flex;flex-wrap:wrap;gap:6px 20px;margin:0 0 24px;
+  font-family:var(--fig);font-size:11.5px;line-height:1.4;color:var(--muted)}
+.rdfigline b{font-weight:600;color:var(--body)}
+
+.rddn-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+
+/* The draft order. 8b draws numbered blanks and a dashed "not drawn yet",
+   because the design was written without knowing whether the order existed.
+   It does — the commissioner supplies it, and DRAFT_2026.order carries all
+   twelve names — so showing it is the honest reading of that frame, not
+   showing blanks. The blanks are what renders when the list really is empty,
+   which is what §3 was asking for. */
+.dnorder{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.dnpick{display:flex;align-items:center;gap:11px;padding:11px 13px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  position:relative;overflow:hidden}
+.dnpick::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--line);opacity:1}
+.dnpick.dnfirst::before{background:var(--gold)}
+.dnpick .dnnum{flex:0 0 auto;width:26px;height:26px;display:flex;align-items:center;
+  justify-content:center;border-radius:var(--r-sm);background:var(--raise);
+  font-family:var(--fig);font-size:11.5px;font-weight:600;color:var(--muted)}
+.dnpick.dnfirst .dnnum{color:var(--gold-text)}
+/* The crest is drawn to bleed off the card's TRAILING edge, and it was sized
+   against a card half again as tall as this one. Left alone it is 124px
+   inside a 50px card, so overflow:hidden cuts a horizontal band out of the
+   middle of it and the mark reads as a smear. Sized to the card instead, so
+   it bleeds right — which is the only edge it was ever meant to leave. */
+.dnpick .dnmark{width:56px;height:56px;right:-12px}
+.dnpick .dnmark.dnmark-photo{width:56px;height:56px;right:-10px}
+.dnpick .dnmark.dnmark-tall{width:54px;height:54px;right:-10px}
+.dnpick .dnwho{min-width:0}
+.dnpick .dnwho b{font-family:var(--ui);font-size:13.5px;line-height:1.15;font-weight:600;
+  color:var(--ink);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dnslot-empty{display:inline-flex;align-items:center;padding:0 12px;height:28px;
+  border-radius:7px;background:var(--well);border:1px dashed var(--line);
+  font-family:var(--fig);font-size:11.5px;color:var(--muted)}
+
+.rddn-acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.rddn-acts .rdbtn{flex:1 1 180px}
 /* Functional motion only, and never against an explicit preference. */
 @media (prefers-reduced-motion:no-preference){
   .rdrank,.rddoor b,.rdbtn,.rdlink,.rdcell,.rdpill,.rdchamprow,.rdcrown-name,.rdaward{transition:color .15s ease,background-color .15s ease,border-color .15s ease}
@@ -4512,22 +4585,26 @@ h2.rdpf-name{margin:0;font-family:var(--ui);font-size:34px;line-height:1;font-we
   <div class="subnav" id="nav-ahead"></div>
 <section id="draft2026"><details class="sub" open><summary class="subhead"><div><p class="eyebrow">Monday, September 7</p><h3 class="sec2">Draft Night</h3></div><span class="subfact">16 rounds · 192 picks</span><span class="chev-s" aria-hidden="true"></span></summary><div class="subbody">
   <p class="subnote">Everything you need before the board opens &mdash; when it starts, where you pick, how the format works, and the cheat sheets to study.</p>
-  <div class="card dnwhen">
-    <div class="dnwhen-main">
-      <p class="dnlabel">The 2026 draft</p>
-      <p class="dndate">Monday, September 7</p>
-      <p class="dntime">6:00 PM CDT &middot; Labor Day</p>
+  <div class="rddn-when">
+    <div class="rddn-whenmain">
+      <p class="rdeyebrow is-gold">Monday 7 September &middot; 6:00 PM CDT &middot; Labor Day</p>
+      <p class="rddn-date">Draft night</p>
     </div>
     <div class="dncount" id="dncount"></div>
   </div>
 
-  <h4 class="ssh dnh">Draft order</h4>
-  <p class="ssnote dnnote">Snake format, so round two runs back up the board from twelve to one. Odd rounds go top down, even rounds bottom up.</p>
+  <div class="rdfigrow" id="dnfacts"></div>
+  <p class="rdfigline" id="dnfacts2"></p>
+
+  <div class="rddn-head"><p class="rdeyebrow">Draft order &middot; snake, so round two runs back up the board</p></div>
   <div class="dnorder" id="dnorder"></div>
 
-  <h4 class="ssh dnh">The format</h4>
-  <p class="ssnote dnnote">The starting lineup has not moved in twelve years &mdash; 1 QB, 2 RB, 2 WR, 1 TE, 1 FLEX, 1 D/ST and 1 K, with a seven-man bench.</p>
-  <div class="dnfacts" id="dnfacts"></div>
+  <div class="rddn-head" style="margin-top:26px"><p class="rdeyebrow">Take these in with you</p></div>
+  <div class="rddn-acts">
+    <a class="rdbtn rdbtn-p" href="#drtabs">Cheat sheet</a>
+    <a class="rdbtn" href="#drafts">Last year&rsquo;s board</a>
+  </div>
+  <p class="rdfigline">The starting lineup has not moved in twelve years &mdash; <b>1 QB</b>, <b>2 RB</b>, <b>2 WR</b>, <b>1 TE</b>, <b>1 FLEX</b>, <b>1 D/ST</b> and <b>1 K</b>, with a seven-man bench.</p>
 
   <h4 class="ssh dnh">Mock draft</h4>
   <p class="ssnote dnnote">Run a practice draft against ESPN&rsquo;s lobby to get a feel for where players are going before the real thing.</p>
@@ -10406,11 +10483,20 @@ const DRAFT_2026 = {
     return `<img class="dnmark${fit}" src="${src}" alt="" aria-hidden="true">`;
   };
 
-  wrap.innerHTML = DRAFT_2026.order.map((name, i) => `<div class="dnpick${i === 0 ? " dnfirst" : ""}"${i === 0 ? ' title="First overall"' : ""}>
-      ${mark(name)}
-      <span class="dnnum">${i + 1}</span>
-      <span class="dnwho"><b>${esc(name)}</b></span>
-    </div>`).join("");
+  /* 8b draws twelve numbered blanks and a dashed "not drawn yet", because it
+     was composed without knowing whether the order existed yet. It does — the
+     commissioner supplies it and DRAFT_2026.order carries all twelve — so the
+     honest render of that frame is the names. The blanks below are what runs
+     when the list really is empty, which is the case §3 was asking for. */
+  wrap.innerHTML = DRAFT_2026.order.length
+    ? DRAFT_2026.order.map((name, i) => `<div class="dnpick${i === 0 ? " dnfirst" : ""}"${i === 0 ? ' title="First overall"' : ""}>
+        ${mark(name)}
+        <span class="dnnum">${i + 1}</span>
+        <span class="dnwho"><b>${esc(name)}</b></span>
+      </div>`).join("")
+    : `<div class="dnslots">` +
+      Array.from({length: teams}, (_, i) => `<span class="dnslot-empty">${i + 1}</span>`).join("") +
+      `<span class="dnslot-empty">not drawn yet</span></div>`;
 
   /* format, straight from the league settings on file */
   const last = SEASONS[0];
@@ -10418,17 +10504,27 @@ const DRAFT_2026 = {
   /* Deliberately understated. The countdown, the order, the mock draft and
      the cheat sheets are what people came for; the format is reference, so
      it sits as one quiet line rather than a wall of display figures. */
-  const facts = [
-    ["Snake", "draft"],
-    [String(teams), "managers"],
+  /* Three at size, per 8b — rounds, teams, clock are what you need while the
+     board is moving. The other four are reference and drop to one quiet mono
+     line under them, which is the compromise between this build's original
+     "one understated line" and the artboard's three display figures: the
+     figures you act on get the size, the ones you look up do not. */
+  const bigFacts = [
     [String(rounds), "rounds"],
+    [String(teams), "teams"],
+    ["90s", "per pick"]
+  ];
+  document.getElementById("dnfacts").innerHTML = bigFacts
+    .map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join("");
+  const restFacts = [
+    ["Snake", "draft"],
     [String(teams * rounds), "picks"],
-    ["90 sec", "per pick"],
     ["0.5", "per reception"],
     ["7", "bench spots"]
   ];
-  document.getElementById("dnfacts").innerHTML = facts
-    .map(([v, l]) => `<span class="dnfact"><b>${v}</b> ${l}</span>`).join("");
+  const rest2 = document.getElementById("dnfacts2");
+  if(rest2) rest2.innerHTML = restFacts
+    .map(([v, l]) => `<span><b>${v}</b> ${l}</span>`).join("");
 
   /* countdown — drives this card's own #dncount, and also the shorter
      lead-in card pinned to the masthead (#herocount) so a reader sees
