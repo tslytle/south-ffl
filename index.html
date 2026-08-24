@@ -81,19 +81,45 @@
      overridden inside the prefers-color-scheme:dark block that follows,
      so nothing outside this file's two token blocks needs to know or
      care which theme is active. */
-  /* App-light: cool white surfaces with navy ink — the daylight version of
-     the navy-dark flagship below, not a separate personality. Green is the
-     one brand accent; gold appears only where something was won. */
-  --bg:#F5F7FA; --surface:#FFFFFF; --raise:#EEF1F6;
+  /* ── Light, re-solved for the redesign (HANDOFF-REDESIGN §6) ──────────
+     §6 asked for two things, and the first was a real bug: "the ladder
+     inverts to sunken -> ground -> surface -> raise". It did not. --raise
+     was #EEF1F6, DARKER than --surface at #FFFFFF, so the top of the
+     elevation ladder sat below the middle of it and a chip on a card read
+     as a dent. Nothing could fix that while --surface was pure white,
+     because there is nothing above white to raise to — so ground and
+     surface come down and --raise takes the white. Each step is now
+     lighter than the one below it, which is the inversion §6 describes.
+
+     Sunken stays #EAEEF5 on purpose: logo-accents.py gates every manager
+     hue at 3.25:1 against LIGHT_WORST, which is this exact value. Moving
+     it silently invalidates all seventeen accents.
+
+     The second half of §6 is the accent. Light was carrying mint-green
+     while dark now carries periwinkle — one interaction colour wearing two
+     unrelated hues depending on the reader's OS. Re-solved to the same
+     periwinkle, taken dark enough to clear AA as TEXT on these grounds
+     (5.7:1 on --raise, 5.1:1 on --bg) rather than lightened as it is on
+     dark. Same hue, opposite end of it, which is what the role table means
+     by one colour with one job.
+
+     The tints keep their own light values and are NOT color-mixed from the
+     accent. That distinction is what three separate surfaces tripped over
+     during this redesign: in light the accent and both sign colours are
+     DARK, so tinting a cell with them DARKENS it, and the dark ink already
+     on top then fails. A light theme wants light tints, spelled out. */
+  --bg:#F1F4F9; --surface:#FAFBFD; --raise:#FFFFFF;
   --ink:#0E1420; --body:#3A4353; --muted:#58627C; --faint:#616B84;
-  /* Light separates by hairline, not fill (white cards on a near-white ground
-     cannot clear a fill floor without going muddy). The line itself therefore
-     has to be honest: #DFE4EE measured 1.27:1 against a white card — the same
-     invisible-boundary defect ADR 0022 fixes in dark. Now 1.55:1. The print
-     block keeps its own copy of the old value on purpose. */
-  --line:#C7D0DD; --soft:#EAEEF5;
-  --accent:#0B6B4E; --accent-dk:#073226; --accent-soft:#E2F4EB; --accent-lt:#159E6E;
-  --enc:#1E7FB0; --enc-soft:#E4F1F9; --enc-ink:#0F4863;
+  /* Light separates by hairline, not fill (near-white cards on a near-white
+     ground cannot clear a fill floor without going muddy), so the line
+     carries the elevation duty ADR 0022 gives it. It has to be honest:
+     #DFE4EE measured 1.27:1 against a white card — the same
+     invisible-boundary defect ADR 0022 fixes in dark. Nudged from #C7D0DD
+     to hold 1.57:1 now that --surface is no longer pure white; the old
+     value slipped to 1.51. The print block keeps its own copy on purpose. */
+  --line:#C2CCDA; --soft:#EAEEF5;
+  --accent:#2C5FD0; --accent-dk:#12306E; --accent-soft:#E4EDFD; --accent-lt:#1E4CB0;
+  --enc:#2C5FD0; --enc-soft:#E4EDFD; --enc-ink:#12306E;
   --gold-text:#8A5A0C; --trophy:#C99A26; --rust:#B14225; --rust-soft:#FAE9E2; --rust-ink:#96341A;
   --gold:#AD7A16; --gold-lt:#D9AC42; --gold-soft:#F7EFDA; --silver:#9AA0A6; --bronze:#A2703F;
   --pos:#0C6B4C; --neg:#B23A22;
@@ -102,12 +128,11 @@
   --bronze-ink:#7A5330; --bronze-soft:#F4E7DA; --bronze-line:#C08F5F;
   --paper-1:#FFFFFF; --paper-2:#F7F9FC; --paper-3:#EFF2F7;
   --panel-2:rgba(20,26,40,.03); /* zebra striping on dense rows */
-  /* Named by the redesign (HANDOFF-REDESIGN §1) and used by the hub and
-     the profile. Dark carries the designed values; these are the light
-     theme's stand-ins, derived from the ladder that is already here, so
-     nothing loses its rules or its bar track when a reader toggles.
-     They are placeholders, not the light theme — that is still owed. */
-  --nav:#EEF1F6; --well:#EAEEF5; --track:#E4E9F1; --line-row:#E3E8F0;
+  /* The redesign's four new tokens (§1), on the inverted ladder above
+     rather than the stand-ins they started as. --nav and --well are the
+     SUNKEN step, below the ground, which is what they are in dark too;
+     --track sits a step under --raise so a bar reads against it. */
+  --nav:#EAEEF5; --well:#EAEEF5; --track:#DDE3EC; --line-row:#E3E8F0;
   --sh:0 1px 2px rgba(20,26,40,.05);
   --sh-lg:0 4px 14px rgba(20,26,40,.08);
   --sans:'Inter',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
@@ -267,7 +292,6 @@
   --sh:0 1px 2px rgba(0,0,0,.45);
   --sh-lg:0 6px 18px rgba(0,0,0,.4);
   --on-chip:#0D1117;
-  --on-chip:#071019;
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
