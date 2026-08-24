@@ -63,7 +63,7 @@ HAND = {
 # marks with no colour in them at all
 NO_INK = ["Leo Thaweechok", "Michael Boggess", "Nick Drake", "RC Muncy", "Azer Sabanovic"]
 
-DARK_WORST, LIGHT_WORST, GATE = "#2D3A59", "#EAEEF5", 3.25
+DARK_WORST, LIGHT_WORST, GATE = "#1D242F", "#EAEEF5", 3.25
 MAX_DRIFT, FAN_STEP, CLUSTER = 14.0, 11.0, 20.0
 
 def read_logos():

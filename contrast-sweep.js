@@ -207,10 +207,12 @@ window.__runAll = () => {
      THEME-DEPENDENT gradient, so an ancestor walk lands on .pfhero's dark colour
      underneath it. That is trap 4, and this tool already handles it by counting
      those elements as gradientSkipped. The scanner that did not was the problem. */
-  const card = document.querySelector('.mgrcard');
+  /* .rdcell since the managers index was redrawn to design 8a; .mgrcard is
+     kept as a fallback so this still finds a profile on an older build. */
+  const card = document.querySelector('.rdcell, .mgrcard');
   if (card) {
     const people = document.querySelector('a[href="#people"]'); if (people) people.click();
-    const first = document.querySelector('.mgrcard');
+    const first = document.querySelector('.rdcell, .mgrcard');
     if (first) {
       first.click();
       res.push(window.__sweep({ view: 'profile-modal' }));
