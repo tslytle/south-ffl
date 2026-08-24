@@ -2704,10 +2704,24 @@ table.h2 thead th{font-size:var(--t-tiny);font-weight:700;letter-spacing:.04em;t
 table.h2 thead th.corner{writing-mode:horizontal-tb;transform:none;height:auto;text-align:left}
 table.h2 tbody th{text-align:left;font-size:var(--t-small);font-weight:600;color:var(--ink);background:var(--raise);
   position:sticky;left:0;z-index:2}
-table.h2 td.self{background:var(--soft)}
-table.h2 td.up{background:var(--accent-soft);color:var(--ink);font-weight:700}
-table.h2 td.dn{background:var(--rust-soft);color:var(--neg)}
-table.h2 td.ev{color:var(--faint)}
+table.h2 td.self{background:var(--track)}
+/* The diverging scale (5c). Tint intensity carries the margin; the INK never
+   moves. That is the constraint that makes this work in both themes: the old
+   cell put --neg on --rust-soft, so the ink had to be re-solved for every
+   fill, and in light the sign tokens are dark — tinting with them darkens the
+   cell under dark ink. Holding ink at --ink and only varying the tint means
+   one measurement bounds the whole scale, and the heaviest step is the only
+   one that has to be checked. 7.3:1 dark, 12+ light at step 3.
+
+   2px corners, per §1's heatmap-cell radius. */
+table.h2 td.h2c{border-radius:2px;color:var(--ink);font-variant-numeric:tabular-nums}
+table.h2 td.up1{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+table.h2 td.up2{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+table.h2 td.up3{background:color-mix(in srgb,var(--accent) 30%,transparent);font-weight:600}
+table.h2 td.dn1{background:color-mix(in srgb,var(--rust) 10%,transparent)}
+table.h2 td.dn2{background:color-mix(in srgb,var(--rust) 20%,transparent)}
+table.h2 td.dn3{background:color-mix(in srgb,var(--rust) 30%,transparent);font-weight:600}
+table.h2 td.ev{color:var(--body)}
 .h2note{font-size:var(--t-base);color:var(--muted);margin:0 2px 12px}
 .h2legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 2px 10px;font-size:var(--t-tiny);color:var(--muted)}
 .h2legend span{display:inline-flex;align-items:center;gap:6px}
@@ -7339,8 +7353,16 @@ document.getElementById("h2table").innerHTML =
       const r = H2[a][b];
       if(!r) return `<td class="ev">&mdash;</td>`;
       w += r[0]; l += r[1]; t += r[2];
-      const cls = r[0] > r[1] ? "up" : (r[1] > r[0] ? "dn" : "ev");
-      return `<td class="${cls}">${r[0]}&ndash;${r[1]}${r[2] ? "&ndash;"+r[2] : ""}</td>`;
+      /* Diverging, not binary (5c). The old cell said only WHO leads; the
+         fill now says by how much. Three steps a side off the win rate,
+         quantised rather than continuous so the grid reads as a scale a
+         reader can name instead of a gradient they have to interpolate.
+         Blue = the row wins, warm = the row loses, per §3. */
+      const gp2 = r[0] + r[1];
+      const dev = gp2 ? (r[0] / gp2) - 0.5 : 0;
+      const step = Math.min(3, Math.ceil(Math.abs(dev) / 0.125));
+      const cls = !step ? "ev" : (dev > 0 ? "up" : "dn") + step;
+      return `<td class="h2c ${cls}" title="${esc(a)} vs ${esc(b)}">${r[0]}&ndash;${r[1]}${r[2] ? "&ndash;"+r[2] : ""}</td>`;
     }).join("");
     return `<tr><th>${esc(a)}</th>${cells}<td><b>${w}&ndash;${l}${t ? "&ndash;"+t : ""}</b></td></tr>`;
   }).join("") + "</tbody>";
