@@ -4658,6 +4658,101 @@ h2.rdpf-name{margin:0;font-family:var(--ui);font-size:34px;line-height:1;font-we
   .mmeta{padding:0 13px 11px}
   .mteam .msc{font-size:15.5px}
 }
+
+/* ── Record Book (6a) ──────────────────────────────────────────────────
+   Rows, not cards. Thirty-one records as thirty-one bordered boxes is the
+   busyness this redesign exists to answer, and a record is a label, an
+   attribution and a figure — which is a row. Label and attribution left,
+   figure right, hairline between (§3).
+
+   The by-manager grouping and its jump bar STAY. 6a proposes a highs/lows
+   toggle instead, and the cards carry no highs/lows field — deriving one
+   from titles ("Most…", "Fewest…", "Widest…") would be guessing, and a
+   guess that mislabels a record is a factual error on the one board whose
+   whole job is being factual. Grouping by holder is real, already built,
+   and answers the question this archive actually gets asked. */
+.records{display:flex;flex-direction:column}
+.rec-card{display:grid;grid-template-columns:26px minmax(0,1fr) auto;
+  align-items:center;gap:16px;padding:14px 4px;
+  background:none;border:0;border-bottom:1px solid var(--line-row);
+  border-radius:0;box-shadow:none;position:relative}
+.rec-card .rc-logo{grid-column:1;position:static;margin:0}
+.rec-card .rc-logo .tlogo{width:26px;height:26px;
+  box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--own,var(--line))}
+.rec-card h3{grid-column:2;margin:0;font-family:var(--ui);font-size:14.5px;line-height:1.25;
+  font-weight:600;color:var(--ink);letter-spacing:0;text-transform:none}
+.rec-card .sub{grid-column:2;grid-row:2;margin:0;font-family:var(--fig);font-size:12px;
+  line-height:1.35;color:var(--muted)}
+.rec-card .big{grid-column:3;grid-row:1/3;font-family:var(--fig);font-weight:600;
+  color:var(--ink);text-align:right}
+.rec-card .big.isnum{font-size:25px;line-height:1;white-space:nowrap}
+.rec-card .big.istext{font-size:15px;line-height:1.3;max-width:22ch;white-space:normal;
+  text-wrap:pretty}
+/* The prose was the card's fourth line and the reason it had to be a card.
+   It is the "why this is interesting" note, which a row does not have room
+   for — kept as the row's tooltip so nothing is lost, and out of the scan. */
+.rec-card p{display:none}
+/* The rarest ten kept a gold inset edge as a card. As a row it becomes the
+   figure going gold, which is the same signal in the place the eye already
+   lands. */
+.rec-card.rare{box-shadow:none}
+.rec-card.rare .big{color:var(--gold-text)}
+.rec-split{margin:26px 0 2px;padding:0 4px 12px;border-bottom:1px solid var(--line);
+  font-family:var(--fig);font-size:10.5px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);display:flex;align-items:baseline;gap:10px}
+.rec-split:first-child{margin-top:6px}
+.rec-n{font-family:var(--fig);font-size:11.5px;font-weight:400;color:var(--muted);
+  letter-spacing:0;text-transform:none;background:none;border:0;padding:0}
+
+@media (max-width:640px){
+  .rec-card{grid-template-columns:22px minmax(0,1fr);gap:11px;padding:12px 2px}
+  .rec-card .rc-logo .tlogo{width:22px;height:22px}
+  .rec-card .big{grid-column:2;grid-row:3;text-align:left;margin-top:4px;max-width:none}
+  .rec-card .big.isnum{font-size:21px}
+  .rec-card .big.istext{font-size:14px}
+}
+
+/* ── Rules & changes (8c) ──────────────────────────────────────────────
+   Three encoding families with dot markers, per §3 and §1's encoding row:
+   periwinkle for format, gold for scoring, rust for the draft. The families
+   and their colours already existed — this gives them the dot, the legend
+   and the row rhythm 8c draws.
+
+   The dot is NOT the only carrier. Encoding a category in colour alone
+   fails WCAG 1.4.1 no matter how good the legend is, so every marker keeps
+   its family name in a visually-hidden span: sighted readers get the dot
+   and the legend, assistive tech gets the word. */
+.rd-vh{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+.rulelegend{display:flex;gap:7px;flex-wrap:wrap;padding:14px 0}
+.rulekey{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;
+  border-radius:var(--r-pill);font-family:var(--ui);font-size:11.5px;line-height:1;font-weight:500}
+.rulekey i{width:7px;height:7px;border-radius:var(--r-pill);flex:none;font-style:normal}
+.rulekey.k-format{color:var(--enc-ink);background:var(--enc-soft);
+  border:1px solid color-mix(in srgb,var(--enc) 30%,transparent)}
+.rulekey.k-format i{background:var(--enc)}
+.rulekey.k-scoring{color:var(--gold-ink);background:var(--gold-soft);
+  border:1px solid color-mix(in srgb,var(--gold) 30%,transparent)}
+.rulekey.k-scoring i{background:var(--gold)}
+.rulekey.k-draft{color:var(--rust-ink);background:var(--rust-soft);
+  border:1px solid color-mix(in srgb,var(--rust) 30%,transparent)}
+.rulekey.k-draft i{background:var(--rust)}
+
+.rulechg{grid-template-columns:44px minmax(0,1fr);gap:14px;padding:14px 4px;
+  border-bottom:0;border-top:1px solid var(--line-row);font-size:12.5px;line-height:1.5}
+.rulechg:first-child{border-top:0}
+.rulechg .ry{font-family:var(--fig);font-size:12.5px;line-height:1.4;font-weight:500;color:var(--muted)}
+.rulechg .chgrow{display:grid;grid-template-columns:7px minmax(0,1fr);align-items:baseline;
+  gap:9px;padding:5px 0}
+.rulechg b{font-family:var(--ui);font-size:14px;line-height:1.25;font-weight:600;color:var(--ink)}
+.rulechg .tag{margin:0;width:7px;height:7px;padding:0;border-radius:var(--r-pill);
+  align-self:center;font-size:0;line-height:0;background:var(--enc);border:0}
+.rulechg .tag.cat-format{background:var(--enc)}
+.rulechg .tag.cat-scoring{background:var(--gold)}
+.rulechg .tag.cat-draft{background:var(--rust)}
+.rulechg .chgtext{grid-column:2;font-family:var(--ui);font-size:12.5px;line-height:1.5;
+  color:var(--body);text-wrap:pretty}
 /* Functional motion only, and never against an explicit preference. */
 @media (prefers-reduced-motion:no-preference){
   .rdrank,.rddoor b,.rdbtn,.rdlink,.rdcell,.rdpill,.rdchamprow,.rdcrown-name,.rdaward{transition:color .15s ease,background-color .15s ease,border-color .15s ease}
@@ -8084,7 +8179,8 @@ const rankOf = (title) => RARITY[title] !== undefined ? RARITY[title] : 999;
 lazyBoard("records", () => {
 document.getElementById("recordcards").innerHTML =
   cards.slice().sort((x, z) => rankOf(x[0]) - rankOf(z[0])).map(([h,b,sub,p]) =>
-    `<div class="rec-card"><h3>${h}</h3><div class="big">${esc(b)}</div><div class="sub">${sub}</div><p>${p}</p></div>`).join("");
+    `<div class="rec-card"><div class="rc-logo"></div><h3>${h}</h3><div class="sub">${sub}</div>` +
+    `<div class="big${String(b).length <= 10 ? " isnum" : " istext"}">${esc(b)}</div><p>${p}</p></div>`).join("");
 });
 { const e = document.getElementById("bookera"); if(e) e.innerHTML = ERA_NOTE; }
 
@@ -10356,14 +10452,18 @@ lazyBoard("rules", function(){
     Receptions:"scoring",Yardage:"scoring",Defence:"scoring",Kicking:"scoring",
     Draft:"draft"};
   const CATLABEL = {format:"Format",scoring:"Scoring",draft:"Draft"};
+  /* A dot, plus the family name for anything that cannot see it. Colour
+     alone is a 1.4.1 failure however good the legend is. */
   const chip = label => { const cat = CAT[label] || "format";
-    return `<span class="tag cat-${cat}">${CATLABEL[cat]}</span>`; };
+    return `<span class="tag cat-${cat}" aria-hidden="true"></span>` +
+           `<span class="rd-vh">${CATLABEL[cat]}: </span>`; };
   const ys = Object.keys(RULES).map(Number).sort((a,b)=>a-b);
   /* Collect format changes and scoring changes into one entry per season,
      so a year that moved both shows as a single block rather than two. */
   const byYear = {};
   const add = (y, label, txt) => (byYear[y] = byYear[y] || [])
-    .push(`<span class="chgrow">${chip(label)}<b>${label}</b> ${txt}</span>`);
+    .push(`<span class="chgrow">${chip(label)}<b>${label}</b>` +
+          `<span class="chgtext">${txt}</span></span>`);
 
   for(let k=1;k<ys.length;k++){
     const a = RULES[ys[k-1]], b = RULES[ys[k]];
@@ -10377,8 +10477,12 @@ lazyBoard("rules", function(){
 
   const notes = Object.keys(byYear).map(Number).sort((a,b) => a-b)
     .map(y => `<div class="rulechg"><span class="ry">${y}</span><div>${byYear[y].join("")}</div></div>`);
+  /* The legend 8c puts above the list. Built from CATLABEL so a new family
+     cannot appear in the rows without appearing here. */
+  const legend = `<div class="rulelegend">` + Object.keys(CATLABEL).map(k =>
+      `<span class="rulekey k-${k}"><i></i>${CATLABEL[k]}</span>`).join("") + `</div>`;
   document.getElementById("rulechanges").innerHTML =
-    notes.join("") || `<p class="pfnote">No settings changes on file.</p>`;
+    (notes.length ? legend + notes.join("") : `<p class="pfnote">No settings changes on file.</p>`);
 
   /* ---- at a glance: today's settings, and how much ground they cover ----
      Four numbers instead of a page of prose — the settings table below
@@ -10640,9 +10744,23 @@ lazyBoard("records", function(){
   const card = (c, rare) => {
     const [hd,b,sub,p] = c;
     const owner = holderOf(c);
-    return `<div class="rec-card${rare ? " rare" : ""}">${owner ? `<div class="rc-logo">${logoImg(owner, "tlogo-sm")}</div>` : ""}<h3>${hd}</h3><div class="big">${esc(b)}</div>` +
-    `<div class="sub">${sub}</div><p>${p}</p></div>`;
+    /* The prose is the "why this is interesting" line, and it was the fourth
+       thing in the card — the reason the card had to be a card. 6a's row has
+       no place for it, so it becomes the row's title attribute: still there
+       for anyone who wants it, out of the way of the scan. Stripped of tags
+       first, since a title attribute renders none. */
+    const why = String(p).replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+    return `<div class="rec-card${rare ? " rare" : ""}" title="${attr(why)}">${
+      owner ? `<div class="rc-logo">${logoImg(owner, "tlogo-sm")}</div>` : `<div class="rc-logo"></div>`
+    }<h3>${hd}</h3><div class="sub">${sub}</div><div class="big${bigCls(b)}">${esc(b)}</div><p>${p}</p></div>`;
   };
+  /* 6a's figure column assumes a compact number — 214.8, 1,986, +103.6 —
+     and half of this book's "figures" are phrases: "Not a point wasted",
+     "12 seasons, 7 champions". At 25px and nowrap those pushed the page
+     into horizontal scroll, which is a merge gate, not a wrinkle. A figure
+     gets the display treatment only if it reads as one; a phrase drops to
+     lead size and is allowed to wrap. */
+  const bigCls = v => (String(v).length <= 10 ? " isnum" : " istext");
   const key = t => "rec-" + String(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const head = (t, n) =>
     `<p class="rec-split" id="${key(t)}">${t}${n ? `<span class="rec-n">${n}</span>` : ""}</p>`;
