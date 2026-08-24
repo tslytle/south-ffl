@@ -87,6 +87,29 @@
       The enumerating query is: rules whose selector matches `::(before|after|
       placeholder)` and whose body sets `color` with a non-empty `content`.
 
+   8. OPACITY ON AN ANCESTOR NEVER REACHES getComputedStyle(el).color, and for
+      most of this tool's life it was not composited here either — so any
+      element inside a dimmed container reported its DECLARED colour and passed
+      while the pixels failed. It hid a real failure for as long as the rule
+      existed: `.bgame.bbye{opacity:.62}` put every bracket bye game's team
+      sub-line at 2.98:1 and its note at 2.86, and this tool reported 5.30 and
+      5.16 for the same two elements. Found 2026-08-24 while dimming the losing
+      side in Matchups, which would have added the same defect to 1,138 games.
+
+      Now composited: `opacityGroup` multiplies opacity from the element to the
+      root, and the whole group — its own background AND its text — is faded
+      onto the backdrop outside it, which is what the compositor actually does.
+      A group whose opaque background sits OUTSIDE it is self-correcting, since
+      the backdrop and the walked background are then the same colour.
+
+      Semi-transparent TEXT was the same hole by a different door: `ratio()`
+      read `lum(fg)` and ignored `fg.a`, so rgba ink was measured at full
+      strength. It is composited over its background now.
+
+      The lesson for the CSS, not just for this file: dim with tokens, not with
+      opacity. A token is a value this tool can read; opacity was a way to make
+      text unreadable and still score zero.
+
    ── The baseline, end of 2026-08-12, after the visual polish pass ───────────
    Two passes per combination, profile-modal included:
        2048px dark  23,842 checked   0 failures
@@ -108,6 +131,23 @@
 
    These supersede the earlier 59,753 / 59,501 figures, which predate both the
    profile-modal sweep and the color(srgb …) parser fix and are not comparable.
+
+   ── Re-baselined 2026-08-24, after trap 8 (opacity + ink alpha) ─────────────
+   Two passes per combination, hub + six routes + all seventeen profiles:
+        375px dark   17,343 checked   0 failures   288 gradientSkipped
+        375px light  17,343 checked   0 failures
+       1265px dark             —      0 failures
+       1265px light            —      0 failures
+
+   These are NOT comparable with the figures above either: composing opacity
+   added two skip rules (elements hidden by an ancestor's opacity, and text in
+   a disabled component, which WCAG 1.4.3 exempts), and the counts come from
+   the redesign's own routing, which shows one season at a time.
+
+   Turning trap 8 on found two live failures the tool had always reported as
+   passing: the bracket bye games (2.98 and 2.86, reported 5.30 and 5.16) and
+   the search box's "/" hint at 4.17, reported ~9:1 because its ink was
+   rgba(255,255,255,.45) and lum() had no alpha term. Both fixed the same day.
    ───────────────────────────────────────────────────────────────────────────── */
 
 window.__sweep = (opts) => {
@@ -151,6 +191,17 @@ window.__sweep = (opts) => {
     for (let i = stack.length - 2; i >= 0; i--) acc = over(stack[i], acc);
     return { bg: acc, img };
   };
+  /* Cumulative opacity from `el` to the root, plus the OUTERMOST element that
+     introduced it — that element's parent is the backdrop the whole group is
+     composited onto (trap 8). */
+  const opacityGroup = el => {
+    let o = 1, outer = null;
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const v = parseFloat(getComputedStyle(n).opacity);
+      if (!isNaN(v) && v < 1) { o *= v; outer = n; }
+    }
+    return { o, outer };
+  };
   const sel = el => {
     let s = el.tagName.toLowerCase();
     if (el.className && typeof el.className === 'string')
@@ -165,10 +216,34 @@ window.__sweep = (opts) => {
     if (!txt) return;                                    /* own text, not a container's */
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.opacity === '0') return;
-    const fg = parse(cs.color); if (!fg) return;
-    const { bg, img } = bgOf(el);
+    let fg = parse(cs.color); if (!fg) return;
+    let { bg, img } = bgOf(el);
     checked++;
     if (img) { grad++; return; }                          /* trap 4 */
+    /* Trap 8. Fade the group — its background and its ink together — onto
+       whatever is painted behind the outermost element that dimmed it. */
+    const { o, outer } = opacityGroup(el);
+    /* An ancestor at opacity 0 hides the element as surely as its own does,
+       and the guard above only ever tested its own. Without this the fade
+       makes ink and ground identical and every hidden element reports a
+       perfect 1.00 — 49 of them on the first run, all fiction. */
+    if (o === 0) { checked--; return; }
+    /* WCAG 1.4.3 exempts text in an INACTIVE user interface component, which
+       is what .nflstep:disabled and friends are. They were passing before only
+       because their opacity was never composited; the exemption is the reason
+       they should not be counted, not the accident. */
+    if (el.closest('button:disabled, input:disabled, select:disabled, textarea:disabled, [aria-disabled="true"]')) {
+      checked--; return;
+    }
+    if (o < 1 && outer) {
+      const behind = bgOf(outer.parentElement || document.body);
+      if (behind.img) { grad++; return; }
+      bg = over({ r: bg.r, g: bg.g, b: bg.b, a: o }, behind.bg);
+      fg = { r: fg.r, g: fg.g, b: fg.b, a: fg.a * o };
+    }
+    /* Semi-transparent ink is ink over its own background, not ink at full
+       strength — lum() has no alpha term, so it has to be resolved here. */
+    if (fg.a < 1) fg = over(fg, bg);
     const size = parseFloat(cs.fontSize), bold = +cs.fontWeight >= 700;
     const need = (size >= 24 || (size >= 18.66 && bold)) ? 3 : 4.5;   /* AA, large-text rule */
     const r = +ratio(fg, bg).toFixed(2);

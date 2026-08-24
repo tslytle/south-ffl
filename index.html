@@ -502,7 +502,17 @@ button,input,select,textarea{font-family:var(--sans);font-feature-settings:inher
 /* Hidden the moment there's a reason to be — typed text, or the box no
    longer has focus to receive the shortcut anyway. */
 .searchkey{position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;
-  font-family:var(--mono);font-size:var(--t-tiny);line-height:1;color:rgba(255,255,255,.45);
+  /* Semi-transparent INK was the second half of the sweep's blind spot:
+     contrast-sweep.js read lum(fg) with no alpha term, so rgba(255,255,255,.45)
+     measured as pure white and scored ~9:1 while rendering at 4.17 against a
+     4.5 floor — on every route, since it lives in the nav. Caught the moment
+     the sweep started composing alpha (trap 8).
+
+     Raised to .62 rather than swapped for a token, and that is deliberate:
+     .topnav is rgba(14,20,35,.96) in BOTH themes, so this chip is always on a
+     dark ground and a theme-flipping token is exactly wrong for it — --body
+     put light mode at 1.30:1. Same reasoning as --plate-ink. 5.6:1 in both. */
+  font-family:var(--mono);font-size:var(--t-tiny);line-height:1;color:rgba(255,255,255,.62);
   background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:4px;
   padding:3px 6px;transition:opacity .12s}
 #searchinput:focus ~ .searchkey,#searchinput:not(:placeholder-shown) ~ .searchkey{opacity:0}
