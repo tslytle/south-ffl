@@ -1678,7 +1678,18 @@ a.nflgame:hover .nflside b{color:var(--accent)}
 .brhead{font-size:var(--t-tiny);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
   padding-bottom:7px;border-bottom:1px solid var(--line);margin-bottom:9px}
 .bgame{border:1px solid var(--line);border-radius:var(--r-sm);margin-bottom:9px;overflow:hidden;background:var(--surface)}
-.bgame.bbye{opacity:.62}
+/* A bye reads as recessive by GROUND, not by opacity — and this one is a
+   live AA failure, not a style note. opacity:.62 on the card dimmed the text
+   inside it to 2.98:1 for the team sub-line and 2.86:1 for the note, against
+   a 4.5 floor, on every bye in every season's bracket. ADR 0005's sweep has
+   never been able to see it: contrast-sweep.js reads the DECLARED colour and
+   an ancestor's opacity never reaches getComputedStyle(el).color, so the tool
+   reported 5.3 and 5.16 for the same two elements. Found while dimming the
+   losing side in Matchups, which would have added the same defect.
+
+   The sunken ground plus a dashed edge says "not a game that was played"
+   without touching a single ink value. Nothing here dims text any more. */
+.bgame.bbye{background:var(--well);border-style:dashed}
 .bside{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:8px;padding:8px 10px}
 .bside + .bside{border-top:1px solid var(--soft)}
 .bseed{font-size:var(--t-tiny);color:var(--faint);text-align:right}
@@ -4538,6 +4549,67 @@ h2.rdpf-name{margin:0;font-family:var(--ui);font-size:34px;line-height:1;font-we
      better small than the figure it replaced. */
   .rdl5{justify-content:flex-start}
 }
+
+/* ── Matchups (5b) ─────────────────────────────────────────────────────
+   The winner is marked by WEIGHT, not by fill. This card used to tint the
+   winning row with --accent-soft, which is where 291 of the AA failures in
+   the token re-cut came from — a tint that composites differently in each
+   theme, carrying dim ink. 5b marks the winner by leaving him at full
+   opacity and greening his score, and drops the loser to .72. No fill, no
+   composite, and the eye finds the winner faster because one row is dimmer
+   rather than both being coloured. */
+.mteam{gap:11px;padding:0 0 11px}
+.mteam+.mteam{border-top:0;padding-top:0}
+.mgame>summary .mhead>div{padding:14px 16px 3px}
+.mteam .tlogo{width:26px;height:26px;
+  box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--own,var(--line))}
+.mteam .who b{display:block;font-family:var(--ui);font-size:14px;line-height:1.2;
+  font-weight:500;color:var(--ink)}
+.mteam .who i{font-style:normal;font-family:var(--fig);font-size:11.5px;color:var(--body)}
+.mteam .msc{font-family:var(--fig);font-size:17px;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+/* The loser is dimmed by COLOUR, not by opacity, and that is not a style
+   preference — it is what keeps the row inside the gate.
+
+   §3 says "loser at .72" and the obvious reading is opacity on the row. It
+   is also invisible to ADR 0005's sweep: contrast-sweep.js reads
+   getComputedStyle(el).color, which reports the DECLARED colour regardless
+   of any ancestor's opacity. Measured on the live build, the loser's team
+   sub-line reported 6.79:1 to the tool and rendered at 4.16 — a real AA
+   failure the gate cannot see, on every losing row of all 1,138 games.
+
+   Dimming by token instead lands the same visual step (--ink to --body,
+   --body to --muted) at 6.8:1 and 5.7:1, and every one of them is a value
+   the sweep can actually read. If a future surface wants a dimmed state,
+   dim it with tokens for the same reason. */
+.mteam:not(.win) .who b{color:var(--body);font-weight:500}
+.mteam:not(.win) .who i{color:var(--muted)}
+.mteam:not(.win) .msc{color:var(--body);font-weight:500}
+.mteam:not(.win) .tlogo{opacity:.85}   /* artwork only — carries no text */
+.mteam.win{background:none}
+.mteam.win .who b{color:var(--ink);font-weight:600}
+.mteam.win .msc{color:var(--pos);font-weight:600}
+
+/* The meta line: what kind of game it was, by how much, and the way in. */
+.mmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 16px 13px}
+.mtag{font-family:var(--fig);font-size:10.5px;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--body);background:var(--raise);
+  border:1px solid var(--line);border-radius:var(--r-pill);padding:4px 9px;white-space:nowrap}
+.mtag.playoff{color:var(--gold-text);background:var(--gold-soft);
+  border-color:color-mix(in srgb,var(--gold) 32%,transparent)}
+.mexpand{font-family:var(--ui);font-size:12px;font-weight:500;letter-spacing:0;
+  text-transform:none;color:var(--accent);margin-left:auto;padding:0}
+.mgame:hover .mexpand{text-decoration:underline}
+.mgame[open] .mexpand{display:none}
+.mgame.flat{padding:0}
+.mgame[open]>summary .mhead{border-bottom:1px solid var(--line)}
+.mgame[open]>summary .mteam{border-bottom:0}
+
+@media (max-width:640px){
+  .mgame>summary .mhead>div{padding:12px 13px 3px}
+  .mmeta{padding:0 13px 11px}
+  .mteam .msc{font-size:15.5px}
+}
 /* Functional motion only, and never against an explicit preference. */
 @media (prefers-reduced-motion:no-preference){
   .rdrank,.rddoor b,.rdbtn,.rdlink,.rdcell,.rdpill,.rdchamprow,.rdcrown-name,.rdaward{transition:color .15s ease,background-color .15s ease,border-color .15s ease}
@@ -7112,13 +7184,22 @@ function matchupsHTML(y){
           ${logoImg(OWN(y,tid), "tlogo-sm")}
           <span class="who"><b>${esc(OWN(y,tid))}</b><i>${esc(TEAM(y,tid).n)}</i></span>
           <span class="msc">${pts.toFixed(2)}</span></div>`;
+        /* The margin, which the two scores imply but nobody subtracts while
+           scrolling. 5b puts it where the game's own label goes, so the
+           chip line reads "what kind of game, and how close" in one pass. */
+        const margin = Math.abs(hp - ap);
+        const kindTag = typ === 1 ? `<span class="mtag playoff">${PTYPE[typ]}</span>`
+              : (typ ? `<span class="mtag">${PTYPE[typ]}</span>`
+              : (decided ? `<span class="mtag">Level on points &middot; won on tiebreak</span>`
+              : (tie ? `<span class="mtag">Tie</span>` : "")));
+        const marginTag = (tie || decided) ? ""
+              : `<span class="mtag">${margin.toFixed(1)} pt margin</span>`;
         const head = `<summary><div class="mhead"><div style="grid-column:1/-1">
-            ${teamRow(at, ap, aw)}${teamRow(ht, hp, hw)}</div></div>
-            ${typ === 1 ? `<div class="mtag playoff">${PTYPE[typ]}</div>`
-                  : (typ ? `<div class="mtag">${PTYPE[typ]}</div>`
-                  : (decided ? `<div class="mtag">Level on points &middot; won on tiebreak</div>`
-                  : (tie ? `<div class="mtag">Tie</div>` : "")))}
-            ${hasBox ? `<div class="mexpand">Tap for full boxscore</div>` : ""}</summary>`;
+            ${teamRow(at, ap, aw)}${teamRow(ht, hp, hw)}</div></div></summary>`;
+        /* Outside the <summary>: "Boxscore →" is the affordance, and the old
+           copy said "Tap", which is wrong on every device with a mouse. */
+        const meta = `<div class="mmeta">${kindTag}${marginTag}${
+            hasBox ? `<span class="mexpand">Boxscore &rarr;</span>` : ""}</div>`;
         /* The two lineups are the heavy part of the whole page — a season of
            them runs to megabytes of markup, nearly all of it inside games
            nobody has opened. The panel ships empty and is filled the first
@@ -7127,8 +7208,10 @@ function matchupsHTML(y){
         /* Without lineups there is nothing to open, so the row is a plain block
            rather than a <details> that expands to an empty panel. */
         return hasBox
-          ? `<details class="mgame${typ === 1 ? " post" : ""}" data-h="${ht}" data-a="${at}">${head}${body}</details>`
-          : `<div class="mgame flat${typ === 1 ? " post" : ""}" data-h="${ht}" data-a="${at}">${head.replace(/^<summary>/, "").replace(/<\/summary>$/, "")}</div>`;
+          ? `<details class="mgame${typ === 1 ? " post" : ""}" data-h="${ht}" data-a="${at}">${
+              head.replace("</summary>", meta + "</summary>")}${body}</details>`
+          : `<div class="mgame flat${typ === 1 ? " post" : ""}" data-h="${ht}" data-a="${at}">${
+              head.replace(/^<summary>/, "").replace(/<\/summary>$/, "")}${meta}</div>`;
       }).join("")}</div></div>`;
   }).join("");
 }
