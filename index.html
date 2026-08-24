@@ -4753,6 +4753,87 @@ h2.rdpf-name{margin:0;font-family:var(--ui);font-size:34px;line-height:1;font-we
 .rulechg .tag.cat-draft{background:var(--rust)}
 .rulechg .chgtext{grid-column:2;font-family:var(--ui);font-size:12.5px;line-height:1.5;
   color:var(--body);text-wrap:pretty}
+
+/* ── The Drafts route (7a, 7b, 7c) and Rosters (6c) ────────────────────
+   The redesign's two type roles, scoped to this route's tables: every
+   figure and column head in --fig so numbers align, names in --ui. */
+.board th,.drtable th{font-family:var(--fig);font-size:10px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.board th em,.board th .slot{font-family:var(--fig)}
+.board td,.drtable td{font-family:var(--fig)}
+.board .pl,.drtable .drname{font-family:var(--ui)}
+.board .pv{font-variant-numeric:tabular-nums}
+
+/* 7c's colour-by switcher. The board could already tint by return; the
+   other two axes answer questions the grid is genuinely asked — "where did
+   the runs happen" and "whose column is this" — and they cost nothing but
+   a class, since position and owner are already on every cell.
+
+   Tints only, ink never moves: the same rule the head-to-head heatmap
+   settled on, and for the same reason. In light the sign tokens are dark,
+   so a fill mixed from them darkens the cell under already-dark ink. */
+.board .pk{border-radius:var(--r-sm);padding:3px 5px;margin:-3px -5px}
+.board .pk + .pk{margin-top:5px}
+/* 14% is the ceiling, and it was measured rather than chosen. A pick cell
+   carries THREE inks, not one — the player at --ink, and the club and the
+   position at --faint/--muted, which are already dim before any tint goes
+   under them. At 18-24% those two fell to 3.05:1 in dark and 4.05 in light,
+   802 elements across the three axes. Backing the tints off to 14% and
+   lifting the two dim inks to --body while an axis is live clears them at
+   5.0-5.1 in dark and 7.8+ in light, and the wash still reads. "Ink never
+   moves" was the right rule; I had only counted one of the three. */
+#draftboard[data-colour="rate"] .pk.ov-p2{background:color-mix(in srgb,var(--pos) 14%,transparent)}
+#draftboard[data-colour="rate"] .pk.ov-p1{background:color-mix(in srgb,var(--pos) 7%,transparent)}
+#draftboard[data-colour="rate"] .pk.ov-n1{background:color-mix(in srgb,var(--neg) 7%,transparent)}
+#draftboard[data-colour="rate"] .pk.ov-n2{background:color-mix(in srgb,var(--neg) 14%,transparent)}
+#draftboard[data-colour="pos"] .pk[data-pos="QB"]{background:color-mix(in srgb,var(--enc) 13%,transparent)}
+#draftboard[data-colour="pos"] .pk[data-pos="RB"]{background:color-mix(in srgb,var(--pos) 13%,transparent)}
+#draftboard[data-colour="pos"] .pk[data-pos="WR"]{background:color-mix(in srgb,var(--accent) 13%,transparent)}
+#draftboard[data-colour="pos"] .pk[data-pos="TE"]{background:color-mix(in srgb,var(--gold) 13%,transparent)}
+#draftboard[data-colour="pos"] .pk[data-pos="K"]{background:color-mix(in srgb,var(--rust) 11%,transparent)}
+#draftboard[data-colour="pos"] .pk[data-pos="D/ST"]{background:var(--raise)}
+/* The manager's own hue, and the one other place it is allowed to fill: a
+   whole column IS a card entirely about him. A wash, never a fill — and 8%,
+   not the 12% the other axes take, because this one is seventeen different
+   hues rather than five known ones. The ceiling has to clear the BRIGHTEST
+   of them, and at 12% that hue put the cell's club and position labels at
+   4.47:1. The binding constraint on a per-manager encoding is always the
+   loudest accent in the set, not the average. */
+#draftboard[data-colour="mgr"] .pk{background:color-mix(in srgb,var(--own,var(--line)) 8%,transparent)}
+#draftboard:not([data-colour="none"]):not([data-colour=""]) .pk .nfl,
+#draftboard:not([data-colour="none"]):not([data-colour=""]) .pk .bpos{color:var(--body)}
+
+.drcolour{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.drcolour .rlab{font-family:var(--fig);font-size:10.5px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted)}
+.drcolour button{padding:5px 11px;border-radius:var(--r-pill);background:var(--surface);
+  border:1px solid var(--line);font-family:var(--ui);font-size:11.5px;line-height:1;
+  font-weight:500;color:var(--body);cursor:pointer}
+.drcolour button:hover{border-color:var(--accent);color:var(--accent)}
+.drcolour button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.drcolour button.on{background:var(--accent);border-color:var(--accent);color:var(--on-chip);font-weight:600}
+
+/* ── Rosters (6c): the bench recedes ──────────────────────────────────
+   6c puts the bench at .62 opacity. It does not get opacity — that is the
+   blind spot documented in contrast-sweep trap 8, and it would put every
+   bench line under AA while the gate reported zero. The same visual step
+   by token instead: name --ink to --body, slot and club --muted, points
+   --body. Every one of those is a value the sweep can read.
+
+   The bench TOTAL stays at full strength on purpose: "points left on the
+   bench" is the figure this board exists to show (§3), so it is the one
+   thing in the column that must not recede. */
+.rcol .bnch ~ .rrow .rname{color:var(--body);font-weight:400}
+.rcol .bnch ~ .rrow .rname .rnfl{color:var(--muted)}
+.rcol .bnch ~ .rrow .rslot{color:var(--muted)}
+.rcol .bnch ~ .rrow .rpts{color:var(--body);font-weight:600}
+.rcol h4.bnch .rtot{color:var(--ink)}
+.rrow .rslot,.rrow .rpts{font-family:var(--fig)}
+.rrow .rname{font-family:var(--ui)}
+
+@media (max-width:900px){
+  .drcolour button{min-height:44px;display:inline-flex;align-items:center}
+}
 /* Functional motion only, and never against an explicit preference. */
 @media (prefers-reduced-motion:no-preference){
   .rdrank,.rddoor b,.rdbtn,.rdlink,.rdcell,.rdpill,.rdchamprow,.rdcrown-name,.rdaward{transition:color .15s ease,background-color .15s ease,border-color .15s ease}
@@ -5028,6 +5109,13 @@ h2.rdpf-name{margin:0;font-family:var(--ui);font-size:34px;line-height:1;font-we
   <p class="draftempty" id="draftempty">Choose a season above to open its board.</p>
   <div id="draftpanel" hidden>
     <div class="draftmeta" id="draftmeta"></div>
+    <div class="drcolour" id="draftcolour" role="group" aria-label="Colour the board by">
+      <span class="rlab">Colour by</span>
+      <button type="button" data-dc="none" class="on" aria-pressed="true" aria-controls="draftboard">Nothing</button>
+      <button type="button" data-dc="rate" aria-pressed="false" aria-controls="draftboard">Return over rate</button>
+      <button type="button" data-dc="pos" aria-pressed="false" aria-controls="draftboard">Position</button>
+      <button type="button" data-dc="mgr" aria-pressed="false" aria-controls="draftboard">Manager</button>
+    </div>
     <div class="rpick" id="draftrate"><button type="button" id="ratebtn" aria-pressed="false" aria-controls="draftboard">Going rate</button></div>
     <p class="swipe">Swipe the board sideways to see every team. Individual picks also sit under each team in Seasons.</p>
     <div class="card"><div class="tw"><table class="board" id="draftboard"></table></div></div>
@@ -6359,6 +6447,7 @@ function boardHTML(y){
   const roundOf = (p,i) => p[4] || i + 1;
   const maxRd = Math.max(d.rounds || 0,
     ...Object.values(d.picks).flatMap(ps => ps.map(roundOf)));
+  const teamOf = cols.map(([t]) => t);
   const grid = cols.map(([,ps]) => {
     const byRd = {};
     ps.forEach((p,i) => (byRd[roundOf(p,i)] = byRd[roundOf(p,i)] || []).push(p));
@@ -6367,7 +6456,8 @@ function boardHTML(y){
   const head = `<colgroup><col style="width:38px">${cols.map(()=>'<col class="tmcol">').join("")}</colgroup><thead><tr><th class="rdc"></th>${cols.map(([t],i) =>
     `<th><div class="whd"><span class="slot">Slot ${i+1}</span><span>${esc(OWNER_OF[t] || t)}</span><em>${esc(t)}</em></div></th>`).join("")}</tr></thead><tbody>`;
   const rows = Array.from({length:maxRd}, (_,r) =>
-    `<tr><td class="rdc">${r+1}</td>${grid.map(byRd => {
+    `<tr><td class="rdc">${r+1}</td>${grid.map((byRd, ci) => {
+      const team = teamOf[ci];
       const cell = byRd[r+1];
       if(!cell) return '<td class="nopick"></td>';
       return `<td>${cell.map(p => { const q = priced[p[0]];
@@ -6375,7 +6465,13 @@ function boardHTML(y){
           ? `Pick #${p[0]} · the going rate here was ${Math.round(q.rate)} · he returned ` +
             `${Math.round(q.vor)} over replacement in ${q.games} game${q.games === 1 ? "" : "s"}`
           : `Pick #${p[0]}`;
-        return `<div class="pk" title="${esc(tip)}"><div class="pl">${pLink(p[1], y, null, PID[p[1]])}</div>
+        /* Three encodings on one cell, so 7c's colour-by switcher is a class
+           on the table rather than a re-render: the return bucket, the
+           position, and the column owner's hue. */
+        const ovb = !q ? "" : q.over >= 60 ? " ov-p2" : q.over > 0 ? " ov-p1"
+                            : q.over <= -60 ? " ov-n2" : " ov-n1";
+        const pkOwn = OWNER_OF[team];
+        return `<div class="pk${ovb}" data-pos="${attr(p[3])}"${pkOwn ? ownAttrs(pkOwn) : ""} title="${esc(tip)}"><div class="pl">${pLink(p[1], y, null, PID[p[1]])}</div>
         <div class="mt"><span class="nfl">${esc(p[2])}</span> <span class="bpos">${p[3]}</span>${
           q ? `<span class="pv ${q.over < 0 ? "neg" : "pos"}">${
             q.over < 0 ? "&minus;" : "+"}${Math.round(Math.abs(q.over))}</span>` : ""
@@ -6406,6 +6502,21 @@ document.getElementById("draftyears").addEventListener("click", e => {
    about, and `.on` plus aria-pressed carry whether it is on, exactly as the
    season pills do. A button whose label flips between "Show" and "Hide" tells
    a screen reader its name changed rather than its state. */
+/* 7c's colour-by switcher. A class on the table, not a re-render: every pick
+   already carries its bucket, its position and its owner hue, so switching
+   axis is one attribute. "Nothing" is the default and is a real option — the
+   board is a reading surface first, and 192 tinted cells is a choice the
+   reader should have to make rather than arrive at. */
+document.getElementById("draftcolour").addEventListener("click", e => {
+  const b = e.target.closest("button[data-dc]"); if(!b) return;
+  const board = document.getElementById("draftboard");
+  board.dataset.colour = b.dataset.dc;
+  document.querySelectorAll("#draftcolour button").forEach(x => {
+    const on = x === b;
+    x.classList.toggle("on", on);
+    x.setAttribute("aria-pressed", String(on));
+  });
+});
 document.getElementById("ratebtn").addEventListener("click", function(){
   const on = document.getElementById("draftboard").classList.toggle("showrate");
   this.classList.toggle("on", on);
