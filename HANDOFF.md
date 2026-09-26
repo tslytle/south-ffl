@@ -4,6 +4,42 @@ This picks up a `/grilling` (+ domain-modeling) session about improving the Sout
 (looks/functionality/data/data-analysis) ahead of draft night, **Monday Sept 7, 2026, 6:00 PM CDT**.
 See `CONTEXT.md` and `docs/adr/` for what's already settled — read those first.
 
+
+---
+
+## WHERE THIS STANDS — 2026-09-26: the re-skin and the live 2026 season
+The owner found the redesigned site grey and joyless and asked for "clean and fun". The
+dark, monospace, nothing-decorative direction of HANDOFF-REDESIGN is **superseded** for
+look and feel (structure and routes are unchanged):
+
+- **Warm light is the default** (`--bg #FBF7F0`, white cards on soft shadows). The no-flash
+  script reads a NEW key, `theme26`, so every visitor starts on the re-skin; dark is still
+  one toggle away and still passes AA.
+- **Fonts:** Bricolage Grotesque (headlines, `--serif`) and DM Sans (everything else,
+  `--sans`/`--ui`/`--fig`), embedded base64. Oswald, Inter, Instrument Sans and IBM Plex
+  Mono are gone.
+- **Overrides live in one block**, `<style>` "2026 re-skin" just before `</head>`. `sk*`
+  classes are the hub, `lv*` the 2026 section. The old `rdhero`/`rdrank`/`rddir` CSS is
+  now unused.
+- **Hub** rebuilt to the approved mockup (`../mockups/hub-playful.html`): hero + reigning
+  champion, "2026 so far", four computed all-time facts, grade rankings as cards, six doors.
+- **2026 season** is `LIVE_2026`, deliberately separate from SEASONS/ARCH so a partial
+  season never feeds grades, records or head-to-head. Rendered in `#live2026` at the top of
+  the Season route (standings, week pills, rosters, draft board). Fold it into ARCH when the
+  season is final.
+
+### Weekly refresh (league is private)
+ESPN's API answers only inside a signed-in browser. With Claude in Chrome: open the league
+page, run the extract (fetch `mTeam/mMatchupScore/mSettings/mStatus`, then
+`mDraftDetail/mRoster`, compact it, write it into the page), read it back with
+get_page_text, save to `.espn-raw/live-2026.json` (gitignored), then
+`python refresh-live.py`. Posting straight to a localhost receiver does NOT work: Chrome's
+local-network-access gate holds the request. ESPN lists Leo's account as "Taksin
+Thaweechok"; `refresh-live.py` aliases it.
+
+Gates at push: zero AA failures at {372px, 1538px} x {light, dark}, no horizontal scroll,
+one `<h1>`, no NaN/undefined in rendered text, no console errors.
+
 ---
 
 ## The "Page build failed" mails are cancelled builds, not failed ones (`5ab49b7`)

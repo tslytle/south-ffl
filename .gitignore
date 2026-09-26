@@ -1,3 +1,5 @@
 .nflverse-cache/
 __pycache__/
 *.pyc
+
+.espn-raw/
